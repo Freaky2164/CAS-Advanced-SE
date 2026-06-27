@@ -29,7 +29,7 @@ public abstract class CInfoDataManagingDatabase {
 
     protected CInfoDataObject parent;
 
-    public CInfoDataManagingDatabase(CInfoDataObject parent) {
+    protected CInfoDataManagingDatabase(CInfoDataObject parent) {
         this.parent = parent;
     }
 
@@ -66,8 +66,7 @@ public abstract class CInfoDataManagingDatabase {
     }
 
     private static StringBuilder buildWhereClause(CProperties pAttributes, CProperties pTables) {
-        StringBuilder sqlWhere = new StringBuilder();
-        sqlWhere.append(" WHERE ");
+        StringBuilder sqlWhere = new StringBuilder().append(" WHERE");
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
             if (!pA.get(IS_KEY_KEY).toString().equalsIgnoreCase("0")) {
@@ -171,7 +170,7 @@ public abstract class CInfoDataManagingDatabase {
     }
 
     private static String buildUpdateSql(String tableQualified, CProperties pAttributes,
-                                         CDataObject actual, CProperties keys) {
+                                         CDataObject actual) {
         StringBuilder setClauses = new StringBuilder();
         for (int j = 1; j <= pAttributes.size(); j++) {
             CProperties pAttr = (CProperties) pAttributes.get(Integer.toString(j));
@@ -230,10 +229,7 @@ public abstract class CInfoDataManagingDatabase {
         CProperties pAttributes = (CProperties) p.get(ATTRIBUTES_KEY);
         StringBuilder sqlSelect = buildSelectClause(pAttributes);
         StringBuilder sqlWhere = buildWhereClause(pAttributes, pTables);
-        String fullString = String.valueOf(sqlSelect) +
-                sqlFrom +
-                sqlWhere;
-        return fullString;
+        return String.valueOf(sqlSelect) + sqlFrom + sqlWhere;
     }
 
     CDataObject getCDataObject(CProperties keys, boolean b) {
@@ -242,11 +238,10 @@ public abstract class CInfoDataManagingDatabase {
         }
         CProperties p = getProperties();
         String sqlObjectString = buildBaseSql(p);
-        List<Object> parameterValues = new ArrayList<Object>();
+        List<Object> parameterValues = new ArrayList<>();
         for (int i = 1; i <= keys.size(); i++) {
             CProperties pKey = (CProperties) keys.get(Integer.toString(i));
-            sqlObjectString += " AND " + joinQualifiedName(pKey.get(OWNER_KEY), pKey.get(TABLE_NAME_KEY),
-                    pKey.get(COLUMN_NAME_KEY)) + " = ? ";
+            sqlObjectString = " AND " + joinQualifiedName(pKey.get(OWNER_KEY), pKey.get(TABLE_NAME_KEY), pKey.get(COLUMN_NAME_KEY)) + " = ? ";
             parameterValues.add(pKey.get("value"));
         }
 
@@ -273,7 +268,7 @@ public abstract class CInfoDataManagingDatabase {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to load data object: " + sqlObjectString, e);
+            LOGGER.log(Level.SEVERE, "Failed to load data object: %s".formatted(sqlObjectString), e);
         } catch (NumberFormatException nfe) {
             CMessage.print(nfe);
         }
@@ -329,7 +324,7 @@ public abstract class CInfoDataManagingDatabase {
 
         for (int i = pTables.size() - 1; i >= 0; i--) {
             String tableQualified = (String) pTables.get(Integer.toString(i));
-            String sqlUpdate = buildUpdateSql(tableQualified, pAttributes, actual, keys);
+            String sqlUpdate = buildUpdateSql(tableQualified, pAttributes, actual);
             if (sqlUpdate == null) continue;
             CMessage.print(sqlUpdate);
             List<Object> keyValues = collectKeyValues(pAttributes, keys);

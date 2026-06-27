@@ -53,9 +53,9 @@ public class CDisplayField extends JPanel implements CInfoParent {
     public void setValue(Object o) {
         display.setValue(o);
         if (o == null) {
-            frame.attributeValues.remove(name);
+            frame.getAttributeValues().remove(name);
         } else {
-            frame.attributeValues.put(name, o);
+            frame.getAttributeValues().put(name, o);
         }
     }
 

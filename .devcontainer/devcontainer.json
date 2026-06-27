@@ -7,9 +7,9 @@
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/Code",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
-      "version": "26"
+      "version": "26",
+      "installGradle": "true"
     },
-    "ghcr.io/devcontainers-extra/features/gradle-sdkman": "latest"
   },
   "forwardPorts": [
     5432

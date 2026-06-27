@@ -18,45 +18,65 @@ public class CInfoFrame extends CFrame {
     public static final int SUB = 5;
     public static final int EDITALL = 6;
     private static final Logger LOGGER = Logger.getLogger(CInfoFrame.class.getName());
-    private final CInfoParent parent;
+    private final transient CInfoParent infoParent;
     private final CProperties pc;
     private final CProperties papply = new CProperties();
     private final CProperties pok = new CProperties();
-    public CInfoFrameStatus status;
-    public List<CDisplayField> cFields = new ArrayList<>();
-    public CTabbedPane tabbedPane = new CTabbedPane();
-    public CProperties attributeValues = new CProperties();
+    private transient CInfoFrameStatus status;
+    private transient List<CDisplayField> cFields = new ArrayList<>();
+    private final CTabbedPane tabbedPane = new CTabbedPane();
+    private CProperties attributeValues = new CProperties();
     protected CButton bOk;
     protected CButton bApply;
     protected CButton bCancel;
     protected CProperties p;
-    protected CInfoDataObject dataObj;
-    protected String object_name;
+    protected transient CInfoDataObject dataObj;
+    protected String objectName;
     protected boolean edited = false;
     protected CProperties attributeActions = new CProperties();
-    private CCommand c;
+    private transient CCommand c;
+    public static final String APPLY = "apply";
 
-    public CInfoFrame(int modus, CProperties p, CInfoParent parent) throws HeadlessException {
+    public List<CDisplayField> getcFields() {
+        return cFields;
+    }
+    public void setcFields(List<CDisplayField> cFields) {
+        this.cFields = cFields;
+    }
+    public CProperties getAttributeValues() {
+        return attributeValues;
+    }
+    public void setAttributeValues(CProperties attributeValues) {
+        this.attributeValues = attributeValues;
+    }
+    public CInfoFrameStatus getStatus() {
+        return status;
+    }
+    public void setStatus(CInfoFrameStatus status) {
+        this.status = status;
+    }
+
+    public CInfoFrame(int modus, CProperties p, CInfoParent infoParent) throws HeadlessException {
         super(null);
-        this.parent = parent;
+        this.infoParent = infoParent;
         this.p = p;
 
-        this.object_name = p.get("object_name").toString();
-        this.name = this.object_name + ".info";
-        dataObj = CDataObjectFactory.getCInfoDataObject(this.object_name);
+        this.objectName = p.get("objectName").toString();
+        setName(this.objectName + ".info");
+        dataObj = CDataObjectFactory.getCInfoDataObject(this.objectName);
         papply.put("ok", "0");
         pok.put("ok", "1");
         bOk = CButtonFactory.getButton("ok");
-        bApply = CButtonFactory.getButton("apply");
-        if (dataObj.getCProperties().get("apply") == null) {
+        bApply = CButtonFactory.getButton(APPLY);
+        if (dataObj.getCProperties().get(APPLY) == null) {
             bOk.addActionListener(e -> ok());
-            bApply.addActionListener(e -> apply());
+            bApply.addActionListener(e -> applyMethod());
         } else {
             try {
-                c = newCommand(dataObj.getCProperties().get("apply").toString());
+                c = newCommand(dataObj.getCProperties().get(APPLY).toString());
                 c.setOwner(this);
-                bOk.addActionListener(e -> c_execute(pok));
-                bApply.addActionListener(e -> c_execute(papply));
+                bOk.addActionListener(e -> cExecute(pok));
+                bApply.addActionListener(e -> cExecute(papply));
             } catch (ReflectiveOperationException e1) {
                 LOGGER.log(Level.SEVERE, "Failed to instantiate apply command", e1);
             }
@@ -67,10 +87,9 @@ public class CInfoFrame extends CFrame {
         getButtonPaneLeft().add(bApply);
         getButtonPaneRight().add(bCancel);
         CProperties pAttributes = dataObj.getAttributes();
-        JScrollPane sp = new JScrollPane();
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.gridwidth = GridBagConstraints.REMAINDER;
+        GridBagConstraints diffC = new GridBagConstraints();
+        diffC.anchor = GridBagConstraints.NORTHWEST;
+        diffC.gridwidth = GridBagConstraints.REMAINDER;
         Object o = CPropertyManager.getInstance().getGlobal("SEARCH_IN_INFO");
         if (o != null && (Boolean) o) {
             getContentPane().add(new CInfoSearchBean(this), BorderLayout.NORTH);
@@ -90,16 +109,16 @@ public class CInfoFrame extends CFrame {
                     CMessage.print("ActionCommand gefunden f�r");
                     CMessage.print(name);
                     CMessage.print(attributeActions.get(name));
-                } catch (ReflectiveOperationException e) {
+                } catch (ReflectiveOperationException _) {
                     // nichts zu tun
                     CMessage.print("Fehler beim Erzeugen des ActionCommands");
                 }
             }
-            c.gridwidth = GridBagConstraints.REMAINDER;
+            diffC.gridwidth = GridBagConstraints.REMAINDER;
             if (aProp.get("gridwidth") != null) {
-                c.gridwidth = Integer.parseInt((String) aProp.get("gridwidth"));
+                diffC.gridwidth = Integer.parseInt((String) aProp.get("gridwidth"));
             }
-            addFieldToPanel(field, c);
+            addFieldToPanel(field, diffC);
         }
         initStatus(modus);
 
@@ -117,7 +136,7 @@ public class CInfoFrame extends CFrame {
         setVisible(true);
     }
 
-    protected void c_execute(CProperties prop) {
+    protected void cExecute(CProperties prop) {
         c.execute(prop);
     }
 
@@ -188,17 +207,9 @@ public class CInfoFrame extends CFrame {
             CButton button = CButtonFactory.getButton(cb.get("bez").toString());
             getCustomButtonPane().add(button);
             button.getCommand().setOwner(this);
-/*	        button.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    custButton(e);
-                }       
-	        });*/
         }
     }
 	
-/*	public void custButton(ActionEvent e) {
-	    ((CButton)e.getSource()).getCommand().execute(null);
-	}*/
 
     private void storeAttributeValue(String name, Object value) {
         if (value == null) {
@@ -240,9 +251,9 @@ public class CInfoFrame extends CFrame {
 
     public void refresh() {
         // TODO refrehbare Attribute aktualisieren
-//	    CMessage.print("refresh durchf�hren");
     }
 
+    @Override
     public void setColor(Color c) {
         super.setColor(c);
         for (int i = 0; i < cFields.size(); i++) {
@@ -255,13 +266,12 @@ public class CInfoFrame extends CFrame {
         dispose();
     }
 
-    public void apply() {
+    public void applyMethod() {
         try {
             status.apply();
-            parent.refresh();
+            infoParent.refresh();
             clearStatusLine();
             edited = false;
-//	        CMessage.print("edited = false");
             for (CDisplayField field : cFields) {
                 field.resetEditedColor();
             }
@@ -275,7 +285,7 @@ public class CInfoFrame extends CFrame {
     public void ok() {
         try {
             status.apply();
-            parent.refresh();
+            infoParent.refresh();
             clearStatusLine();
             edited = false;
             dispose();
@@ -290,6 +300,7 @@ public class CInfoFrame extends CFrame {
         return dataObj;
     }
 
+    @Override
     public void dispose() {
         if (edited) {
             int returnValue;
@@ -302,10 +313,8 @@ public class CInfoFrame extends CFrame {
 
     public void setFieldValue(String name, Object value) {
         for (CDisplayField o : cFields) {
-//            CMessage.print(o.getName());          
             if (o.getName().equalsIgnoreCase(name)) {
                 o.setValue(value);
-//                CMessage.print("gefunden");
                 return;
             }
         }
@@ -313,11 +322,11 @@ public class CInfoFrame extends CFrame {
 
     public CDisplayField getField(String name) {
         for (CDisplayField o : cFields) {
-//            CMessage.print(o.getName());          
             if (o.getName().equalsIgnoreCase(name)) {
                 return o;
             }
         }
         return null;
     }
+
 }

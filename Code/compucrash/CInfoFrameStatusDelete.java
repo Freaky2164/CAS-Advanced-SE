@@ -19,6 +19,7 @@ public class CInfoFrameStatusDelete extends CInfoFrameStatus {
     }
 
     public void entry() {
+        CInfoFrame owner= getOwner();
         owner.setTitle("Delete");
         // get data
         // all fields uneditable
@@ -26,8 +27,8 @@ public class CInfoFrameStatusDelete extends CInfoFrameStatus {
         owner.bOk.setEnabled(true);
         owner.bApply.setEnabled(false);
         owner.bCancel.setEnabled(true);
-        for (int i = 0; i < owner.cFields.size(); i++) {
-            owner.cFields.get(i).setEditable(false);
+        for (int i = 0; i < owner.getcFields().size(); i++) {
+            owner.getcFields().get(i).setEditable(false);
         }
     }
 
@@ -46,21 +47,19 @@ public class CInfoFrameStatusDelete extends CInfoFrameStatus {
     public void apply() throws SQLException {
         // DELETE data
         // exit dialog
-        String errorString = "";
-        compare = owner.dataObj.getCDataObjectForUpdate((CProperties) owner.p.get("keys"));
-        Object[] o = new Object[original.size()];
-        for (int i = 0; i < original.size(); i++) {
-            o[i] = owner.cFields.get(i).getValue();
+        StringBuilder errorString = new StringBuilder();
+        setCompare(getOwner().dataObj.getCDataObjectForUpdate((CProperties) getOwner().p.get("keys")));
+        Object[] o = new Object[getOriginal().size()];
+        for (int i = 0; i < getOriginal().size(); i++) {
+            o[i] = getOwner().getcFields().get(i).getValue();
         }
-        actual = new CDataObject(o);
-        for (int i = 0; i < original.size(); i++) {
-            String originalString = toStringOrEmpty(original.get(i));
-            String compareString = toStringOrEmpty(compare.get(i));
+        setActual(new CDataObject(o));
+        for (int i = 0; i < getOriginal().size(); i++) {
+            String originalString = toStringOrEmpty(getOriginal().get(i));
+            String compareString = toStringOrEmpty(getCompare().get(i));
             if (!originalString.equals(compareString)) {
                 // Data changed while dialog opened - lost update problem
-                errorString += owner.cFields.get(i).getLabel() +
-                        ": Original > " + originalString +
-                        ", Gespeichert > " + compareString + "\n";
+                errorString.append(getOwner().getcFields().get(i).getLabel()).append(": Original > ").append(originalString).append(", Gespeichert > ").append(compareString).append("\n");
             }
         }
         int returnValue;
@@ -79,8 +78,7 @@ public class CInfoFrameStatusDelete extends CInfoFrameStatus {
             }
             return;
         }
+        CInfoFrame owner = getOwner();
         owner.dataObj.delete((CProperties) owner.p.get("keys"));
-        // hier �bersicht aktualisieren
-//		owner.dispose();
     }
 }

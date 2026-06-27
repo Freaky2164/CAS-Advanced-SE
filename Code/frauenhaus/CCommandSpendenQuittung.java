@@ -38,7 +38,7 @@ public class CCommandSpendenQuittung extends CCommand implements CReport {
     }
 
     public Object execute(Object parameters) {
-        if (owner instanceof CInfoFrame frame) {
+        if (getOwner() instanceof CInfoFrame frame) {
             Object o = frame.getAttributeValue("frauenhaus.spende.spende");
             spende = o.toString();
             o = frame.getAttributeValue("frauenhaus.spende.verein");

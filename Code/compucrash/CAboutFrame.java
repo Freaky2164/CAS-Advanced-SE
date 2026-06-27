@@ -15,16 +15,16 @@ public class CAboutFrame extends CFrame {
         getMainPane().add(sp);
         String textLizenz = """
                 Lizenzvereinbarung
-                Dieses Softwareprodukt ist ausschlie�lich f�r die bioPharm GmbH lizenziert.
+                Dieses Softwareprodukt ist ausschließlich für die bioPharm GmbH lizenziert.
                 
                 Alle Rechte verbleiben bei Compucrash IT-Services Tanja Reisle.
                 
                 Danksagung
                 
-                Die Autorin möchte sich bei den Programmierern der JODA Bibliotheken für 
+                Die Autorin möchte sich bei den Programmierern der JODA Bibliotheken für
                 die Datumskonvertierung
-                bedanken. Ebenso fur die Arbeit des Apache POI Projektes, mit dem EXCEL-Tabellen ein- und ausgegeben 
-                werden. 
+                bedanken. Ebenso für die Arbeit des Apache POI Projektes, mit dem EXCEL-Tabellen ein- und ausgegeben
+                werden.
                 """;
         lizenzText.setText(textLizenz);
         CButton bCancel = CButtonFactory.getButton("cancel");

@@ -8,17 +8,30 @@ public abstract class CInfoFrameStatus {
 
     private static final Logger LOGGER = Logger.getLogger(CInfoFrameStatus.class.getName());
 
-    public CInfoFrame owner;
-    public CDataObject original;
-    public CDataObject actual;
-    public CDataObject compare;
+    private CInfoFrame owner;
+    private CDataObject original;
+    private CDataObject actual;
+    private CDataObject compare;
+
+    public CDataObject getActual() {
+        return actual;
+    }
+    public CDataObject getOriginal() {
+        return original;
+    }
+    public void setActual(CDataObject actual) {
+        this.actual = actual;
+    }
+    public void setOriginal(CDataObject original) {
+        this.original = original;
+    }
 
     public CInfoFrameStatus(CInfoFrame owner) {
         this.owner = owner;
         original = owner.dataObj.getCDataObject((CProperties) owner.p.get("keys"));
         actual = (CDataObject) original.clone();
         // die attribute dataObj, original und actual sollten evtl in den Status
-        for (int i = 0; i < owner.cFields.size(); i++) {
+        for (int i = 0; i < owner.getcFields().size(); i++) {
             Object o = null;
             String val = "";
             if (actual.get(i + 1) == null) {
@@ -29,7 +42,7 @@ public abstract class CInfoFrameStatus {
                 val = actual.get(i + 1).toString();
                 o = actual.get(i + 1);
             }
-            owner.cFields.get(i).setValue(o);
+            owner.getcFields().get(i).setValue(o);
         }
     }
 
@@ -49,5 +62,21 @@ public abstract class CInfoFrameStatus {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Failed to rollback transaction", e);
         }
+    }
+
+    public CInfoFrame getOwner() {
+        return owner;
+    }
+
+    public void setOwner(CInfoFrame owner) {
+        this.owner = owner;
+    }
+
+    public CDataObject getCompare() {
+        return compare;
+    }
+
+    public void setCompare(CDataObject compare) {
+        this.compare = compare;
     }
 }

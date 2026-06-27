@@ -6,7 +6,7 @@ import java.awt.*;
 public abstract class CAddonTableBean extends JPanel {
 
     private final CTable tab;
-    private final CListParent addParent;
+    private final transient CListParent addParent;
 
     protected CAddonTableBean(CTable tab, CListParent parent) {
         this.tab = tab;

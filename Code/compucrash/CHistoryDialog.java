@@ -30,7 +30,6 @@ public class CHistoryDialog extends CFrame {
     }
 
     protected void cancel() {
-//	    history.refresh(1);
         history.refresh();
         dispose();
     }

@@ -4,36 +4,41 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CInfoSearchBean extends JPanel {
 
     private static final Logger LOGGER = Logger.getLogger(CInfoSearchBean.class.getName());
-    private final JTextField search = new JTextField(60);
-    private final JLabel searchLabel = new JLabel("Suchen   ");
     private final CInfoFrame owner;
     private final JComboBox<String> modes = new JComboBox<>();
-    private final JPanel p1 = new JPanel();
-    private final JPanel p2 = new JPanel();
     protected CButton bNew;
     protected CButton bEdit;
     protected CButton bDelete;
     protected CButton bCopy;
     protected CButton bDisplay;
     protected CProperties p;
+    private static final String BDISPLAYCONST = "bdisplay";
+    private static final String BEDITCONST = "bedit";
+    private static final String BDELETECONST = "bdelete";
+    private static final String BCOPYCONST = "bcopy";
+    private static final String BNEWCONST = "bnew";
 
     public CInfoSearchBean(CInfoFrame parent) {
         super();
         this.owner = parent;
-        p = CDataObjectFactory.getCListDataObject(parent.object_name).getCProperties();
+        p = CDataObjectFactory.getCListDataObject(parent.objectName).getCProperties();
+        JPanel p1 = new JPanel();
         p1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Suchen"));
+        JPanel p2 = new JPanel();
         p2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Modus"));
-//		setLayout(new FlowLayout(FlowLayout.LEFT));
         setLayout(new BorderLayout());
+        JTextField search = new JTextField(60);
         p1.add(search, BorderLayout.CENTER);
         p2.setPreferredSize(new Dimension(200, p2.getHeight()));
         search.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == KeyEvent.CHAR_UNDEFINED) return;
                 action(e);
@@ -43,34 +48,34 @@ public class CInfoSearchBean extends JPanel {
         add(p1, BorderLayout.CENTER);
         add(p2, BorderLayout.EAST);
         bNew = CButtonFactory.getButton("new");
-        bNew.addActionListener(e -> bDo("bnew"));
+        bNew.addActionListener(_ -> bDo("bnew"));
         bEdit = CButtonFactory.getButton("edit");
-        bEdit.addActionListener(e -> bDo("bedit"));
+        bEdit.addActionListener(_ -> bDo(BEDITCONST));
         bDelete = CButtonFactory.getButton("delete");
-        bDelete.addActionListener(e -> bDo("bdelete"));
+        bDelete.addActionListener(_ -> bDo(BDELETECONST));
         bCopy = CButtonFactory.getButton("copy");
-        bCopy.addActionListener(e -> bDo("bcopy"));
+        bCopy.addActionListener(_ -> bDo(BCOPYCONST));
         bDisplay = CButtonFactory.getButton("display");
-        bDisplay.addActionListener(e -> bDo("bdisplay"));
+        bDisplay.addActionListener(_ -> bDo(BDISPLAYCONST));
 
         modes.addItem("");
         addButton(bNew, p.get("bnew"));
-        addButton(bEdit, p.get("bedit"));
-        addButton(bDelete, p.get("bdelete"));
-        addButton(bCopy, p.get("bcopy"));
-        addButton(bDisplay, p.get("bdisplay"));
+        addButton(bEdit, p.get(BEDITCONST));
+        addButton(bDelete, p.get(BDELETECONST));
+        addButton(bCopy, p.get(BCOPYCONST));
+        addButton(bDisplay, p.get(BDISPLAYCONST));
 
-        modes.addActionListener(e -> bDo(modes.getSelectedItem().toString()));
+        modes.addActionListener(_ -> bDo(Objects.requireNonNull(modes.getSelectedItem()).toString()));
     }
 
     protected void bDo(String whatis) {
         String what = "";
         // Umbenennung von Labeltext in internen Key
-        if (bNew.getText().equalsIgnoreCase(whatis)) what = "bnew";
-        if (bEdit.getText().equalsIgnoreCase(whatis)) what = "bedit";
-        if (bDelete.getText().equalsIgnoreCase(whatis)) what = "bdelete";
-        if (bCopy.getText().equalsIgnoreCase(whatis)) what = "bcopy";
-        if (bDisplay.getText().equalsIgnoreCase(whatis)) what = "bdisplay";
+        if (bNew.getText().equalsIgnoreCase(whatis)) what = BNEWCONST;
+        if (bEdit.getText().equalsIgnoreCase(whatis)) what = BEDITCONST;
+        if (bDelete.getText().equalsIgnoreCase(whatis)) what = BDELETECONST;
+        if (bCopy.getText().equalsIgnoreCase(whatis)) what = BCOPYCONST;
+        if (bDisplay.getText().equalsIgnoreCase(whatis)) what = BDISPLAYCONST;
         if (p.get(what) == null || p.get(what).toString().equalsIgnoreCase("")) {
             executeDefaultAction(what);
         } else if (!p.get(what).toString().equalsIgnoreCase("NONE")
@@ -87,22 +92,22 @@ public class CInfoSearchBean extends JPanel {
 
     private void executeDefaultAction(String what) {
         if (what.equalsIgnoreCase("bnew")) {
-            owner.attributeValues.clear();
-            for (CDisplayField f : owner.cFields) {
-                owner.attributeValues.put(f.getName(), "init");
+            owner.getAttributeValues().clear();
+            for (CDisplayField f : owner.getcFields()) {
+                owner.getAttributeValues().put(f.getName(), "init");
             }
             owner.p = new CProperties();
-            owner.p.put("object_name", owner.object_name);
+            owner.p.put("objectName", owner.objectName);
             owner.p.put("key", "");
-            owner.status = new CInfoFrameStatusNew(owner);
-        } else if (what.equalsIgnoreCase("bedit")) {
-            owner.status = new CInfoFrameStatusEdit(owner);
-        } else if (what.equalsIgnoreCase("bdelete")) {
-            owner.status = new CInfoFrameStatusDelete(owner);
-        } else if (what.equalsIgnoreCase("bcopy")) {
-            owner.status = new CInfoFrameStatusCopy(owner);
-        } else if (what.equalsIgnoreCase("bdisplay")) {
-            owner.status = new CInfoFrameStatusDisplay(owner);
+            owner.setStatus(new CInfoFrameStatusNew(owner));
+        } else if (what.equalsIgnoreCase(BEDITCONST)) {
+            owner.setStatus(new CInfoFrameStatusEdit(owner));
+        } else if (what.equalsIgnoreCase(BDELETECONST)) {
+            owner.setStatus(new CInfoFrameStatusDelete(owner));
+        } else if (what.equalsIgnoreCase(BCOPYCONST)) {
+            owner.setStatus(new CInfoFrameStatusCopy(owner));
+        } else if (what.equalsIgnoreCase(BDISPLAYCONST)) {
+            owner.setStatus(new CInfoFrameStatusDisplay(owner));
         }
     }
 
@@ -116,8 +121,6 @@ public class CInfoSearchBean extends JPanel {
             return;
         }
         if (option.toString().equalsIgnoreCase("DISABLED")) {
-            // Inaktive Schaltfl�chen werden auch ausgeblendet
-//			modes.addItem(button.getText());
             return;
         }
         if (option.toString().equalsIgnoreCase("NONE")) {
@@ -127,10 +130,10 @@ public class CInfoSearchBean extends JPanel {
     }
 
     protected void action(KeyEvent e) {
-        String list = owner.object_name + ".list";
+        String list = owner.objectName + ".list";
         CListFrame f = (CListFrame) CPropertyManager.getInstance().getDialog(list);
         if (f == null) {
-            f = new CListFrame(owner.object_name, null);
+            f = new CListFrame(owner.objectName, null);
         } else {
             f.toFront();
             f.setVisible(true);

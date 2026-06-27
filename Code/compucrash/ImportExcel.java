@@ -5,6 +5,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.CellType;
 
 import java.io.*;
 import java.sql.*;
@@ -15,11 +16,10 @@ import java.util.logging.Logger;
 public class ImportExcel {
 
     private static final Logger LOGGER = Logger.getLogger(ImportExcel.class.getName());
-
+    private final int docno = 0;
     String outputLine;
     File fout;
     FileOutputStream out;
-    private final int docno = 0;
     private Connection conn;
     private Statement stmt;
 
@@ -61,12 +61,10 @@ public class ImportExcel {
                     HSSFCell cell = row.getCell((short) j);
                     if (cell == null) cell = row.createCell((short) j);
                     switch (cell.getCellType()) {
-                        case HSSFCell.CELL_TYPE_STRING:
-                            s = cell.getStringCellValue();
-                            break;
-                        case HSSFCell.CELL_TYPE_NUMERIC:
+                        case CellType.NUMERIC:
                             s = Double.toString(cell.getNumericCellValue());
                             break;
+                        case CellType.STRING:
                         default:
                             s = cell.getStringCellValue();
                     }

@@ -1,8 +1,10 @@
 package compucrash;
 
+import com.enterprisedt.net.ftp.FTPClientInterface;
+
 import javax.swing.*;
 import java.awt.*;
-import java.util.Hashtable;
+import java.util.List;
 
 public class CFrame extends JFrame {
 
@@ -21,13 +23,11 @@ public class CFrame extends JFrame {
     private final JPanel mainPaneTop = new JPanel();
     private final JPanel mainPaneTopRight = new JPanel();
     private final JTextField statusLine = new JTextField();
-    private final Hashtable<String, CButton> buttonsLeft = new Hashtable<>();
-    private final Hashtable<String, CButton> buttonsRight = new Hashtable<>();
     private final JPanel customButtonPane = new JPanel();
-    public String name;
-    public JDesktopPane cp = new JDesktopPane();
+    private transient FTPClientInterface cFields;
+    private String name;
+    private final JDesktopPane cp = new JDesktopPane();
     protected CFrame parentFrame;
-    private CMediator mediator;
 
     public CFrame(CFrame parent) throws HeadlessException {
         super();
@@ -70,12 +70,21 @@ public class CFrame extends JFrame {
         buttonPaneRight.setLayout(new FlowLayout(FlowLayout.RIGHT));
     }
 
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public JDesktopPane getDesktopPane() {
         return cp;
     }
 
     public void setFrameSize() {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         try {
             String xValue = CPropertyManager.getInstance().getProperty(name + ".x");
             String yValue = CPropertyManager.getInstance().getProperty(name + ".y");
@@ -90,7 +99,7 @@ public class CFrame extends JFrame {
             width = Integer.parseInt(widthValue);
             height = Integer.parseInt(heightValue);
             setBounds(x, y, width, height);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             pack();
         }
     }
@@ -125,18 +134,6 @@ public class CFrame extends JFrame {
         return mainPaneTop;
     }
 
-    public Hashtable<String, CButton> getButtonsLeft() {
-        return buttonsLeft;
-    }
-
-    public Hashtable<String, CButton> getButtonsRight() {
-        return buttonsRight;
-    }
-
-    public void addButtonLeft(CButton b) {
-        buttonsLeft.put(b.toString(), b);
-    }
-
     public JPanel getMainPaneTopLeft() {
         return mainPaneTopLeft;
     }
@@ -165,6 +162,7 @@ public class CFrame extends JFrame {
         statusLine.setBackground(c);
     }
 
+    @Override
     public void dispose() {
         String value = Integer.toString(getBounds().x);
         CPropertyManager.getInstance().setProperty(name + ".x", value);
@@ -177,4 +175,12 @@ public class CFrame extends JFrame {
         super.dispose();
     }
 
+
+    public List<CDisplayField> getcFields() {
+        return (List<CDisplayField>) cFields;
+    }
+
+    public void setcFields(FTPClientInterface cFields) {
+        this.cFields = cFields;
+    }
 }

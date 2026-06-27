@@ -53,7 +53,7 @@ public class CDisplayFieldCharFrameBean extends CDisplayFieldBean implements CSe
     protected void bSpringen(ActionEvent e) {
         if (text.getText() != null && !text.getText().isEmpty()) {
             CProperties pS = new CProperties();
-            pS.put("object_name", p.get(PROP_SPRINGEN));
+            pS.put("objectName", p.get(PROP_SPRINGEN));
             CProperties keys = CDataObjectFactory.getCListDataObject(p.get(PROP_SPRINGEN).toString()).getKeys();
             for (int i = 1; i <= keys.size(); i++) {
                 CProperties pK = (CProperties) keys.get(Integer.toString(i));

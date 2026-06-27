@@ -5,7 +5,6 @@ import com.adobe.acrobat.ViewerCommand;
 
 import javax.swing.*;
 import java.awt.*;
-import java.nio.*;
 import java.io.*;
 import java.sql.Blob;
 import java.sql.SQLException;
@@ -87,24 +86,28 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         try {
             byte[] b = new byte[stream.available()];
             int k = stream.read(b);
-            if (k>=0) {
+            String acrobatPath = null;
+            if (k >= 0) {
                 File fout = new File("out.pdf");
 
                 try (FileOutputStream foutstr = new FileOutputStream(fout)) {
                     foutstr.write(b);
                 }
-                String acrobatPath = "";
+                acrobatPath = "";
                 if (CPropertyManager.getInstance().getProperty("acrobat") != null) {
                     acrobatPath = CPropertyManager.getInstance().getProperty("acrobat");
                 }
+
+                Process p;
+                assert acrobatPath != null;
+                if (acrobatPath.isEmpty()) {
+                    p = new ProcessBuilder("acrord32", fout.getAbsolutePath()).start();
+                } else {
+                    p = new ProcessBuilder(acrobatPath + "acrord32", fout.getAbsolutePath()).start();
+                }
+                p.waitFor();
+
             }
-            Process p;
-            if (acrobatPath.isEmpty()) {
-                p = new ProcessBuilder("acrord32", fout.getAbsolutePath()).start();
-            } else {
-                p = new ProcessBuilder(acrobatPath + "acrord32", fout.getAbsolutePath()).start();
-            }
-            p.waitFor();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to print document", e);
         } catch (InterruptedException e) {
@@ -162,7 +165,7 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
             }
             byte[] b = new byte[stream.available()];
             int k = stream.read(b);
-            if (k>=0) {
+            if (k >= 0) {
                 if (blob == null) {
                     return b;
                 } else {

@@ -8,6 +8,7 @@ public class CInfoFrameStatusDisplay extends CInfoFrameStatus {
     }
 
     public void entry() {
+        CInfoFrame owner = getOwner();
         owner.setTitle("Display");
         // get data
         // set all fields uneditable
@@ -15,8 +16,8 @@ public class CInfoFrameStatusDisplay extends CInfoFrameStatus {
         owner.bOk.setEnabled(false);
         owner.bApply.setEnabled(false);
         owner.bCancel.setEnabled(true);
-        for (int i = 0; i < owner.cFields.size(); i++) {
-            owner.cFields.get(i).setEditable(false);
+        for (int i = 0; i < owner.getcFields().size(); i++) {
+            owner.getcFields().get(i).setEditable(false);
         }
     }
 
@@ -34,7 +35,7 @@ public class CInfoFrameStatusDisplay extends CInfoFrameStatus {
 
     public void ok() {
         // exit dialog
-        owner.dispose();
+        getOwner().dispose();
     }
 
 }

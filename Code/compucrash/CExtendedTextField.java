@@ -4,6 +4,7 @@ import javax.swing.*;
 
 public class CExtendedTextField extends JTextField implements CSelectParent {
 
+
     public CExtendedTextField(int cols) {
         super(cols);
     }
@@ -17,6 +18,6 @@ public class CExtendedTextField extends JTextField implements CSelectParent {
     }
 
     public void resetSelectDialog() {
-//	    selectDialog = null;
+        /* do nothing */
     }
 }

@@ -87,8 +87,8 @@ public class CDataManager {
         return manager.getGlobals();
     }
 
-    public ResultSet getTables(String objectName) {
-        return manager.getTables(objectName);
+    public ResultSet getTables() {
+        return manager.getTables();
     }
 
     public ResultSet prepareCInfoDataObjects() {

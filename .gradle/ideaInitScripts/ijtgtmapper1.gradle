@@ -1,0 +1,18 @@
+ext.pathMapper = [:]
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/util_rt.jar', '/tmp/YsgTFB/./util_rt.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/external-system-rt.jar', '/tmp/YsgTFB/./external-system-rt.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/gradle-plugin/lib/gradle-tooling-extension-api.jar', '/tmp/Vm4wzT/./gradle-tooling-extension-api.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/gradle-plugin/lib/gradle-tooling-extension-impl.jar', '/tmp/Vm4wzT/./gradle-tooling-extension-impl.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/util-8.jar', '/tmp/YsgTFB/./util-8.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/intellij.libraries.gson.jar', '/tmp/YsgTFB/./intellij.libraries.gson.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/intellij.libraries.ion.jar', '/tmp/YsgTFB/./intellij.libraries.ion.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/intellij.libraries.guava.jar', '/tmp/YsgTFB/./intellij.libraries.guava.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/intellij.libraries.commons.lang3.jar', '/tmp/YsgTFB/./intellij.libraries.commons.lang3.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/trove.jar', '/tmp/YsgTFB/./trove.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/lib/opentelemetry.jar', '/tmp/YsgTFB/./opentelemetry.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/micronaut/lib/modules/intellij.micronaut.gradle.tooling.jar', '/tmp/buoADX/./intellij.micronaut.gradle.tooling.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/lib/kotlin-gradle-tooling.jar', '/tmp/3AuWr0/./kotlin-gradle-tooling.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/ktor/lib/modules/intellij.ktor.run.gradle.tooling.jar', '/tmp/YGhTLo/./intellij.ktor.run.gradle.tooling.jar')
+ext.pathMapper.put('/Users/nils/Applications/IntelliJ IDEA.app/Contents/plugins/compose-ide-plugin/lib/modules/intellij.compose.ide.plugin.gradleTooling.rt.jar', '/tmp/Kqz4Nm/./intellij.compose.ide.plugin.gradleTooling.rt.jar')
+ext.pathMapper.put("<<target java executable path>>", '/usr/local/sdkman/candidates/java/26.0.1-tem/bin/java')
+ext.mapPath = { path -> pathMapper.get(path) ?: path }

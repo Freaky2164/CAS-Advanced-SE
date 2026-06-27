@@ -7,7 +7,9 @@ public class CInfoFrameStatusCopy extends CInfoFrameStatusNew {
         entry();
     }
 
+    @Override
     public void entry() {
+        CInfoFrame owner = getOwner();
         owner.setTitle("Copy");
         // get data
         // all fields editable
@@ -15,29 +17,34 @@ public class CInfoFrameStatusCopy extends CInfoFrameStatusNew {
         owner.bOk.setEnabled(true);
         owner.bApply.setEnabled(true);
         owner.bCancel.setEnabled(true);
-        for (int i = 0; i < owner.cFields.size(); i++) {
-            owner.cFields.get(i).setEditable(true);
+        for (int i = 0; i < owner.getcFields().size(); i++) {
+            owner.getcFields().get(i).setEditable(true);
         }
     }
 
+    @Override
     public void exit() {
         // no action required
     }
 
+    @Override
     public void action() {
         // no activity requested
     }
 
+    @Override
     public void apply() {
         // save data
         // change to EDIT
-        owner.p.put("key", owner.cFields.get(0).getValue());
-        owner.status = new CInfoFrameStatusEdit(owner);
+        CInfoFrame owner = getOwner();
+        owner.p.put("key", owner.getcFields().getFirst().getValue());
+        owner.setStatus(new CInfoFrameStatusEdit(owner));
     }
 
+    @Override
     public void ok() {
         // save data
         // exit dialog
-        owner.dispose();
+        getOwner().dispose();
     }
 }

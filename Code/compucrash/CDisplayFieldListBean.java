@@ -14,11 +14,11 @@ public class CDisplayFieldListBean extends CDisplayFieldTableBean implements CSe
     private static final Logger LOGGER = Logger.getLogger(CDisplayFieldListBean.class.getName());
 
     private CSelectDialog selectDialog = null;
-    private CInfoDataObject infObj = null;
+    private transient CInfoDataObject infObj = null;
     private CProperties pNew = null;
     private CProperties pInfObjAttributes = null;
     private int maxAttribut;
-    private Object[] o;
+    private transient Object[] o;
 
     public CDisplayFieldListBean(CProperties p, CInfoFrame frame) {
         super(p, frame);
@@ -46,15 +46,15 @@ public class CDisplayFieldListBean extends CDisplayFieldTableBean implements CSe
         selectDialog = null;
     }
 
-    protected void bNew() {
+    protected void fieldBNew() {
         Component component = this;
-        if (selectDialog instanceof CSelectDialog) {
+        if (selectDialog != null) {
             selectDialog.setVisible(true);
             selectDialog.toFront();
             return;
         }
         pNew = getNewElement();
-        infObj = CDataObjectFactory.getCInfoDataObject(pNew.get("object_name").toString());
+        infObj = CDataObjectFactory.getCInfoDataObject(pNew.get("objectName").toString());
         pInfObjAttributes = infObj.getAttributes();
         String pSelectField = null;
         for (int i = 1; i <= pInfObjAttributes.size(); i++) {
@@ -68,7 +68,7 @@ public class CDisplayFieldListBean extends CDisplayFieldTableBean implements CSe
 
         int offsetX = tab.getX();
         int offsetY = tab.getY();
-        while (component != null && component.getClass() != CInfoFrame.class) {
+        while (component.getClass() != CInfoFrame.class) {
             Component parent = component.getParent();
             if (parent == null) {
                 break;
