@@ -174,14 +174,14 @@ public class CSelectDialogFrame extends JFrame implements CInfoParent, CListPare
 
     private CProperties getSelectedElement() {
         CProperties p = new CProperties();
-        p.put("object_name", ldo.getCProperties().get("object_name").toString());
+        p.put("objectName", ldo.getCProperties().get("objectName").toString());
         p.put("keys", tab.getKeys());
         return p;
     }
 
     protected CProperties getNewElement() {
         CProperties p = new CProperties();
-        p.put("object_name", ldo.getCProperties().get("object_name").toString());
+        p.put("objectName", ldo.getCProperties().get("objectName").toString());
         p.put("key", "");
         return p;
     }

@@ -17,7 +17,7 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
     private static final String KEY_COLUMN_NAME = "column_name";
     private static final String KEY_OWNER = "owner";
     private static final String KEY_TABLE_NAME = "table_name";
-    private static final String KEY_OBJECT_NAME = "object_name";
+    private static final String KEY_OBJECT_NAME = "objectName";
     private static final String OPTION_DISABLED = "DISABLED";
     private final JScrollPane sp;
     private final JPanel p2 = new JPanel();
@@ -26,8 +26,8 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
     protected CButton bNew;
     protected CButton bEdit;
     protected CButton bDelete;
-    protected CListDataObject objList;
-    protected CInfoDataObject objInfo;
+    protected transient CListDataObject objList;
+    protected transient CInfoDataObject objInfo;
     protected CDataObject obj;
     protected CProperties pTab;
     protected CProperties infoKeys;
@@ -61,7 +61,7 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         addButton(bNew, pb.get("bnew"));
         addButton(bEdit, pb.get(KEY_BEDIT));
         addButton(bDelete, pb.get(KEY_BDELETE));
-        if (infoKeys.size() == 0) {
+        if (infoKeys.isEmpty()) {
             return;
         }
         pTab = new CProperties();
@@ -72,15 +72,14 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         } else {
             pTab.put(KEY_ORDER, objList.getCProperties().get(KEY_ORDER));
         }
-        CProperties pf = new CProperties();
+
         pTab.put("filter_and", infoKeys);
-        CProperties pe = new CProperties();
         pTab.put("exclude", infoKeys);
         tab.setModel(objList.select(pTab));
-        //		tab.setParent(this);
         tab.setWidth(objList.getCProperties());
         tab.exclude(1);
         tab.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 int clickCount = e.getClickCount();
                 if (clickCount >= 2) {
@@ -95,6 +94,20 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
                 }
             }
         });
+    }
+
+    static void infoKeyParser(CProperties paList, CProperties infoKeys, String keyColumnName, String keyOwner, String keyTableName) {
+        for (int i = 1; i <= infoKeys.size(); i++) {
+            CProperties pak = (CProperties) infoKeys.get(Integer.toString(i));
+            for (int j = 1; j <= paList.size(); j++) {
+                CProperties pal = (CProperties) paList.get(Integer.toString(j));
+                if (pal.get(keyColumnName).toString().equalsIgnoreCase(pak.get(keyColumnName).toString())) {
+                    ((CProperties) infoKeys.get(Integer.toString(i))).put(keyOwner, pal.get(keyOwner));
+                    ((CProperties) infoKeys.get(Integer.toString(i))).put(keyTableName, pal.get(keyTableName));
+                    ((CProperties) infoKeys.get(Integer.toString(i))).put("operator", "=");
+                }
+            }
+        }
     }
 
     public void setEditedColor() {
@@ -114,17 +127,7 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         objList = CDataObjectFactory.getCListDataObject(p.get("source").toString());
         CProperties paList = (CProperties) objList.getCProperties().get("attributes");
 
-        for (int i = 1; i <= infoKeys.size(); i++) {
-            CProperties pak = (CProperties) infoKeys.get(Integer.toString(i));
-            for (int j = 1; j <= paList.size(); j++) {
-                CProperties pal = (CProperties) paList.get(Integer.toString(j));
-                if (pal.get(KEY_COLUMN_NAME).toString().equalsIgnoreCase(pak.get(KEY_COLUMN_NAME).toString())) {
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put(KEY_OWNER, pal.get(KEY_OWNER));
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put(KEY_TABLE_NAME, pal.get(KEY_TABLE_NAME));
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put("operator", "=");
-                }
-            }
-        }
+        infoKeyParser(paList, infoKeys, KEY_COLUMN_NAME, KEY_OWNER, KEY_TABLE_NAME);
 
     }
 
@@ -233,11 +236,9 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         return (CCommand) Class.forName(className).getDeclaredConstructor().newInstance();
     }
 
+    @Override
     public void setColor(Color c) {
         super.setColor(c);
-//        if (bNew != null) bNew.setBackground(c);
-//        if (bEdit != null) bEdit.setBackground(c);
-//        if (bDelete != null) bDelete.setBackground(c);
         p1.setBackground(c);
         p2.setBackground(c);
     }
@@ -264,12 +265,9 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         } else {
             pTab.put(KEY_ORDER, objList.getCProperties().get(KEY_ORDER));
         }
-        CProperties pf = new CProperties();
         pTab.put("filter_and", infoKeys);
-        CProperties pe = new CProperties();
         pTab.put("exclude", infoKeys);
         tab.setModel(objList.select(pTab));
-        //		tab.setParent(this);
         tab.setWidth(objList.getCProperties());
         tab.exclude(1);
         if (tab.getMouseListeners().length == 3) {
@@ -280,6 +278,7 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
 
     private void addDoubleClickListener() {
         tab.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() >= 2) {
                     handleDoubleClick();
@@ -299,6 +298,7 @@ public class CDisplayFieldTableBean extends CDisplayFieldBean implements CInfoPa
         }
     }
 
+    @Override
     public void refresh() {
         if (pTab == null) return;
         tab.setModel(objList.select(pTab));

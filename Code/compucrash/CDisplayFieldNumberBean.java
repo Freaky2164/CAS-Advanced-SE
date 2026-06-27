@@ -2,7 +2,6 @@ package compucrash;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
@@ -88,7 +87,7 @@ public class CDisplayFieldNumberBean extends CDisplayFieldBean implements CSelec
         lostFocus();
     }
 
-    protected void bSource(ActionEvent e) {
+    protected void bSource() {
         Component o = this;
         int offsetX = text.getX();
         int offsetY = text.getY();

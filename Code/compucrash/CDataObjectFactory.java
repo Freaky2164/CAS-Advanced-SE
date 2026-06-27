@@ -227,7 +227,7 @@ public class CDataObjectFactory {
         CProperties po = new CProperties();
         CProperties pas = new CProperties();
         CProperties pt = new CProperties();
-        po.put("object_name", objectName);
+        po.put("objectName", objectName);
         po.put("object_label", objectLabel);
         po.put("apply", apply);
         po.put("color", color);
@@ -255,7 +255,7 @@ public class CDataObjectFactory {
         CProperties po = new CProperties();
         CProperties pas = new CProperties();
         CProperties pt = new CProperties();
-        po.put("object_name", objectName);
+        po.put("objectName", objectName);
         po.put("object_label", objectLabel);
         po.put("color", color);
         if (bNew != null) po.put("bnew", bNew);

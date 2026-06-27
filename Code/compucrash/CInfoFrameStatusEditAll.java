@@ -1,5 +1,7 @@
 package compucrash;
 
+import com.enterprisedt.net.ftp.FTPClientInterface;
+
 import javax.swing.*;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -19,6 +21,7 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
     }
 
     public void entry() {
+        CInfoFrame owner = getOwner();
         owner.setTitle("Edit");
         // get data
         // set keys uneditable
@@ -26,9 +29,10 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
         owner.bOk.setEnabled(true);
         owner.bApply.setEnabled(true);
         owner.bCancel.setEnabled(true);
-        for (int i = 0; i < owner.cFields.size(); i++) {
-            owner.cFields.get(i).setEditable(true);
+        for (int i = 0; i < owner.getcFields().size(); i++) {
+            owner.getcFields().get(i).setEditable(true);
         }
+        setOwner(owner);
     }
 
     public void exit() {
@@ -58,12 +62,13 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
     }
 
     private void findAndSetKeyValue(CProperties pKey, CProperties pA) {
-        for (int k = 0; k < owner.cFields.size(); k++) {
-            CProperties pValue = owner.cFields.get(k).getProperties();
+        CFrame owner = getOwner();
+        for (int k = 0; k < owner.getcFields().size(); k++) {
+            CProperties pValue = owner.getcFields().get(k).getProperties();
             if (pValue.get("column_name").toString().equalsIgnoreCase(pA.get("column_name").toString())
                     && pValue.get("table_name").toString().equalsIgnoreCase(pA.get("table_name").toString())
                     && pValue.get("owner").toString().equalsIgnoreCase(pA.get("owner").toString())) {
-                pKey.put("value", owner.cFields.get(k).getValue());
+                pKey.put("value", owner.getcFields().get(k).getValue());
                 break;
             }
         }
@@ -72,31 +77,35 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
     public void apply() throws SQLException {
         // save data
         // exchane status to itself
-        String errorString = "";
-        compare = owner.dataObj.getCDataObjectForUpdate((CProperties) owner.p.get("keys"));
+        StringBuilder errorString = new StringBuilder();
+        CInfoFrame owner = getOwner();
+        CDataObject compare = owner.dataObj.getCDataObjectForUpdate((CProperties) owner.p.get("keys"));
+        CDataObject original = getOriginal();
         Object[] o = new Object[original.size()];
         for (int i = 0; i < original.size(); i++) {
-            o[i] = owner.cFields.get(i).getValue();
+            o[i] = owner.getcFields().get(i).getValue();
         }
-        actual = new CDataObject(o);
+        setActual(new CDataObject(o));
         for (int i = 1; i <= original.size(); i++) {
             String originalString = toStringOrEmpty(original.get(i));
-            String actualString = toStringOrEmpty(actual.get(i));
+            String actualString = toStringOrEmpty(getActual().get(i));
             String compareString = toStringOrEmpty(compare.get(i));
             if (!originalString.equals(actualString) && !originalString.equals(compareString)) {
-                // Data changed while dialog opened - lost update problem
-                errorString += owner.cFields.get(i).getLabel() +
-                        ": Original > " + originalString +
-                        ", Ge�ndert > " + actualString +
-                        ", Gespeichert > " + compareString + "\n";
+                errorString.append(owner.getcFields().get(i).getLabel()).append(": Original > ").append(originalString).append(", Ge�ndert > ").append(actualString).append(", Gespeichert > ").append(compareString).append("\n");
             }
         }
+        if (interactionReturner(errorString, owner, LOGGER, getActual())) return;
+        CProperties pAttributes = owner.dataObj.getAttributes();
+        owner.p.put("keys", collectUpdatedKeys(pAttributes));
+        owner.setStatus(new CInfoFrameStatusEditAll(owner));
+    }
+
+    static boolean interactionReturner(StringBuilder errorString, CInfoFrame owner, Logger logger, CDataObject actual) throws SQLException {
         int returnValue;
         Object[] options = {"Weiter", "Abbrechen"};
         if (!errorString.isEmpty()) {
             returnValue = JOptionPane.showOptionDialog(null, "Achtung, die Daten wurden ver�ndert.\n" + errorString + "Wollen Sie die Daten wirklich l�schen?", "Warnung", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
         } else {
-//			returnValue = JOptionPane.showOptionDialog(null,"Wollen Sie die Daten wirklich �ndern?","Information",JOptionPane.DEFAULT_OPTION,JOptionPane.INFORMATION_MESSAGE,null,options, options[0]);			
             returnValue = JOptionPane.OK_OPTION;
         }
         if (returnValue != JOptionPane.OK_OPTION) {
@@ -104,17 +113,12 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
                 CDataManager.getInstance().getConnection().rollback();
                 CMessage.print("rollback");
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Failed to rollback transaction", e);
+                logger.log(Level.SEVERE, "Failed to rollback transaction", e);
             }
-            return;
+            return true;
         }
-//		System.out.println(owner.p.get("keys"));
         owner.dataObj.update((CProperties) owner.p.get("keys"), actual);
-        // ge�nderten Schl�ssel �bergeben
-        CProperties pAttributes = owner.dataObj.getAttributes();
-        owner.p.put("keys", collectUpdatedKeys(pAttributes));
-        //Statuswechsel
-        owner.status = new CInfoFrameStatusEditAll(owner);
+        return false;
     }
 
 
@@ -122,6 +126,6 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
         // save data
         // exit dialog
         apply();
-        owner.dispose();
+        getOwner().dispose();
     }
 }

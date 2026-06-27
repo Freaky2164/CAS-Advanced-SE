@@ -6,23 +6,22 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 import javax.swing.*;
-import javax.swing.table.TableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CTable extends JTable {
 
     private static final Logger LOGGER = Logger.getLogger(CTable.class.getName());
-    private final int orderColumn = 1;
     JPopupMenu popup = new JPopupMenu("Tabelle");
     JMenuItem saveCSV = new JMenuItem("Speichern als CSV");
     JMenuItem saveXLS = new JMenuItem("Speichern als XLS");
-    private CListFrame owner = null;
-    private CListDataObject obj = null;
+    private transient CListDataObject obj = null;
 
     public CTable() {
         super();
@@ -32,8 +31,8 @@ public class CTable extends JTable {
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         setDefaultRenderer(Float.class, new CTableCellRenderer());
         setDefaultRenderer(Double.class, new CTableCellRenderer());
-        saveCSV.addActionListener(e -> getAsCSV());
-        saveXLS.addActionListener(e -> getAsXLS());
+        saveCSV.addActionListener(_ -> getAsCSV());
+        saveXLS.addActionListener(_ -> getAsXLS());
         popup.add(saveCSV);
         popup.add(saveXLS);
     }
@@ -46,20 +45,12 @@ public class CTable extends JTable {
         this.obj = obj;
     }
 
-    public CProperties getKeys() {
-        return null;
+    public List<Object> getKeys() {
+        return Collections.emptyList();
     }
 
-    public int getOrderColumn() {
-        return orderColumn;
-    }
-
-    protected CListFrame getListParent() {
-        return owner;
-    }
-
-    public void setListParent(CListFrame parent) {
-        this.owner = parent;
+    public void setListParent() {
+        /*asd*/
     }
 
     protected void getAsXLS() {
@@ -69,35 +60,41 @@ public class CTable extends JTable {
         if (file == null || state != JFileChooser.APPROVE_OPTION) return;
         try {
             if (!file.createNewFile()) {
-                Object[] options = {"\u00dcberschreiben", "Abbrechen"};
-                int returnValue = JOptionPane.showOptionDialog(null, "Wollen Sie die Datei wirklich \u00fcberschreiben?", "Information", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                Object[] options = {"Überschreiben", "Abbrechen"};
+                int returnValue = JOptionPane.showOptionDialog(null, "Wollen Sie die Datei wirklich überschreiben?", "Information", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
                 if (returnValue != JOptionPane.OK_OPTION) return;
-            }
-            try (FileOutputStream out = new FileOutputStream(file);
-                 HSSFWorkbook wb = new HSSFWorkbook()) {
-                HSSFSheet sheet1 = wb.createSheet("Tabelle1");
-                HSSFRow rowA = sheet1.createRow((short) 0);
-                HSSFCell cell1;
-                for (int j = 0; j < getColumnCount(); j++) {
-                    cell1 = rowA.createCell((short) j);
-                    cell1.setCellValue(getColumnName(j));
+                try (FileOutputStream out = new FileOutputStream(file);
+                     HSSFWorkbook wb = new HSSFWorkbook()) {
+                    sheetCreator(out, wb);
                 }
-                for (int i = 0; i < getRowCount(); i++) {
-                    rowA = sheet1.createRow((short) (i + 1));
-                    for (int j = 0; j < getColumnCount(); j++) {
-                        cell1 = rowA.createCell((short) j);
-                        if (getValueAt(i, j) != null) cell1.setCellValue(getValueAt(i, j).toString());
+            } else {
+                try (FileOutputStream out = new FileOutputStream(file)) {
+                    try (HSSFWorkbook wb = new HSSFWorkbook()) {
+                        sheetCreator(out, wb);
                     }
                 }
-                wb.write(out);
             }
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Failed to save as XLS", e);
         }
     }
 
-    public void setModel(TableModel model) {
-        super.setModel(model);
+    private void sheetCreator(FileOutputStream out, HSSFWorkbook wb) throws IOException {
+        HSSFSheet sheet1 = wb.createSheet("Tabelle1");
+        HSSFRow rowA = sheet1.createRow((short) 0);
+        HSSFCell cell1;
+        for (int j = 0; j < getColumnCount(); j++) {
+            cell1 = rowA.createCell((short) j);
+            cell1.setCellValue(getColumnName(j));
+        }
+        for (int i = 0; i < getRowCount(); i++) {
+            rowA = sheet1.createRow((short) (i + 1));
+            for (int j = 0; j < getColumnCount(); j++) {
+                cell1 = rowA.createCell((short) j);
+                if (getValueAt(i, j) != null) cell1.setCellValue(getValueAt(i, j).toString());
+            }
+        }
+        wb.write(out);
     }
 
     public void setWidth(CProperties p) {
@@ -124,8 +121,8 @@ public class CTable extends JTable {
         if (file == null || state != JFileChooser.APPROVE_OPTION) return;
         try {
             if (!file.createNewFile()) {
-                Object[] options = {"\u00dcberschreiben", "Abbrechen"};
-                int returnValue = JOptionPane.showOptionDialog(null, "Wollen Sie die Datei wirklich \u00fcberschreiben?", "Information", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+                Object[] options = {"Überschreiben", "Abbrechen"};
+                int returnValue = JOptionPane.showOptionDialog(null, "Wollen Sie die Datei wirklich überschreiben?", "Information", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
                 if (returnValue != JOptionPane.OK_OPTION) return;
             }
             try (FileOutputStream out = new FileOutputStream(file)) {
@@ -142,9 +139,9 @@ public class CTable extends JTable {
                         if (getValueAt(i, j) == null) {
                             row.append(";");
                         } else if (getValueAt(i, j).toString().contains(";")) {
-                            row.append("\"").append(getValueAt(i, j).toString().replaceAll("\"", "\"\"")).append("\";");
+                            row.append("\"").append(getValueAt(i, j).toString().replace("\"", "\"\"")).append("\";");
                         } else {
-                            row.append(getValueAt(i, j).toString().replaceAll("\"", "\"\"")).append(";");
+                            row.append(getValueAt(i, j).toString().replace("\"", "\"\"")).append(";");
                         }
                     }
                     row.deleteCharAt(row.length() - 1);
@@ -172,9 +169,5 @@ public class CTable extends JTable {
             }
         }
         Toolkit.getDefaultToolkit().beep();
-    }
-
-    public void setModel(CTableModel select) {
-        // Overloaded method provided for type compatibility; use setModel(TableModel) instead
     }
 }

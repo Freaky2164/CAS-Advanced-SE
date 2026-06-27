@@ -20,15 +20,13 @@ public class CInfoFrameStatusEdit extends CInfoFrameStatus {
     }
 
     public void entry() {
+        CInfoFrame owner = getOwner();
         owner.setTitle("Edit");
-        // get data
-        // set keys uneditable
-        // all buttons active
         owner.bOk.setEnabled(true);
         owner.bApply.setEnabled(true);
         owner.bCancel.setEnabled(true);
-        for (int i = 0; i < owner.cFields.size(); i++) {
-            owner.cFields.get(i).setEditable(owner.cFields.get(i).getProperties().get("iskey").toString().equalsIgnoreCase("0"));
+        for (int i = 0; i < owner.getcFields().size(); i++) {
+            owner.getcFields().get(i).setEditable(owner.getcFields().get(i).getProperties().get("iskey").toString().equalsIgnoreCase("0"));
         }
     }
 
@@ -43,47 +41,30 @@ public class CInfoFrameStatusEdit extends CInfoFrameStatus {
     public void apply() throws SQLException {
         // save data
         // exchane status to itself
-        String errorString = "";
-        compare = owner.dataObj.getCDataObjectForUpdate((CProperties) owner.p.get("keys"));
-        Object[] o = new Object[original.size()];
-        for (int i = 0; i < original.size(); i++) {
-            o[i] = owner.cFields.get(i).getValue();
+        StringBuilder errorString = new StringBuilder();
+        setCompare(getOwner().dataObj.getCDataObjectForUpdate((CProperties) getOwner().p.get("keys")));
+        Object[] o = new Object[getOriginal().size()];
+        for (int i = 0; i < getOriginal().size(); i++) {
+            o[i] = getOwner().getcFields().get(i).getValue();
         }
 
-        actual = new CDataObject(o);
-        for (int i = 1; i <= original.size(); i++) {
-            String originalString = toStringOrEmpty(original.get(i));
+        setActual(new CDataObject(o));
+        CDataObject actual = getActual();
+        for (int i = 1; i <= getOriginal().size(); i++) {
+            String originalString = toStringOrEmpty(getOriginal().get(i));
             String actualString = toStringOrEmpty(actual.get(i));
-            String compareString = toStringOrEmpty(compare.get(i));
+            String compareString = toStringOrEmpty(getCompare().get(i));
             if (!originalString.equals(actualString) && !originalString.equals(compareString)) {
                 // Data changed while dialog opened - lost update problem
                 if (!(actual.get(i) instanceof Blob)) {
-                    errorString += owner.cFields.get(i - 1).getLabel() +
-                            ": Original > " + originalString +
-                            ", Ge\u00e4ndert > " + actualString +
-                            ", Gespeichert > " + compareString + "\n";
+                    errorString.append(getOwner().getcFields().get(i - 1).getLabel()).append(": Original > ").append(originalString).append(", Ge\u00e4ndert > ").append(actualString).append(", Gespeichert > ").append(compareString).append("\n");
                 }
             }
         }
-        int returnValue;
-        Object[] options = {"Weiter", "Abbrechen"};
-        if (!errorString.isEmpty()) {
-            returnValue = JOptionPane.showOptionDialog(null, "Achtung, die Daten wurden ver�ndert.\n" + errorString + "Wollen Sie die Daten wirklich l�schen?", "Warnung", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        } else {
-            returnValue = JOptionPane.OK_OPTION;
-        }
-        if (returnValue != JOptionPane.OK_OPTION) {
-            try {
-                CDataManager.getInstance().getConnection().rollback();
-                CMessage.print("rollback");
-            } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Failed to rollback transaction", e);
-            }
-            return;
-        }
-        owner.dataObj.update((CProperties) owner.p.get("keys"), actual);
+        CInfoFrame owner = getOwner();
+        if (CInfoFrameStatusEditAll.interactionReturner(errorString, owner, LOGGER, actual)) return;
         //Statuswechsel
-        owner.status = new CInfoFrameStatusEdit(owner);
+        owner.setStatus(new CInfoFrameStatusEdit(owner));
     }
 
 
@@ -91,6 +72,7 @@ public class CInfoFrameStatusEdit extends CInfoFrameStatus {
         // save data
         // exit dialog
         apply();
+        CInfoFrame owner = getOwner();
         owner.dispose();
     }
 }

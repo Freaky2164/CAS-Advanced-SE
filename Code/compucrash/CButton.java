@@ -27,8 +27,8 @@ public class CButton extends JButton {
                 this.setHorizontalTextPosition(SwingConstants.CENTER);
                 this.setVerticalTextPosition(SwingConstants.BOTTOM);
                 break;
-            default:
             case RIGHT:
+            default:
                 this.setHorizontalTextPosition(SwingConstants.RIGHT);
         }
         this.setToolTipText((String) p.get("tooltip"));
@@ -45,7 +45,7 @@ public class CButton extends JButton {
                 CMessage.print(e);
             }
         }
-        addActionListener(e -> {
+        addActionListener(_ -> {
             if (command != null) command.execute(null);
         });
     }
@@ -54,9 +54,6 @@ public class CButton extends JButton {
         this.command = command;
     }
 
-    public boolean hasCommand() {
-        return command != null;
-    }
 
     public CCommand getCommand() {
         return command;

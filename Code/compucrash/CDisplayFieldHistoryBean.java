@@ -104,17 +104,7 @@ public class CDisplayFieldHistoryBean extends CDisplayFieldBean implements CInfo
         } else {
             infoKeys = new CProperties();
         }
-        for (int i = 1; i <= infoKeys.size(); i++) {
-            CProperties pak = (CProperties) infoKeys.get(Integer.toString(i));
-            for (int j = 1; j <= paList.size(); j++) {
-                CProperties pal = (CProperties) paList.get(Integer.toString(j));
-                if (pal.get(PROP_COLUMN_NAME).toString().equalsIgnoreCase(pak.get(PROP_COLUMN_NAME).toString())) {
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put(PROP_OWNER, pal.get(PROP_OWNER));
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put(PROP_TABLE_NAME, pal.get(PROP_TABLE_NAME));
-                    ((CProperties) infoKeys.get(Integer.toString(i))).put("operator", "=");
-                }
-            }
-        }
+        CDisplayFieldTableBean.infoKeyParser(paList, infoKeys, PROP_COLUMN_NAME, PROP_OWNER, PROP_TABLE_NAME);
         pTab = new CProperties();
         CProperties po = new CProperties();
         if (objList.getCProperties().get(PROP_ORDER) == null) {
@@ -145,7 +135,7 @@ public class CDisplayFieldHistoryBean extends CDisplayFieldBean implements CInfo
 
     public CProperties getSelectedElement() {
         CProperties p = new CProperties();
-        p.put("object_name", objList.getCProperties().get("object_name").toString());
+        p.put("objectName", objList.getCProperties().get("objectName").toString());
         p.put("keys", tab.getKeys());
         return p;
     }

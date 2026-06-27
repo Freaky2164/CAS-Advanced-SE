@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public abstract class CManagingDatabase {
 
     private static final Logger LOGGER = Logger.getLogger(CManagingDatabase.class.getName());
-    private static final Pattern SQL_IDENTIFIER = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
+    private static final Pattern SQL_IDENTIFIER = Pattern.compile("[A-Za-z_][\\w]*");
 
     protected Connection conn;
     protected String driverManager = "";
@@ -70,8 +70,8 @@ public abstract class CManagingDatabase {
     }
 
     protected ResultSet getObjects() {
-        String sqlString = "SELECT o.object_name, o.object_label, uor.panel FROM compucrash.object_def o, compucrash.user_object_relation uor "
-                + "WHERE LOWER(uor.user_name) = LOWER(?) AND uor.object_name = o.object_name "
+        String sqlString = "SELECT o.objectName, o.object_label, uor.panel FROM compucrash.object_def o, compucrash.user_object_relation uor "
+                + "WHERE LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
                 + "AND uor.main_pos > 0 ";
         return getPreparedResultSet(sqlString, CPropertyManager.USER);
     }
@@ -81,46 +81,46 @@ public abstract class CManagingDatabase {
         return getResultSet(sqlString);
     }
 
-    protected ResultSet getTables(String object_name) {
+    protected ResultSet getTables() {
         String sqlString = "SELECT owner, table_name, isleading FROM compucrash.object_tab_def ORDER BY owner, table_name, isleading DESC";
         return getResultSet(sqlString);
     }
 
     protected ResultSet prepareCInfoDataObjects() {
-        String sqlString = "SELECT o.object_name, o.object_label, "
+        String sqlString = "SELECT o.objectName, o.object_label, "
                 + "ot.owner, ot.table_name, ot.isleading, "
                 + "otc.column_name, otc.pos_info, otc.label, otc.iskey, "
                 + "otc.tooltip, otc.data_type, otc.data_length, otc.data_precision, otc.data_scale, "
                 + "otc.view_panel, otc.panel, otc.label_length, otc.editable, otc.formula, otc.data_height, otc.gridwidth, "
                 + "otc.source, otc.init, o.color, otc.springen, otc.action, uor.bapply "
                 + "FROM compucrash.object_def o, compucrash.object_tab_def ot, compucrash.object_tab_col_def otc, compucrash.user_object_relation uor "
-                + "WHERE ot.object_name = o.object_name AND otc.object_name = ot.object_name AND otc.owner = ot.owner "
+                + "WHERE ot.objectName = o.objectName AND otc.objectName = ot.objectName AND otc.owner = ot.owner "
                 + "AND otc.table_name = ot.table_name AND otc.pos_info > 0 "
-                + "AND LOWER(uor.user_name) = LOWER(?) AND uor.object_name = o.object_name "
-                + "ORDER BY o.object_name, otc.pos_info";
+                + "AND LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
+                + "ORDER BY o.objectName, otc.pos_info";
         return getPreparedResultSet(sqlString, CPropertyManager.USER);
     }
 
-    protected ResultSet getCInfoDataCustButtons(String object_name) {
+    protected ResultSet getCInfoDataCustButtons(String objectName) {
         String sqlString = "SELECT cbd.bez, cbr.panel, cbr.pos "
                 + "FROM compucrash.button_def cbd, compucrash.cust_button_rel cbr "
                 + "WHERE cbd.buttonid = cbr.buttonid "
                 + "AND cbr.user_name = ? "
                 + "AND cbr.dialog_type = 'info' "
-                + "AND cbr.object_name = ? "
+                + "AND cbr.objectName = ? "
                 + "ORDER BY cbr.panel, cbr.pos, cbd.bez ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER, object_name);
+        return getPreparedResultSet(sqlString, CPropertyManager.USER, objectName);
     }
 
-    protected ResultSet getCListDataCustButtons(String object_name) {
+    protected ResultSet getCListDataCustButtons(String objectName) {
         String sqlString = "SELECT cbd.bez, cbr.pos "
                 + "FROM compucrash.button_def cbd, compucrash.cust_button_rel cbr "
                 + "WHERE cbd.buttonid = cbr.buttonid "
                 + "AND cbr.user_name = ? "
                 + "AND cbr.dialog_type = 'list' "
-                + "AND cbr.object_name = ? "
+                + "AND cbr.objectName = ? "
                 + "ORDER BY cbr.panel, cbr.pos, cbd.bez ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER, object_name);
+        return getPreparedResultSet(sqlString, CPropertyManager.USER, objectName);
     }
 
     protected ResultSet getGlobals() {
@@ -129,16 +129,16 @@ public abstract class CManagingDatabase {
     }
 
     protected ResultSet prepareCListDataObjects() {
-        String sqlString = "SELECT o.object_name, o.object_label, "
+        String sqlString = "SELECT o.objectName, o.object_label, "
                 + "ot.owner, ot.table_name, ot.isleading, "
                 + "otc.column_name, otc.pos_list, otc.label, otc.iskey, otc.formula, "
                 + "uor.bnew, uor.bedit, uor.bdelete, uor.bcopy, uor.bdisplay, otc.list_data_scale, uor.default_button, "
                 + "otc.orderby, uor.limitation, o.color "
                 + "FROM compucrash.object_def o, compucrash.object_tab_def ot, compucrash.object_tab_col_def otc, compucrash.user_object_relation uor "
-                + "WHERE ot.object_name = o.object_name AND otc.object_name = ot.object_name AND otc.owner = ot.owner "
+                + "WHERE ot.objectName = o.objectName AND otc.objectName = ot.objectName AND otc.owner = ot.owner "
                 + "AND otc.table_name = ot.table_name AND otc.pos_list > 0 "
-                + "AND LOWER(uor.user_name) = LOWER(?) AND uor.object_name = o.object_name "
-                + "ORDER BY o.object_name, otc.pos_list";
+                + "AND LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
+                + "ORDER BY o.objectName, otc.pos_list";
         return getPreparedResultSet(sqlString, CPropertyManager.USER);
     }
 
@@ -164,7 +164,7 @@ public abstract class CManagingDatabase {
             LOGGER.log(Level.SEVERE, "Database driver not found", e);
             System.exit(0);
         } catch (SQLException se) {
-            LOGGER.log(Level.SEVERE, "Failed to connect to database: " + connection, se);
+            LOGGER.log(Level.SEVERE, "Failed to connect to database: %s".formatted(connection), se);
             System.exit(0);
         }
     }

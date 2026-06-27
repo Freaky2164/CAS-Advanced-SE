@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class CListFrame extends CFrame implements CInfoParent, CListParent {
 
     private static final Logger LOGGER = Logger.getLogger(CListFrame.class.getName());
-    private final CListDataObject obj;
+    private final transient CListDataObject obj;
     private final String objectName;
     protected CButton bNew;
     protected CButton bEdit;
@@ -25,31 +25,39 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     private final JScrollPane sp = new JScrollPane(tab);
     protected CProperties p;
     private CAddonTableBean searchBean = null;
+    private static final String BDISPLAYCONST = "bdisplay";
+    private static final String BEDITCONST = "bedit";
+    private static final String BDELETECONST = "bdelete";
+    private static final String BCOPYCONST = "bcopy";
+    private static final String BNEWCONST = "bnew";
+    private static final String DELETECONST = "delete";
+    private static final String DISPLAYCONST = "display";
+    private static final String DISABLEDCONST = "DISABLED";
 
     public CListFrame(String objDesc, CFrame parent) {
         super(parent);
         this.objectName = objDesc;
-        this.name = objDesc + ".list";
+        setName(objDesc + ".list");
         obj = CDataObjectFactory.getCListDataObject(objDesc);
         p = obj.getCProperties();
         bNew = CButtonFactory.getButton("new");
         bNew.addActionListener(e -> onNew());
         bEdit = CButtonFactory.getButton("edit");
         bEdit.addActionListener(e -> onEdit());
-        bDelete = CButtonFactory.getButton("delete");
+        bDelete = CButtonFactory.getButton(DELETECONST);
         bDelete.addActionListener(e -> onDelete());
         bCopy = CButtonFactory.getButton("copy");
         bCopy.addActionListener(e -> onCopy());
-        bDisplay = CButtonFactory.getButton("display");
+        bDisplay = CButtonFactory.getButton(DISPLAYCONST);
         bDisplay.addActionListener(e -> onDisplay());
         bCancel = CButtonFactory.getButton("cancel");
         bCancel.addActionListener(e -> onCancel());
 
-        addButton(bNew, p.get("bnew"));
-        addButton(bEdit, p.get("bedit"));
-        addButton(bDelete, p.get("bdelete"));
-        addButton(bCopy, p.get("bcopy"));
-        addButton(bDisplay, p.get("bdisplay"));
+        addButton(bNew, p.get(BNEWCONST));
+        addButton(bEdit, p.get(BEDITCONST));
+        addButton(bDelete, p.get(BDELETECONST));
+        addButton(bCopy, p.get(BCOPYCONST));
+        addButton(bDisplay, p.get(BDISPLAYCONST));
 
         getButtonPaneRight().add(bCancel);
         tab.setCListDataObject(obj);
@@ -59,9 +67,10 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
             tab.setModel(obj.select(1));
         }
         setStatusLine(tab.getRowCount() + " Eintr�ge");
-        tab.setListParent(this);
+        tab.setListParent();
         tab.setWidth(obj.getCProperties());
         tab.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 int clickCount = e.getClickCount();
                 if (clickCount >= 2) {
@@ -89,9 +98,8 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
             setColor(new Color(r, g, b));
         }
         addCustButtons();
-//		pack();
         setFrameSize();
-        CPropertyManager.getInstance().setDialog(name, this);
+        CPropertyManager.getInstance().setDialog(getName(), this);
         setVisible(true);
     }
 
@@ -114,6 +122,7 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
         ((CButton) e.getSource()).getCommand().execute(null);
     }
 
+    @Override
     public void setColor(Color c) {
         super.setColor(c);
         if (searchBean != null) searchBean.setColor(c);
@@ -124,7 +133,7 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
             getButtonPaneLeft().add(button);
             return;
         }
-        if (option.toString().equalsIgnoreCase("DISABLED")) {
+        if (option.toString().equalsIgnoreCase(DISABLEDCONST)) {
             getButtonPaneLeft().add(button);
             button.setEnabled(false);
             return;
@@ -150,13 +159,13 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     }
 
     protected void onDisplay() {
-        if (p.get("bdisplay") == null || p.get("bdisplay").toString().equalsIgnoreCase("")) {
+        if (p.get(BDISPLAYCONST) == null || p.get(BDISPLAYCONST).toString().equalsIgnoreCase("")) {
             new CInfoFrame(CInfoFrame.DISPLAY, getSelectedElement(), this);
-        } else if (!p.get("bdisplay").toString().equalsIgnoreCase("NONE")
-                && !p.get("bdisplay").toString().equalsIgnoreCase("DISABLED")) {
+        } else if (!p.get(BDISPLAYCONST).toString().equalsIgnoreCase("NONE")
+                && !p.get(BDISPLAYCONST).toString().equalsIgnoreCase(DISABLEDCONST)) {
             CCommand command;
             try {
-                command = newCommand(p.get("bdisplay").toString());
+                command = newCommand(p.get(BDISPLAYCONST).toString());
                 command.setOwner(this);
                 command.execute(null);
             } catch (ReflectiveOperationException e) {
@@ -166,20 +175,20 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     }
 
     private CProperties getSelectedElement() {
-        CProperties p = new CProperties();
-        p.put("object_name", objectName);
-        p.put("keys", tab.getKeys());
-        return p;
+        CProperties selectedProperties = new CProperties();
+        selectedProperties.put("objectName", objectName);
+        selectedProperties.put("keys", tab.getKeys());
+        return selectedProperties;
     }
 
     protected void onCopy() {
-        if (p.get("bcopy") == null || p.get("bcopy").toString().equalsIgnoreCase("")) {
+        if (p.get(BCOPYCONST) == null || p.get(BCOPYCONST).toString().equalsIgnoreCase("")) {
             new CInfoFrame(CInfoFrame.COPY, getSelectedElement(), this);
-        } else if (!p.get("bcopy").toString().equalsIgnoreCase("NONE")
-                && !p.get("bcopy").toString().equalsIgnoreCase("DISABLED")) {
+        } else if (!p.get(BCOPYCONST).toString().equalsIgnoreCase("NONE")
+                && !p.get(BCOPYCONST).toString().equalsIgnoreCase(DISABLEDCONST)) {
             CCommand command;
             try {
-                command = newCommand(p.get("bcopy").toString());
+                command = newCommand(p.get(BCOPYCONST).toString());
                 command.setOwner(this);
                 command.execute(null);
             } catch (ReflectiveOperationException e) {
@@ -189,13 +198,13 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     }
 
     protected void onDelete() {
-        if (p.get("bdelete") == null || p.get("bdelete").toString().equalsIgnoreCase("")) {
+        if (p.get(BDELETECONST) == null || p.get(BDELETECONST).toString().equalsIgnoreCase("")) {
             new CInfoFrame(CInfoFrame.DELETE, getSelectedElement(), this);
-        } else if (!p.get("bdelete").toString().equalsIgnoreCase("NONE")
-                && !p.get("bdelete").toString().equalsIgnoreCase("DISABLED")) {
+        } else if (!p.get(BDELETECONST).toString().equalsIgnoreCase("NONE")
+                && !p.get(BDELETECONST).toString().equalsIgnoreCase(DISABLEDCONST)) {
             CCommand command;
             try {
-                command = newCommand(p.get("bdelete").toString());
+                command = newCommand(p.get(BDELETECONST).toString());
                 command.setOwner(this);
                 command.execute(null);
             } catch (ReflectiveOperationException e) {
@@ -205,13 +214,13 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     }
 
     public void onEdit() {
-        if (p.get("bedit") == null || p.get("bedit").toString().equalsIgnoreCase("")) {
+        if (p.get(BEDITCONST) == null || p.get(BEDITCONST).toString().equalsIgnoreCase("")) {
             new CInfoFrame(CInfoFrame.EDITALL, getSelectedElement(), this);
-        } else if (!p.get("bedit").toString().equalsIgnoreCase("NONE")
-                && !p.get("bedit").toString().equalsIgnoreCase("DISABLED")) {
+        } else if (!p.get(BEDITCONST).toString().equalsIgnoreCase("NONE")
+                && !p.get(BEDITCONST).toString().equalsIgnoreCase(DISABLEDCONST)) {
             CCommand command;
             try {
-                command = newCommand(p.get("bedit").toString());
+                command = newCommand(p.get(BEDITCONST).toString());
                 command.setOwner(this);
                 command.execute(null);
             } catch (ReflectiveOperationException e) {
@@ -224,7 +233,7 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
         if (p.get("bnew") == null || p.get("bnew").toString().equalsIgnoreCase("")) {
             new CInfoFrame(CInfoFrame.NEW, getNewElement(), this);
         } else if (!p.get("bnew").toString().equalsIgnoreCase("NONE")
-                && !p.get("bnew").toString().equalsIgnoreCase("DISABLED")) {
+                && !p.get("bnew").toString().equalsIgnoreCase(DISABLEDCONST)) {
             CCommand command;
             try {
                 command = newCommand(p.get("bnew").toString());
@@ -237,22 +246,22 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     }
 
     protected CProperties getNewElement() {
-        CProperties p = new CProperties();
-        p.put("object_name", objectName);
-//		p.put("keys",null);
-        return p;
+        CProperties properties = new CProperties();
+        properties.put("objectName", objectName);
+        return properties;
     }
 
+    @Override
     public void dispose() {
         try {
             Statement statement = ((CTableModel) tab.getModel()).getStatement();
             if (statement != null) {
                 statement.close();
             }
-        } catch (SQLException e) {
-//			e.printStackTrace();
+        } catch (SQLException _) {
+            /*soll halt excepten ey kp */
         }
-        CPropertyManager.getInstance().setDialog(name, null);
+        CPropertyManager.getInstance().setDialog(getName(), null);
         super.dispose();
     }
 

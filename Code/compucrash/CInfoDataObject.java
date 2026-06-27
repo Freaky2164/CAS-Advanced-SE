@@ -4,7 +4,6 @@ import java.sql.SQLException;
 
 public class CInfoDataObject {
 
-    private final String objectLabel;
     private final CProperties p;
     private final CInfoDataManagingDatabase manager;
 
@@ -13,7 +12,6 @@ public class CInfoDataObject {
         super();
         this.p = p;
         manager = CDataManager.getInstance().createCInfoDataManagingDatabase(this);
-        objectLabel = (String) p.get("object_label");
         manager.prepareSQLString(p);
     }
 

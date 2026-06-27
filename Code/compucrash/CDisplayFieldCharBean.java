@@ -54,7 +54,7 @@ public class CDisplayFieldCharBean extends CDisplayFieldBean implements CSelectP
     protected void bSpringen(ActionEvent e) {
         if (text.getText() != null && !text.getText().isEmpty()) {
             CProperties pS = new CProperties();
-            pS.put("object_name", p.get(PROP_SPRINGEN));
+            pS.put("objectName", p.get(PROP_SPRINGEN));
             CProperties keys = CDataObjectFactory.getCListDataObject(p.get(PROP_SPRINGEN).toString()).getKeys();
             for (int i = 1; i <= keys.size(); i++) {
                 CProperties pK = (CProperties) keys.get(Integer.toString(i));
@@ -94,7 +94,7 @@ public class CDisplayFieldCharBean extends CDisplayFieldBean implements CSelectP
             selectDialog.toFront();
             return;
         }
-        while (o != null && o.getClass() != CInfoFrame.class) {
+        while (o.getClass() != CInfoFrame.class) {
             o = o.getParent();
             offsetX += o.getX();
             offsetY += o.getY();

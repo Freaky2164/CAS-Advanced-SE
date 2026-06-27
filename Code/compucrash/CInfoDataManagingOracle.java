@@ -6,6 +6,7 @@ public class CInfoDataManagingOracle extends CInfoDataManagingDatabase {
         super(parent);
     }
 
+    @Override
     public void forUpdate() {
         // Oracle-specific FOR UPDATE locking is handled at the SQL query level
     }
