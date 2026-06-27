@@ -1,0 +1,25 @@
+{
+  "name": "CAS Advanced SE",
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}/Code",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "26"
+    },
+    "ghcr.io/devcontainers-extra/features/gradle-sdkman": "latest"
+  },
+  "forwardPorts": [
+    5432
+  ],
+  "postCreateCommand": "mkdir -p reports vorlagen excel import",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack"
+      ]
+    }
+  }
+}

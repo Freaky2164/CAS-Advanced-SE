@@ -2,6 +2,7 @@ package compucrash;
 
 
 public interface CSelectParent {
-	abstract void setValue(Object o);
-	public void resetSelectDialog();
+    void setValue(Object o);
+
+    void resetSelectDialog();
 }

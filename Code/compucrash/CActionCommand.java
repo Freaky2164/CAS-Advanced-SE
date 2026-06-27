@@ -5,11 +5,12 @@ package compucrash;
 
 public abstract class CActionCommand extends CCommand {
 
-    public CActionCommand() {
+    protected CActionCommand() {
         super();
     }
 
     public abstract Object execute(Object parameters);
-    public abstract Object executeChange(Object parameters);
+
+    public abstract void executeChange(Object parameters);
 
 }

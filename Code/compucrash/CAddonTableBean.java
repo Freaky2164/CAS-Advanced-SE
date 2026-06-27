@@ -1,20 +1,27 @@
 package compucrash;
 
-import java.awt.Color;
-
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
+import java.awt.*;
 
 public abstract class CAddonTableBean extends JPanel {
 
-    public CTable tab;
-    public CListParent parent;
-    
-    public CAddonTableBean(CTable tab, CListParent parent) {
+    private final CTable tab;
+    private final CListParent addParent;
+
+    protected CAddonTableBean(CTable tab, CListParent parent) {
         this.tab = tab;
-        this.parent = parent;
+        this.addParent = parent;
+    }
+
+    public CTable getTab() {
+        return this.tab;
+    }
+
+    public CListParent getAddParent() {
+        return this.addParent;
     }
 
     public abstract void setColor(Color c);
+
     public abstract JTextField getTextField();
 }

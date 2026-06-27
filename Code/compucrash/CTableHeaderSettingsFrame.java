@@ -1,41 +1,38 @@
 package compucrash;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.*;
+import java.awt.*;
 
 public class CTableHeaderSettingsFrame extends CFrame {
 
-	public CTableHeaderSettingsFrame() {
-		super(null);
-		JPanel cp = getMainPane();
-		cp.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.anchor = GridBagConstraints.NORTHWEST;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		cp.add(new JLabel("größer"), c);
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		cp.add(new JTextField(30),c);
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		cp.add(new JLabel("kleiner"), c);
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		cp.add(new JTextField(30),c);
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		cp.add(new JLabel("enthält     "), c);
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		cp.add(new JTextField(30),c);
-		
-		getButtonPaneRight().add(CButtonFactory.getButton("cancel"));
-		getButtonPaneLeft().add(CButtonFactory.getButton("ok"));
-		getButtonPaneLeft().add(CButtonFactory.getButton("apply"));
-		
-		pack();
-		setVisible(true);
-	}
-	
-	public static void main(String[] args) {
-		CTableHeaderSettingsFrame window = new CTableHeaderSettingsFrame();
-	}
+    public CTableHeaderSettingsFrame() {
+        super(null);
+        JPanel cp = getMainPane();
+        cp.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        cp.add(new JLabel("grï¿½ï¿½er"), c);
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        cp.add(new JTextField(30), c);
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        cp.add(new JLabel("kleiner"), c);
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        cp.add(new JTextField(30), c);
+        c.gridwidth = GridBagConstraints.RELATIVE;
+        cp.add(new JLabel("enthï¿½lt     "), c);
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        cp.add(new JTextField(30), c);
+
+        getButtonPaneRight().add(CButtonFactory.getButton("cancel"));
+        getButtonPaneLeft().add(CButtonFactory.getButton("ok"));
+        getButtonPaneLeft().add(CButtonFactory.getButton("apply"));
+
+        pack();
+        setVisible(true);
+    }
+
+    static void main(String[] args) {
+        CTableHeaderSettingsFrame window = new CTableHeaderSettingsFrame();
+    }
 }

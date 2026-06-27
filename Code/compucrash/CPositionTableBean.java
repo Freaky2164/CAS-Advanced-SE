@@ -1,64 +1,52 @@
 package compucrash;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-
 public class CPositionTableBean extends CAddonTableBean {
 
-	protected CButton bSearch;
-	private JTextField search = new JTextField(60);
-	private JLabel searchLabel = new JLabel("Positionieren   ");
-	private CListDataObject obj;
+    private final JTextField search = new JTextField(60);
+    private final JLabel searchLabel = new JLabel("Positionieren   ");
+    protected CButton bSearch;
 
-    public CPositionTableBean(CTable tab, CListFrame parent) {
+    public CPositionTableBean(CTable tab, CListParent parent) {
         super(tab, parent);
         searchLabel.setPreferredSize(new Dimension(100, searchLabel.getPreferredSize().height));
-	    obj = tab.getCListDataObject();
-		bSearch = CButtonFactory.getButton("search");
-		bSearch.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				bSearch();
-			}
-		});
-		search.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                bSearch();
-            }		    
-		});
-		search.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                bSearch();              
-            }		    
-		});
-		setLayout(new BorderLayout(5,5));
-		add(searchLabel, BorderLayout.WEST);
-		add(search, BorderLayout.CENTER);
-		add(bSearch, BorderLayout.EAST);
+        bSearch = CButtonFactory.getButton("search");
+        bSearch.addActionListener(e -> positionSearch());
+        search.addActionListener(e -> positionSearch());
+        search.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                positionSearch();
+            }
+        });
+        setLayout(new BorderLayout(5, 5));
+        add(searchLabel, BorderLayout.WEST);
+        add(search, BorderLayout.CENTER);
+        add(bSearch, BorderLayout.EAST);
     }
 
-	protected void bSearch() {
-	    tab.findRow(search.getText());
-//		tab.setModel(obj.search(search.getText()));
-//		tab.setWidth(obj.getCProperties());
-//		parent.setStatusLine(Integer.toString(tab.getRowCount()) + " Einträge");
-	}
+    protected void positionSearch() {
+        CTable tab = getTab();
+        tab.findRow(search.getText());
+    }
 
+    @Override
     public void setColor(Color c) {
-        // TODO muss noch implementiert werden, Bean wir aber eh nice verwendet, wil search bean viel besser ist
-        
+        this.setBackground(c);
+        searchLabel.setBackground(c);
+        search.setBackground(c);
+        search.setOpaque(true);
+        searchLabel.setOpaque(true);
+
     }
 
+    @Override
     public JTextField getTextField() {
-        // TODO Auto-generated method stub
-        return null;
+        return search;
     }
 
 

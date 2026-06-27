@@ -1,59 +1,32 @@
 package frauenhaus;
 
-import java.awt.Toolkit;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.text.NumberFormat;
-
-import java.time.LocalDate;
-
+import compucrash.*;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 
-
+import java.awt.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import ch.kova.connector.exception.ComponentObjectModelException;
-import ch.kova.connector.exception.ItemNotFoundException;
-import ch.kova.connector.exception.LibraryNotFoundException;
-import ch.kova.connector.ms.outlook.Outlook;
-import ch.kova.connector.ms.outlook.folder.FolderType;
-import ch.kova.connector.ms.outlook.folder.OutlookFolder;
-import ch.kova.connector.ms.outlook.item.ItemType;
-import ch.kova.connector.ms.outlook.mail.OutlookMail;
-
-import compucrash.CCommand;
-import compucrash.CDataManager;
-import compucrash.CInfoFrame;
-import compucrash.CProperties;
-import compucrash.CPropertyManager;
-import compucrash.CReport;
-import compucrash.CReportFrame;
-import compucrash.CTable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CCommandSpendenQuittung extends CCommand implements CReport {
-    
-    private CProperties p;
-    private NumberFormat nf = NumberFormat.getInstance();
-    private String reports;
-    private String vorlagen;
-    private String excel;
-    private POIFSFileSystem fsin;
-    private HSSFWorkbook wb;
-    private HSSFSheet sheet;
-    private HSSFRow row;
-    private HSSFCell cell;
-//    private String jahr = "";
-    private DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private String SQLString;
-    private ResultSet rset;
+
+    private static final Logger LOGGER = Logger.getLogger(CCommandSpendenQuittung.class.getName());
+    private final NumberFormat nf = NumberFormat.getInstance();
+    private final String reports;
+    private final String vorlagen;
+    private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private String spende;
     private String verein;
     private String spendenart;
@@ -62,12 +35,10 @@ public class CCommandSpendenQuittung extends CCommand implements CReport {
     public CCommandSpendenQuittung() {
         this.reports = CPropertyManager.getInstance().getProperty("reports");
         this.vorlagen = CPropertyManager.getInstance().getProperty("vorlagen");
-        this.excel = CPropertyManager.getInstance().getProperty("excel");
     }
-    
+
     public Object execute(Object parameters) {
-        if (owner instanceof CInfoFrame) {
-            CInfoFrame frame = (CInfoFrame)owner;
+        if (owner instanceof CInfoFrame frame) {
             Object o = frame.getAttributeValue("frauenhaus.spende.spende");
             spende = o.toString();
             o = frame.getAttributeValue("frauenhaus.spende.verein");
@@ -76,7 +47,7 @@ public class CCommandSpendenQuittung extends CCommand implements CReport {
             o = frame.getAttributeValue("frauenhaus.spende.spendenart");
             spendenart = o.toString();
             o = frame.getAttributeValue("frauenhaus.spende.datum");
-            datum = o.toString();            
+            datum = o.toString();
         }
         go();
         return null;
@@ -86,161 +57,185 @@ public class CCommandSpendenQuittung extends CCommand implements CReport {
         nf.setMinimumFractionDigits(2);
         nf.setMaximumFractionDigits(2);
         // Spendentyp aus Spendenart
-        try {
-            SQLString = "SELECT spendentyp FROM frauenhaus.spendenart WHERE spendenart = '" + spendenart + "' ORDER BY spendentyp";
-            rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
-            while (rset.next()) {
-                report(verein,rset.getString(1));                
+        String sqlString = "SELECT spendentyp FROM frauenhaus.spendenart WHERE spendenart = ? ORDER BY spendentyp";
+        try (PreparedStatement stmt = CDataManager.getInstance().getConnection().prepareStatement(sqlString)) {
+            stmt.setString(1, spendenart);
+            try (ResultSet rset = stmt.executeQuery()) {
+                while (rset.next()) {
+                    report(verein, rset.getString(1));
+                }
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            LOGGER.log(Level.SEVERE, "Failed to load spendentyp", e);
         }
     }
-    
+
     private void report(String verein, String spendentyp) {
-        System.out.println("Report: " + verein + " " + spendentyp);
-        try {
-            fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/SpendenQuittungen.xls"));
-            wb = new HSSFWorkbook(fsin);
-            SQLString = "SELECT DISTINCT m.mitglied, m.anrede, m.vorname, m.name, m.name2, m.name3, m.strasse, m.plz, m.ort " +
-            	"FROM frauenhaus.mitglied m " +
-            	"WHERE EXISTS (SELECT * " +
-            		"FROM frauenhaus.spende s " +
-            		"WHERE s.mitglied = m.mitglied " +
-            		"AND s.spende = '" + spende + "')";
-            rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
-            sheet = wb.getSheetAt(0);
-            int line = 1;
-            while (rset.next()) {
-                row = sheet.createRow(line++);
-                String mitglied = rset.getString(1);
-                cell = row.createCell((short)0);
-                cell.setCellValue(rset.getString(2));
-                cell = row.createCell((short)1);
-                cell.setCellValue(rset.getString(3));
-                cell = row.createCell((short)2);
-                cell.setCellValue(rset.getString(4));
-                cell = row.createCell((short)3);
-                cell.setCellValue(rset.getString(5));
-                cell = row.createCell((short)4);
-                cell.setCellValue(rset.getString(6));
-                cell = row.createCell((short)5);
-                cell.setCellValue(rset.getString(7));
-                cell = row.createCell((short)6);
-                cell.setCellValue(rset.getString(8));
-                cell = row.createCell((short)7);
-                cell.setCellValue(rset.getString(9));
-                cell = row.createCell((short)8);
-                cell.setCellValue(verein);
-                cell = row.createCell((short)9);
-                cell.setCellValue(spendentyp);
-                cell = row.createCell((short)10);
-                cell.setCellValue(datum);
-                // Gesamtbetrag, BetragInWorten, Beträge
-                if (spendentyp.equalsIgnoreCase("Dauerspende")) {
-                    SQLString = "SELECT s.datum, s.betrag, s.bemerkung " +
-                	"FROM frauenhaus.spende s, frauenhaus.spendenart a " +
-                	"WHERE s.mitglied = " + mitglied + " " +
-                	"AND YEAR(s.datum) = YEAR(" + datum + ") " +
-                	"AND a.spendenart = s.spendenart " +
-                	"AND a.spendentyp = '" + spendentyp + "' " +
-                	"AND s.verein = '" + verein + "' " +
-                	"ORDER BY datum";                    
-                } else {                   
-                    SQLString = "SELECT datum, betrag, coalesce(bemerkung, ' ') " +
-                	"FROM frauenhaus.spende s " +
-                	"WHERE s.spende = " + spende + " " +
-                	"ORDER BY datum";
+        LOGGER.log(Level.INFO, "Report: {0} {1}", new Object[]{verein, spendentyp});
+        String sqlString = "SELECT DISTINCT m.mitglied, m.anrede, m.vorname, m.name, m.name2, m.name3, m.strasse, m.plz, m.ort "
+                + "FROM frauenhaus.mitglied m "
+                + "WHERE EXISTS (SELECT * "
+                + "FROM frauenhaus.spende s "
+                + "WHERE s.mitglied = m.mitglied "
+                + "AND s.spende = ?)";
+        try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/SpendenQuittungen.xls"));
+             HSSFWorkbook wb = new HSSFWorkbook(fsin);
+             PreparedStatement stmt = CDataManager.getInstance().getConnection().prepareStatement(sqlString)) {
+            stmt.setString(1, spende);
+            try (ResultSet rset = stmt.executeQuery()) {
+                HSSFSheet sheet = wb.getSheetAt(0);
+                int line = 1;
+                while (rset.next()) {
+                    HSSFRow row = sheet.createRow(line++);
+                    String mitglied = rset.getString(1);
+                    HSSFCell cell = row.createCell((short) 0);
+                    cell.setCellValue(rset.getString(2));
+                    cell = row.createCell((short) 1);
+                    cell.setCellValue(rset.getString(3));
+                    cell = row.createCell((short) 2);
+                    cell.setCellValue(rset.getString(4));
+                    cell = row.createCell((short) 3);
+                    cell.setCellValue(rset.getString(5));
+                    cell = row.createCell((short) 4);
+                    cell.setCellValue(rset.getString(6));
+                    cell = row.createCell((short) 5);
+                    cell.setCellValue(rset.getString(7));
+                    cell = row.createCell((short) 6);
+                    cell.setCellValue(rset.getString(8));
+                    cell = row.createCell((short) 7);
+                    cell.setCellValue(rset.getString(9));
+                    cell = row.createCell((short) 8);
+                    cell.setCellValue(verein);
+                    cell = row.createCell((short) 9);
+                    cell.setCellValue(spendentyp);
+                    cell = row.createCell((short) 10);
+                    cell.setCellValue(datum);
+                    fillDonationSummary(row, mitglied, verein, spendentyp, datum);
                 }
-                ResultSet rset0 = CDataManager.getInstance().getStatement().executeQuery(SQLString);
-                double betrag = 0;
-                String betraege = "";
-                String bemerkung = "";
-                while(rset0.next()) {
-                    LocalDate datum = rset0.getDate(1).toLocalDate();
-                    double einzelbetrag = rset0.getDouble(2);
-                    betraege += fmt.format(datum) + "\t" + nf.format(einzelbetrag) + "\n";
-                    betrag += einzelbetrag;
-                    String temp = rset0.getString(3).trim();
-                    if (temp.length() > 0) {
-                        bemerkung +=  temp + "\n";                        
-                    }
-                    if (bemerkung.length() > 0) bemerkung = bemerkung.substring(0,bemerkung.length()-1);
-                }
-                if (betraege.length() > 0) betraege = betraege.substring(0, betraege.length() - 1);
-                cell = row.createCell((short)11);
-                cell.setCellValue(nf.format(betrag));
-                cell = row.createCell((short)12);
-                cell.setCellValue(betragInWorten(nf.format(betrag)));
-                cell = row.createCell((short)13);
-                cell.setCellValue(betraege);
-                cell = row.createCell((short)14);
-                cell.setCellValue(bemerkung);
             }
-            FileOutputStream fileOut = new FileOutputStream(reports + "\\SpendenQuittung" + verein + spendentyp + ".xls");
-            wb.write(fileOut);
-            fileOut.close();
-            Runtime.getRuntime().exec(excel + "\\winword.exe /z\"" + vorlagen + "\\SpendenQuittung" + verein + spendentyp + ".dot\"");
-            System.out.println(excel + "\\winword.exe /z\"" + vorlagen + "\\SpendenQuittung" + verein + spendentyp + ".dot\"");
-            
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Toolkit.getDefaultToolkit().beep();
+            try (FileOutputStream fileOut = new FileOutputStream(reports + "\\SpendenQuittung" + verein + spendentyp + ".xls")) {
+                wb.write(fileOut);
+            }
+            LOGGER.log(Level.INFO, "Report generated: {0}\\SpendenQuittung{1}{2}.xls", new Object[]{reports, verein, spendentyp});
+
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to write donation receipt workbook", e);
             Toolkit.getDefaultToolkit().beep();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Failed to build donation receipt", e);
             Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    private void fillDonationSummary(HSSFRow row, String mitglied, String verein, String spendentyp, String datum)
+            throws SQLException {
+        String sqlString;
+        if (spendentyp.equalsIgnoreCase("Dauerspende")) {
+            sqlString = "SELECT s.datum, s.betrag, s.bemerkung "
+                    + "FROM frauenhaus.spende s, frauenhaus.spendenart a "
+                    + "WHERE s.mitglied = ? "
+                    + "AND YEAR(s.datum) = YEAR(?) "
+                    + "AND a.spendenart = s.spendenart "
+                    + "AND a.spendentyp = ? "
+                    + "AND s.verein = ? "
+                    + "ORDER BY datum";
+        } else {
+            sqlString = "SELECT datum, betrag, coalesce(bemerkung, ' ') "
+                    + "FROM frauenhaus.spende s "
+                    + "WHERE s.spende = ? "
+                    + "ORDER BY datum";
+        }
+        try (PreparedStatement stmt0 = CDataManager.getInstance().getConnection().prepareStatement(sqlString)) {
+            if (spendentyp.equalsIgnoreCase("Dauerspende")) {
+                stmt0.setString(1, mitglied);
+                stmt0.setString(2, datum);
+                stmt0.setString(3, spendentyp);
+                stmt0.setString(4, verein);
+            } else {
+                stmt0.setString(1, spende);
+            }
+            try (ResultSet rset0 = stmt0.executeQuery()) {
+                double betrag = 0;
+                StringBuilder betraege = new StringBuilder();
+                StringBuilder bemerkung = new StringBuilder();
+                while (rset0.next()) {
+                    LocalDate entryDate = rset0.getDate(1).toLocalDate();
+                    double einzelbetrag = rset0.getDouble(2);
+                    betraege.append(fmt.format(entryDate)).append('\t').append(nf.format(einzelbetrag)).append('\n');
+                    betrag += einzelbetrag;
+                    String temp = rset0.getString(3).trim();
+                    if (!temp.isEmpty()) {
+                        bemerkung.append(temp).append('\n');
+                    }
+                }
+                if (!betraege.isEmpty()) {
+                    betraege.setLength(betraege.length() - 1);
+                }
+                if (!bemerkung.isEmpty()) {
+                    bemerkung.setLength(bemerkung.length() - 1);
+                }
+                HSSFCell cell = row.createCell((short) 11);
+                cell.setCellValue(nf.format(betrag));
+                cell = row.createCell((short) 12);
+                cell.setCellValue(betragInWorten(nf.format(betrag)));
+                cell = row.createCell((short) 13);
+                cell.setCellValue(betraege.toString());
+                cell = row.createCell((short) 14);
+                cell.setCellValue(bemerkung.toString());
+            }
         }
     }
 
     private String betragInWorten(String zahl) {
         char[] ziffer = zahl.toCharArray();
-        String wert = "";
+        StringBuilder wert = new StringBuilder();
         for (int i = 0; i < ziffer.length; i++) {
             switch (ziffer[i]) {
-            case '1':
-                wert += "Eins - ";
-                break;
-            case '2':
-                wert += "Zwei - ";
-                break;
-            case '3':
-                wert += "Drei - ";
-                break;
-            case '4':
-                wert += "Vier - ";
-                break;
-            case '5':
-                wert += "Fünf - ";
-                break;
-            case '6':
-                wert += "Sechs - ";
-                break;
-            case '7':
-                wert += "Sieben - ";
-                break;
-            case '8':
-                wert += "Acht - ";
-                break;
-            case '9':
-                wert += "Neun - ";
-                break;
-            case '0':
-                wert += "Null - ";
-                break;
-            case ',':
-                wert += "Komma - ";
-                break;
+                case '1':
+                    wert.append("Eins - ");
+                    break;
+                case '2':
+                    wert.append("Zwei - ");
+                    break;
+                case '3':
+                    wert.append("Drei - ");
+                    break;
+                case '4':
+                    wert.append("Vier - ");
+                    break;
+                case '5':
+                    wert.append("Fï¿½nf - ");
+                    break;
+                case '6':
+                    wert.append("Sechs - ");
+                    break;
+                case '7':
+                    wert.append("Sieben - ");
+                    break;
+                case '8':
+                    wert.append("Acht - ");
+                    break;
+                case '9':
+                    wert.append("Neun - ");
+                    break;
+                case '0':
+                    wert.append("Null - ");
+                    break;
+                case ',':
+                    wert.append("Komma - ");
+                    break;
+                default:
+                    break;
             }
         }
-        wert = wert.substring(0,wert.length() - 2);
-        return wert;
+        if (wert.length() >= 3) {
+            wert.setLength(wert.length() - 3);
+        }
+        return wert.toString();
     }
-    
+
     public void set(CProperties p) {
-        this.p = p;
+        // no-op
     }
-    
+
 }

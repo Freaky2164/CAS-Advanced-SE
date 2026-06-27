@@ -1,39 +1,40 @@
 package compucrash;
+
 public class CInfoFrameStatusDisplay extends CInfoFrameStatus {
 
-	public CInfoFrameStatusDisplay(CInfoFrame owner) {
-		super(owner);
-		entry();
-	}
+    public CInfoFrameStatusDisplay(CInfoFrame owner) {
+        super(owner);
+        entry();
+    }
 
-	public void entry() {
-		owner.setTitle("Display");
-		// get data
-		// set all fields uneditable
-		// set only cancel button to active
-		owner.bOk.setEnabled(false);
-		owner.bApply.setEnabled(false);
-		owner.bCancel.setEnabled(true);
-		for (int i = 0; i < owner.cFields.size(); i++) {
-			((CDisplayField) owner.cFields.get(i)).setEditable(false);
-		}
-	}
+    public void entry() {
+        owner.setTitle("Display");
+        // get data
+        // set all fields uneditable
+        // set only cancel button to active
+        owner.bOk.setEnabled(false);
+        owner.bApply.setEnabled(false);
+        owner.bCancel.setEnabled(true);
+        for (int i = 0; i < owner.cFields.size(); i++) {
+            owner.cFields.get(i).setEditable(false);
+        }
+    }
 
-	public void exit() {
-		// no action required
-	}
+    public void exit() {
+        // no action required
+    }
 
-	public void action() {
-		// no activity required
-	}
+    public void action() {
+        // no activity required
+    }
 
-	public void apply() {
-		// not used
-	}
+    public void apply() {
+        // not used
+    }
 
-	public void ok() {
-		// exit dialog	
-		owner.dispose();	
-	}
+    public void ok() {
+        // exit dialog
+        owner.dispose();
+    }
 
 }
