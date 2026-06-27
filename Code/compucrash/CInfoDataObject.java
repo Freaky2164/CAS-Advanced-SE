@@ -1,60 +1,56 @@
 package compucrash;
+
 import java.sql.SQLException;
 
 public class CInfoDataObject {
-	
-	private String SQLString;
-	private String objectLabel;
-	private CProperties p;
-	private CInfoDataManagingDatabase manager;
+
+    private final String objectLabel;
+    private final CProperties p;
+    private final CInfoDataManagingDatabase manager;
 
 
-	public CInfoDataObject(CProperties p){
-		super();
-		this.p = p;
-		manager = CDataManager.getInstance().createCInfoDataManagingDatabase(this);
-		objectLabel = (String) p.get("object_label");
-		manager.prepareSQLString(p);
-		CProperties pTables = (CProperties) p.get("tables");
-	}
-	
-	public CDataObject getCDataObjectForUpdate(CProperties keys) {
-		return getCDataObject(keys, true);
-	}
-	
-	private CDataObject getCDataObject(CProperties keys, boolean b) {
-		return manager.getCDataObject(keys, b);
-	}
+    public CInfoDataObject(CProperties p) {
+        super();
+        this.p = p;
+        manager = CDataManager.getInstance().createCInfoDataManagingDatabase(this);
+        objectLabel = (String) p.get("object_label");
+        manager.prepareSQLString(p);
+    }
 
-	public CDataObject getCDataObject(CProperties keys) {
-		return getCDataObject(keys, false);
-	}
+    public CDataObject getCDataObjectForUpdate(CProperties keys) {
+        return getCDataObject(keys, true);
+    }
 
-	public void insert(CDataObject actual) throws SQLException {
-		manager.insert(actual);
-	}
+    private CDataObject getCDataObject(CProperties keys, boolean b) {
+        return manager.getCDataObject(keys, b);
+    }
 
-	public String getObjectLabel() {
-		return (String) p.get("object_label");
-	}
+    public CDataObject getCDataObject(CProperties keys) {
+        return getCDataObject(keys, false);
+    }
 
-	public String getSQLString() {
-		return SQLString;
-	}
+    public void insert(CDataObject actual) throws SQLException {
+        manager.insert(actual);
+    }
 
-	public CProperties getAttributes() {
-		return (CProperties)p.get("attributes");
-	}
-	public CProperties getCProperties() {
-		return p;
-	}
+    public String getObjectLabel() {
+        return (String) p.get("object_label");
+    }
 
-	public void delete(CProperties keys) throws SQLException {
-		manager.delete(keys);
-	}
+    public CProperties getAttributes() {
+        return (CProperties) p.get("attributes");
+    }
 
-	public void update(CProperties keys, CDataObject actual) throws SQLException {
-		manager.update(keys,actual);
-	}
+    public CProperties getCProperties() {
+        return p;
+    }
+
+    public void delete(CProperties keys) throws SQLException {
+        manager.delete(keys);
+    }
+
+    public void update(CProperties keys, CDataObject actual) throws SQLException {
+        manager.update(keys, actual);
+    }
 
 }

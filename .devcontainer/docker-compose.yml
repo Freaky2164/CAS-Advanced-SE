@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: sleep infinity
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: compucrash
+      POSTGRES_USER: compucrash
+      POSTGRES_PASSWORD: compucrash
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compucrash -d compucrash"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+

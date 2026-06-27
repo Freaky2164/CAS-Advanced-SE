@@ -1,134 +1,133 @@
 package compucrash;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CDataManager {
 
-	private static CDataManager uniqueInstance = null;
+    private static final Logger LOGGER = Logger.getLogger(CDataManager.class.getName());
+    private static final String DATABASE_KEY = "database";
+    private static String schemaSeparator = ".";
+    private static CDataManager uniqueInstance = null;
+    private final Connection conn;
+    private final Properties properties;
+    private CManagingDatabase manager;
 
-	private Connection conn;
-//	private Statement stmt;
-	private ResultSet rset;
-	private ResultSetMetaData rsmd;
-	private Properties properties;
-	private CManagingDatabase manager;
-	public static String schemaSeparator;
+    private CDataManager() {
+        properties = CPropertyManager.getInstance().getProperties();
+        if (properties.get(DATABASE_KEY).toString().equalsIgnoreCase("POSTGRES")
+                || properties.get(DATABASE_KEY).toString().equalsIgnoreCase("SQLSERVER")) {
+            manager = new CManagingPostgres();
+        } else if (properties.get(DATABASE_KEY).toString().equalsIgnoreCase("ORACLE")) {
+            manager = new CManagingOracle();
+        } else if (properties.get(DATABASE_KEY).toString().equalsIgnoreCase("MYSQL")) {
+            manager = new CManagingMySQL();
+        } else {
+            LOGGER.log(Level.SEVERE, "Keine unterstutzte Datenbank: {0}", properties.get(DATABASE_KEY));
+            LOGGER.info("Unterstutzt werden: ORACLE, POSTGRES, SQLSERVER (alias for POSTGRES), MYSQL");
+            System.exit(0);
+        }
 
-	private CDataManager() {
-		uniqueInstance = this;
-		
-// Load properties from file		
-   		properties = CPropertyManager.getInstance().getProperties();
-// vorerst ohne Factory Methode
-   		if (properties.get("database").toString().equalsIgnoreCase("SQLSERVER")) {
-   	   		manager = new CManagingSQLServer();   			
-   		} else if (properties.get("database").toString().equalsIgnoreCase("ORACLE")){
-   	   		manager = new CManagingOracle();   			   			
-   		} else if (properties.get("database").toString().equalsIgnoreCase("MYSQL")){
-   	   		manager = new CManagingMySQL();   			   			
-   		} else {
-   			System.out.println("Keine unterstützte Datenbank: " + properties.get("database").toString() + "\n");
-   			System.out.println("Unterstützt werden:");
-   			System.out.println("ORACLE");
-   			System.out.println("SQLSERVER");
-   			System.out.println("MYSQL");
-   			System.exit(0);
-   		}
-		
-// Connect to Database
-   		manager.connect(properties);
-   		conn = manager.getConnection();
-//   		stmt = manager.getStatement();
-	}
+        manager.connect(properties);
+        conn = manager.getConnection();
+    }
 
-	public Statement getStatement() throws SQLException {
-			return conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);		
-	}
-	
-	public Connection getConnection() {
-	    return conn;
-	}
+    public static CDataManager getInstance() {
+        if (uniqueInstance == null) {
+            uniqueInstance = new CDataManager();
+        }
+        return uniqueInstance;
+    }
 
-	public void dispose() {
-		try {
-			uniqueInstance = null;
-//			stmt.close();
-			conn.close();
-		} catch (SQLException se) {
-			System.out.println(se);
-		}
-	}
+    public static String getSchemaSeparator() {
+        return schemaSeparator;
+    }
 
-	public static CDataManager getInstance() {
-		if (uniqueInstance == null) {
-			new CDataManager();
-		}
-		return uniqueInstance;
-	}
-	
-	public String getMainFrame() {
-		return manager.getMainFrame();
-	}
-	
-	public ResultSet getObjects() {
-		return manager.getObjects();
-	}
-	
-	public ResultSet getButtons() {
-		return manager.getButtons();
-	}
+    public static void setSchemaSeparator(String separator) {
+        schemaSeparator = separator;
+    }
 
-	public ResultSet getGlobals() {
-		return manager.getGlobals();
-	}
-	
-	public ResultSet getTables(String object_name) {
-	    return manager.getTables(object_name);
-	}
+    public static void dispose() {
+        try {
+            if (uniqueInstance != null) {
+                uniqueInstance.conn.close();
+            }
+            uniqueInstance = null;
+        } catch (SQLException se) {
+            LOGGER.log(Level.SEVERE, "Failed to dispose database manager", se);
+        }
+    }
 
-	public ResultSet prepareCInfoDataObjects() {
-		return manager.prepareCInfoDataObjects();
-	}
-	
-	public ResultSet prepareCListDataObjects() {
-		return manager.prepareCListDataObjects();
-	}
-	
-	protected ResultSet getCInfoDataCustButtons(String object_name) {
-	    return manager.getCInfoDataCustButtons(object_name);
-	}
+    public Statement getStatement() throws SQLException {
+        return conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+    }
 
-	protected ResultSet getCListDataCustButtons(String object_name) {
-	    return manager.getCListDataCustButtons(object_name);
-	}
+    public Connection getConnection() {
+        return conn;
+    }
 
-	public ResultSet getSelect(CProperties p) {
-		return manager.getSelect(p);
-	}
-	
-	public Object getInit(String init) {
-		return manager.getInit(init);
-	}
+    public String getMainFrame() {
+        return manager.getMainFrame();
+    }
 
-	
-	public CListDataManagingDatabase createCListDataManagingDatabase(CListDataObject parent) {
-		return manager.createCListDataManagingDatabase(parent);
-	}
+    public ResultSet getObjects() {
+        return manager.getObjects();
+    }
 
-	public CInfoDataManagingDatabase createCInfoDataManagingDatabase(CInfoDataObject parent) {
-		return manager.createCInfoDataManagingDatabase(parent);
-	}
+    public ResultSet getButtons() {
+        return manager.getButtons();
+    }
 
-	public ResultSet getMainPanels() {
-		return manager.getMainPanels();
-	}
+    public ResultSet getGlobals() {
+        return manager.getGlobals();
+    }
 
-	public ResultSet getCustMainButtons() {
-		return manager.getCustMainButtons();
-	}
+    public ResultSet getTables(String objectName) {
+        return manager.getTables(objectName);
+    }
 
+    public ResultSet prepareCInfoDataObjects() {
+        return manager.prepareCInfoDataObjects();
+    }
+
+    public ResultSet prepareCListDataObjects() {
+        return manager.prepareCListDataObjects();
+    }
+
+    protected ResultSet getCInfoDataCustButtons(String objectName) {
+        return manager.getCInfoDataCustButtons(objectName);
+    }
+
+    protected ResultSet getCListDataCustButtons(String objectName) {
+        return manager.getCListDataCustButtons(objectName);
+    }
+
+    public ResultSet getSelect(CProperties p) {
+        return manager.getSelect(p);
+    }
+
+    public Object getInit(String init) {
+        return manager.getInit(init);
+    }
+
+    public CListDataManagingDatabase createCListDataManagingDatabase(CListDataObject parent) {
+        return manager.createCListDataManagingDatabase(parent);
+    }
+
+    public CInfoDataManagingDatabase createCInfoDataManagingDatabase(CInfoDataObject parent) {
+        return manager.createCInfoDataManagingDatabase(parent);
+    }
+
+    public ResultSet getMainPanels() {
+        return manager.getMainPanels();
+    }
+
+    public ResultSet getCustMainButtons() {
+        return manager.getCustMainButtons();
+    }
 }

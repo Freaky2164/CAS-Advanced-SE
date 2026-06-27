@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['Code']
+        }
+        resources {
+            srcDirs = ['Code']
+            exclude '**/*.java'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs 'Code/ext'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'Code/ext', include: ['*.jar', '*.zip'])
+}
+
+application {
+    mainClass = 'compucrash.CStart'
+}
+
+tasks.named('run') {
+    args = ['Code/Compucrash.ini']
+}

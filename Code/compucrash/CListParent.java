@@ -5,14 +5,15 @@ package compucrash;
 
 /**
  * @author Peter
- *
+ * <p>
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
 public interface CListParent {
-    
-    abstract void bEdit();
-    abstract void setStatusLine(String text);
-    
+
+    void onEdit();
+
+    void setStatusLine(String text);
+
 }
 
