@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 public class ImportExcel {
 
     private static final Logger LOGGER = Logger.getLogger(ImportExcel.class.getName());
-    private final int docno = 0;
     String outputLine;
     File fout;
     FileOutputStream out;
@@ -30,7 +29,6 @@ public class ImportExcel {
         String[] rowData = new String[21];
         try {
             Properties p = CPropertyManager.getInstance().getProperties();
-            Class.forName("org.postgresql.Driver");
             conn = DriverManager.getConnection(
                     "jdbc:postgresql://"
                             + p.getProperty("dbhost")
@@ -41,9 +39,6 @@ public class ImportExcel {
                     p.getProperty("dbuser"),
                     p.getProperty("dbpwd"));
             stmt = conn.createStatement();
-        } catch (ClassNotFoundException e) {
-            LOGGER.log(Level.SEVERE, "JDBC driver not found", e);
-            System.exit(0);
         } catch (SQLException se) {
             LOGGER.log(Level.SEVERE, "Database connection failed", se);
             System.exit(0);
@@ -53,8 +48,10 @@ public class ImportExcel {
             fout = new File("worksheet.sql");
             out = new FileOutputStream(fout);
             fs = new POIFSFileSystem(new FileInputStream("worksheet.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fs);
-            HSSFSheet sheet = wb.getSheetAt(0);
+            HSSFSheet sheet;
+            try (HSSFWorkbook wb = new HSSFWorkbook(fs)) {
+                sheet = wb.getSheetAt(0);
+            }
             for (int i = sheet.getFirstRowNum() + 1; i <= sheet.getLastRowNum(); i++) {
                 HSSFRow row = sheet.getRow((short) i);
                 for (int j = 0; j < 21; j++) {
@@ -83,11 +80,11 @@ public class ImportExcel {
         }
     }
 
-    static void main(String[] args) {
+    static void main() {
         new ImportExcel();
     }
 
-    private void insert(String[] rowData) throws IOException, SQLException {
+    private void insert(String[] rowData) throws SQLException {
         int docNo = 1;
         try (ResultSet rset = stmt.executeQuery("SELECT max(docid) FROM biopharm.mp52")) {
             if (rset.next()) docNo = rset.getInt(1) + 1;

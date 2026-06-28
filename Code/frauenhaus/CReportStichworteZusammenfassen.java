@@ -5,24 +5,14 @@ import compucrash.*;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportStichworteZusammenfassen extends CCommand implements CReport {
 
     private static final Logger LOGGER = Logger.getLogger(CReportStichworteZusammenfassen.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
-    private final String reports;
-    private final String vorlagen;
-    private final String excel;
     private CProperties p;
 
-    public CReportStichworteZusammenfassen() {
-        this.reports = CPropertyManager.getInstance().getProperty("reports");
-        this.vorlagen = CPropertyManager.getInstance().getProperty("vorlagen");
-        this.excel = CPropertyManager.getInstance().getProperty("excel");
-    }
 
     public Object execute(Object parameters) {
 
@@ -49,12 +39,7 @@ public class CReportStichworteZusammenfassen extends CCommand implements CReport
         String stichwortNeu = "";
 
         if (((CProperties) p.get("1")).get("multipleValue") != null) {
-            CTable tab = ((CTable) ((CProperties) p.get("1")).get("multipleValue"));
-            int[] rows = tab.getSelectedRows();
-            for (int i = 0; i < rows.length; i++) {
-                stichworteAlt.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
-            }
-            if (!stichworteAlt.isEmpty()) stichworteAlt.setLength(stichworteAlt.length() - 1);
+            CReportSerienbrief.collectSelectedValuesHelper(stichworteAlt, p);
         } else {
             Toolkit.getDefaultToolkit().beep();
             return;
@@ -68,7 +53,7 @@ public class CReportStichworteZusammenfassen extends CCommand implements CReport
 
         try {
             // Neues Stichwort zuordnen
-            String SQLString = "INSERT INTO frauenhaus.stichwort_person " +
+            String sqlString = "INSERT INTO frauenhaus.stichwort_person " +
                     "SELECT DISTINCT mitglied, '" + stichwortNeu + "' " +
                     "FROM frauenhaus.mitglied m " +
                     "WHERE m.mitglied IN (SELECT mitglied " +
@@ -77,19 +62,16 @@ public class CReportStichworteZusammenfassen extends CCommand implements CReport
                     "AND m.mitglied NOT IN (SELECT mitglied " +
                     "FROM frauenhaus.stichwort_person " +
                     "WHERE stichwort = '" + stichwortNeu + "') ";
-            CDataManager.getInstance().getStatement().execute(SQLString);
-            // Alte Stichwortzuordnung l�schen
-            SQLString = "DELETE FROM frauenhaus.stichwort_person " +
+            CDataManager.getInstance().getStatement().execute(sqlString);
+            sqlString = "DELETE FROM frauenhaus.stichwort_person " +
                     "WHERE stichwort IN (" + stichworteAlt + ") " +
                     "AND stichwort != '" + stichwortNeu + "' ";
-            CDataManager.getInstance().getStatement().execute(SQLString);
-            // Alte Stichw�rter l�schen
-            SQLString = "DELETE FROM frauenhaus.stichwort " +
+            CDataManager.getInstance().getStatement().execute(sqlString);
+            sqlString = "DELETE FROM frauenhaus.stichwort " +
                     "WHERE stichwort IN (" + stichworteAlt + ") " +
                     "AND stichwort != '" + stichwortNeu + "' ";
-            CDataManager.getInstance().getStatement().execute(SQLString);
+            CDataManager.getInstance().getStatement().execute(sqlString);
             CDataManager.getInstance().getConnection().commit();
-            // Erfolgsmeldung einbauen
             JOptionPane.showMessageDialog(null,
                     "Stichworte erfolgreich zusammengefasst",
                     "Stichworte Zusammenfassen - Info",

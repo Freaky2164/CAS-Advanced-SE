@@ -89,117 +89,6 @@ public class CMainFrame extends CFrame {
             LOGGER.log(Level.SEVERE, "Failed to load custom buttons", e);
             System.exit(0);
         }
-//		Datenimport
-		/*
-		CProperties wumbea = new CProperties();
-		wumbea.put("label","W+M Be- und Abz�ge");
-		wumbea.put("icon", null);
-		wumbea.put("position",0);
-		wumbea.put("command","CCommandImportWuMBeA");
-		CButton buttonBea = new CButton(wumbea);
-		pWuM.add(buttonBea);
-		buttonBea.setPreferredSize(new Dimension(300,120));
-		
-		CProperties wumlohn = new CProperties();
-		wumlohn.put("label","W+M Lohnliste");
-		wumlohn.put("icon", null);
-		wumlohn.put("position",0);
-		wumlohn.put("command","CCommandImportWuMLohn");
-		CButton buttonLohn = new CButton(wumlohn);
-		pWuM.add(buttonLohn);
-		buttonLohn.setPreferredSize(new Dimension(300,120));		
-
-		CProperties report1 = new CProperties();
-		report1.put("label","Adressliste privat");
-		report1.put("icon", null);
-		report1.put("position",0);
-		report1.put("command","CReportAdresslistePrivat");
-		CButton buttonreport1 = new CButton(report1);
-		pReports.add(buttonreport1);
-		buttonreport1.setPreferredSize(new Dimension(300,120));
-
-		CProperties report2 = new CProperties();
-		report2.put("label","Telefonliste gesch�ftlich");
-		report2.put("icon", null);
-		report2.put("position",0);
-		report2.put("command","CReportTelefonlisteGesch�ftlich");
-		CButton buttonreport2 = new CButton(report2);
-		pReports.add(buttonreport2);
-		buttonreport2.setPreferredSize(new Dimension(300,120));
-
-		CProperties report3 = new CProperties();
-		report3.put("label","Geburtstags- und BZG-Liste");
-		report3.put("icon", null);
-		report3.put("position",0);
-		report3.put("command","CReportGeburtstagsBZGListe");
-		CButton buttonreport3 = new CButton(report3);
-		pReports.add(buttonreport3);
-		buttonreport3.setPreferredSize(new Dimension(300,120));
-
-		CProperties report4 = new CProperties();
-		report4.put("label","Personalbogen");
-		report4.put("icon", null);
-		report4.put("position",0);
-		report4.put("command","CReportPersonalbogen");
-		CButton buttonreport4 = new CButton(report4);
-		pReports.add(buttonreport4);
-		buttonreport4.setPreferredSize(new Dimension(300,120));
-
-		CProperties report5 = new CProperties();
-		report5.put("label","Gehalt nach Monaten/Jahren");
-		report5.put("icon", null);
-		report5.put("position",0);
-		report5.put("command","CReportGehalt");
-		CButton buttonreport5 = new CButton(report5);
-		pReports.add(buttonreport5);
-		buttonreport5.setPreferredSize(new Dimension(300,120));
-//		buttonreport5.setEnabled(false);
-
-		CProperties report6 = new CProperties();
-		report6.put("label","Leistungspr�mie nach Grund und Extrapr�mie");
-		report6.put("icon", null);
-		report6.put("position",0);
-		report6.put("command","CReportLeistungspraemie");
-		CButton buttonreport6 = new CButton(report6);
-		pReports.add(buttonreport6);
-		buttonreport6.setPreferredSize(new Dimension(300,120));
-
-		CProperties report7 = new CProperties();
-		report7.put("label","Krankmeldungen");
-		report7.put("icon", null);
-		report7.put("position",0);
-		report7.put("command","CReportKrankmeldungen");
-		CButton buttonreport7 = new CButton(report7);
-		pReports.add(buttonreport7);
-		buttonreport7.setPreferredSize(new Dimension(300,120));
-
-		CProperties report8 = new CProperties();
-		report8.put("label","BMBF Report");
-		report8.put("icon", null);
-		report8.put("position",0);
-		report8.put("command","CReportBMBF");
-		CButton buttonreport8 = new CButton(report8);
-		pReports.add(buttonreport8);
-		buttonreport8.setPreferredSize(new Dimension(300,120));
-
-		CProperties report9 = new CProperties();
-		report9.put("label","Gehaltsreport (Gruppen)");
-		report9.put("icon", null);
-		report9.put("position",0);
-		report9.put("command","CReportGehaltsgruppierung");
-		CButton buttonreport9 = new CButton(report9);
-		pReports.add(buttonreport9);
-		buttonreport9.setPreferredSize(new Dimension(300,120));
-
-		CProperties report10 = new CProperties();
-		report10.put("label","AT-Erh�hungen");
-		report10.put("icon", null);
-		report10.put("position",0);
-		report10.put("command","CReportATErhoehungen");
-		CButton buttonreport10 = new CButton(report10);
-		pReports.add(buttonreport10);
-		buttonreport10.setPreferredSize(new Dimension(300,120));
-*/
         setSize(1024, 768 - 32);
         setVisible(true);
     }
@@ -214,7 +103,7 @@ public class CMainFrame extends CFrame {
         }
     }
 
-    protected void reportAction(ActionEvent e) {
+    protected void reportAction() {
         CProperties p = new CProperties();
         CProperties pA = new CProperties();
         p.put(Integer.toString(1), pA);
@@ -225,8 +114,10 @@ public class CMainFrame extends CFrame {
         new CReportFrame(p);
     }
 
+    @Override
     public void dispose() {
-        CPropertyManager.getInstance().dispose();
+        CPropertyManager.getInstance();
+        CPropertyManager.dispose();
         System.exit(0);
     }
 

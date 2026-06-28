@@ -3,6 +3,7 @@ package compucrash;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -156,7 +157,7 @@ public class CDataObjectFactory {
             pt.put("0", objectTable);
         } else {
             boolean ins = false;
-            for (Enumeration<?> en = pt.elements(); en.hasMoreElements(); ) {
+            for (Enumeration<?> en = Collections.enumeration(pt.keySet()); en.hasMoreElements(); ) {
                 if (en.nextElement().toString().equalsIgnoreCase(objectTable)) ins = true;
             }
             if (!ins) {
@@ -237,13 +238,7 @@ public class CDataObjectFactory {
         po.put(CUST_BUTTONS, pcb);
         try (ResultSet rset3 = CDataManager.getInstance().getCInfoDataCustButtons(objectName)) {
             int k = 0;
-            while (rset3.next()) {
-                k++;
-                CProperties pcbi = new CProperties();
-                pcb.put(Integer.toString(k), pcbi);
-                pcbi.put("bez", rset3.getString(1));
-                pcbi.put(PANEL, rset3.getString(2));
-            }
+            setLoop(rset3, k, pcb);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to load info custom buttons", ex);
         }
@@ -269,17 +264,21 @@ public class CDataObjectFactory {
         try (ResultSet rset3 = CDataManager.getInstance().getCListDataCustButtons(objectName)) {
             int k = 0;
             CProperties pcb = (CProperties) po.get(CUST_BUTTONS);
-            while (rset3.next()) {
-                k++;
-                CProperties pcbi = new CProperties();
-                pcb.put(Integer.toString(k), pcbi);
-                pcbi.put("bez", rset3.getString(1));
-                pcbi.put(PANEL, rset3.getString(2));
-            }
+            setLoop(rset3, k, pcb);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to load list custom buttons", ex);
         }
         return po;
+    }
+
+    private void setLoop(ResultSet rset3, int k, CProperties pcb) throws SQLException {
+        while (rset3.next()) {
+            k++;
+            CProperties pcbi = new CProperties();
+            pcb.put(Integer.toString(k), pcbi);
+            pcbi.put("bez", rset3.getString(1));
+            pcbi.put(PANEL, rset3.getString(2));
+        }
     }
 
     private void addInfoAttribute(CProperties po, CProperties pas, int index, String owner, String tableName,

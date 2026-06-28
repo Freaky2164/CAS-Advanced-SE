@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class CTableHeaderSettingsFrame extends CFrame {
-
+    private CTableHeaderSettingsFrame window = null;
     public CTableHeaderSettingsFrame() {
         super(null);
         JPanel cp = getMainPane();
@@ -32,7 +32,15 @@ public class CTableHeaderSettingsFrame extends CFrame {
         setVisible(true);
     }
 
-    static void main(String[] args) {
-        CTableHeaderSettingsFrame window = new CTableHeaderSettingsFrame();
+    void main() {
+        this.window = new CTableHeaderSettingsFrame();
+    }
+
+    public CTableHeaderSettingsFrame getWindow() {
+        return window;
+    }
+
+    public void setWindow(CTableHeaderSettingsFrame window) {
+        this.window = window;
     }
 }

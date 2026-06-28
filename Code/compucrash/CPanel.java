@@ -69,15 +69,6 @@ public class CPanel extends JPanel {
         p1.setBackground(c);
         p2.setBackground(c);
         p3.setBackground(c);
- /*       for (int i = 0; i < left.getComponentCount();i++) {
-            left.getComponent(i).setBackground(c);
-        }
-        for (int i = 0; i < center.getComponentCount();i++) {
-            center.getComponent(i).setBackground(c);
-        }
-        for (int i = 0; i < right.getComponentCount();i++) {
-            right.getComponent(i).setBackground(c);
-        }*/
     }
 
 }

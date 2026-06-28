@@ -11,6 +11,11 @@ import java.util.logging.Logger;
 public class CInfoSearchBean extends JPanel {
 
     private static final Logger LOGGER = Logger.getLogger(CInfoSearchBean.class.getName());
+    private static final String BDISPLAYCONST = "bdisplay";
+    private static final String BEDITCONST = "bedit";
+    private static final String BDELETECONST = "bdelete";
+    private static final String BCOPYCONST = "bcopy";
+    private static final String BNEWCONST = "bnew";
     private final CInfoFrame owner;
     private final JComboBox<String> modes = new JComboBox<>();
     protected CButton bNew;
@@ -19,11 +24,6 @@ public class CInfoSearchBean extends JPanel {
     protected CButton bCopy;
     protected CButton bDisplay;
     protected CProperties p;
-    private static final String BDISPLAYCONST = "bdisplay";
-    private static final String BEDITCONST = "bedit";
-    private static final String BDELETECONST = "bdelete";
-    private static final String BCOPYCONST = "bcopy";
-    private static final String BNEWCONST = "bnew";
 
     public CInfoSearchBean(CInfoFrame parent) {
         super();

@@ -42,6 +42,7 @@ public class CLoginFrame extends CFrame {
     }
 
     protected void tfUserActionPerformed() {
+        /*Methode ist leet*/
     }
 
     protected void bCancelActionPerformed() {
@@ -49,15 +50,15 @@ public class CLoginFrame extends CFrame {
     }
 
     protected void bOkActionPerformed() {
-        CPropertyManager.USER = tfUser.getText();
-        CPropertyManager.PWD = new String(tfPassword.getPassword());
+        CPropertyManager.setUser(tfUser.getText());
+        CPropertyManager.setPwd(new String(tfPassword.getPassword()));
         String mainFrame = CDataManager.getInstance().getMainFrame();
         if (mainFrame == null) {
             new CMainFrame();
         } else {
             try {
                 Class.forName(mainFrame).getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
+            } catch (ReflectiveOperationException _) {
                 new CMainFrame();
             }
         }

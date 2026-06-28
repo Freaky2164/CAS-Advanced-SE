@@ -9,6 +9,6 @@ public class CNull {
     }
 
     public String toString() {
-        return null;
+        return "";
     }
 }

@@ -24,6 +24,9 @@
 
 package de.must.util;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -46,14 +49,24 @@ import java.io.IOException;
  * @version 1.1 01/21/00
  */
 public class WordProcessing {
+    private static final Logger log = LogManager.getLogger(WordProcessing.class);
+
+    private WordProcessing() {
+        /* This utility class should not be instantiated */
+    }
+
+    private static final String PRINTANDFORGET = "@printAndForget";
 
     // define your standard:
-    private static final boolean noteNotMatchingBookmarks = true; // shall the user be informed that certain bookmarks weren't found in the template?
+    private static final boolean NOTENOTMATCHINGTHEBOOKMARKS = true; // shall the user be informed that certain bookmarks weren't found in the template?
     // end of standard definition
 
     private static File wordInput;
     private static FileWriter wordInputWriter;
 
+    public static boolean noteNotMatchingBookmarks(){
+        return NOTENOTMATCHINGTHEBOOKMARKS;
+    }
     /**
      * Triggers to the template selection dialog and creates a new document
      * based on the chosen template.
@@ -79,8 +92,8 @@ public class WordProcessing {
      * @param noteNotMatchingBookmarks whether the user should be warned
      */
     public static void setNoteNotMatchingBookmarks(boolean noteNotMatchingBookmarks) {
-        if (noteNotMatchingBookmarks) output("@noteNotMatchingBookmarks", "TRUE");
-        else output("@noteNotMatchingBookmarks", "FALSE");
+        if (noteNotMatchingBookmarks) output("@NOTENOTMATCHINGTHEBOOKMARKS", "TRUE");
+        else output("@NOTENOTMATCHINGTHEBOOKMARKS", "FALSE");
     }
 
     /**
@@ -145,7 +158,7 @@ public class WordProcessing {
      * Prints the document on the standard printer and closes the document without saving.
      */
     public static void printAndForget() {
-        output("@printAndForget", "");
+        output(PRINTANDFORGET, "");
     }
 
     /**
@@ -154,7 +167,7 @@ public class WordProcessing {
      * @param printerName the name of the desired printer
      */
     public static void printAndForget(String printerName) {
-        output("@printAndForget", printerName);
+        output(PRINTANDFORGET, printerName);
     }
 
     /**
@@ -162,7 +175,7 @@ public class WordProcessing {
      * on the selected printer and closes the document without saving.
      */
     public static void printToPrinterToSelectByUserAndForget() {
-        output("@printAndForget", "PRINTER_TO_SELECT_BY_USER");
+        output(PRINTANDFORGET, "PRINTER_TO_SELECT_BY_USER");
     }
 
     /**
@@ -203,8 +216,8 @@ public class WordProcessing {
             new ProcessBuilder(cmd).start();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(cmd + " could not be executed.");
-            System.out.println("Please ensure that WordAPI.exe may be found by java.exe by putting it in an appropriate directory.");
+            log.info("{} could not be executed.", cmd);
+            log.info("Please ensure that WordAPI.exe may be found by java.exe by putting it in an appropriate directory.");
             return false;
         }
         return true;
@@ -215,18 +228,16 @@ public class WordProcessing {
     }
 
     private static void output(String key, String value) {
-        String record;
-        record = key;
-        while (record.length() < 40) record += " ";
-        record += value;
-        if (wordInputWriter == null) {
-            if (!openWordInput()) return;
-        }
+        StringBuilder outputRecord = new StringBuilder(key);
+        while (outputRecord.length() < 40) outputRecord.append(" ");
+        outputRecord.append(value);
+        if (wordInputWriter == null && !openWordInput()) return;
+
         try {
-            wordInputWriter.write(record + "\r\n");
+            wordInputWriter.write(outputRecord + "\r\n");
             wordInputWriter.flush();
         } catch (IOException e2) {
-            System.out.println("caught: " + e2);
+            log.error("caught: %s%n", e2);
         }
     }
 
@@ -234,10 +245,10 @@ public class WordProcessing {
         try {
             wordInput = new File("WordInp.txt");
             wordInputWriter = new FileWriter(wordInput);
-            setNoteNotMatchingBookmarks(noteNotMatchingBookmarks);
+            setNoteNotMatchingBookmarks(NOTENOTMATCHINGTHEBOOKMARKS);
         } catch (IOException e2) {
-            System.out.println("caught: " + e2);
-            System.out.println("could not open interface file WordInp.txt");
+            log.info("caught: {}", String.valueOf(e2));
+            log.info("could not open interface file WordInp.txt");
             return false;
         }
         return true;
@@ -249,7 +260,7 @@ public class WordProcessing {
             wordInput = null;
             wordInputWriter = null;
         } catch (IOException e2) {
-            System.out.println("caught: " + e2);
+            log.error("caught: {}", String.valueOf(e2));
         }
     }
 

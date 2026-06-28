@@ -5,15 +5,17 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CTableModel extends AbstractTableModel {
 
+    private static final String COLUMNNAME = "column_name";
     private static final Logger LOGGER = Logger.getLogger(CTableModel.class.getName());
     private final ArrayList<Object> columns = new ArrayList<>();
-    private ResultSet rset;
-    private ResultSetMetaData rsmd;
+    private transient ResultSet rset;
+    private transient ResultSetMetaData rsmd;
     private compucrash.CProperties p = null;
 
     public CTableModel(ResultSet rset) {
@@ -53,34 +55,18 @@ public class CTableModel extends AbstractTableModel {
                 keys.put(Integer.toString(j), pKey);
                 pKey.put("owner", pA.get("owner"));
                 pKey.put("table_name", pA.get("table_name"));
-                pKey.put("column_name", pA.get("column_name"));
+                pKey.put(COLUMNNAME, pA.get(COLUMNNAME));
                 try {
                     for (int k = 1; k <= rsmd.getColumnCount(); k++) {
-/*					    CMessage.print("CTableModel.getKeys.rsmd.getColumnName(k):");
-					    CMessage.print(Integer.valueOf(k));
-					    CMessage.print(rsmd.getColumnName(k));
-					    CMessage.print(rsmd.getTableName(k));
-					    CMessage.print(rsmd.getSchemaName(k));
-					    String tableName = rsmd.getTableName(k);
-					    CMessage.print("CTableModel.getKeys.pA.get(column_name):");
-					    CMessage.print(pA.get("column_name").toString());
-					    CMessage.print(pA.get("table_name").toString());
-					    CMessage.print(pA.get("owner").toString());*/
-	/*					if (rsmd.getColumnName(k).equalsIgnoreCase(pA.get("column_name").toString()) 
-								&& rsmd.getTableName(k).equalsIgnoreCase(pA.get("table_name").toString())
-								&& rsmd.getSchemaName(k).equalsIgnoreCase(pA.get("owner").toString())) {
-							pKey.put("value",getValueAt(selectedRow, k - 1));
-							break;
-						}*/
                         // TODO wegen Oracle nur Abfrage auf Attributname
-                        if (rsmd.getColumnName(k).equalsIgnoreCase(pA.get("column_name").toString())) {
+                        if (rsmd.getColumnName(k).equalsIgnoreCase(pA.get(COLUMNNAME).toString())) {
                             pKey.put("value", getValueAt(selectedRow, k - 1));
                             break;
                         }
                     }
                 } catch (SQLException e) {
                     LOGGER.log(Level.SEVERE, "Failed to read key from result set", e);
-                    return null;
+                    return (CProperties) Collections.emptyMap();
                 }
             }
         }
@@ -122,8 +108,8 @@ public class CTableModel extends AbstractTableModel {
 
                 return fmt.format(dt);
             }
-            if (o instanceof Date) {
-                LocalDate dt = ((Date) o).toLocalDate();
+            if (o instanceof Date date) {
+                LocalDate dt = date.toLocalDate();
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd.MM.yyyy");
                 return fmt.format(dt);
             }

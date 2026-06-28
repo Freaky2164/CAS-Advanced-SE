@@ -4,6 +4,7 @@ import java.io.File;
 
 public class CPdfFileFilter extends CSuffixAwareFilter {
 
+    @Override
     public boolean accept(File f) {
         String suffix = getSuffix(f);
 

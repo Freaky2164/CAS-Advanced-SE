@@ -33,7 +33,7 @@ public class XFrame extends JFrame {
         setVisible(true);
     }
 
-    static void main(String[] args) {
+    static void main() {
         new XFrame();
     }
 }

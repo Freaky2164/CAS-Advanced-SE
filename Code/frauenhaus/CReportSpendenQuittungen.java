@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 public class CReportSpendenQuittungen extends CCommand implements CReport {
 
+    private static final String EQUALSVALUE = "equalsValue";
     private static final Logger LOGGER = Logger.getLogger(CReportSpendenQuittungen.class.getName());
     private static final String SPENDEN_QUITTUNG_TEMPLATE = "/SpendenQuittungen.xls";
     private static final String SPENDEN_QUITTUNG_PREFIX = "\\SpendenQuittung";
@@ -54,12 +55,10 @@ public class CReportSpendenQuittungen extends CCommand implements CReport {
 
     public void go() {
         // Jahr setzen und Reports aufrufen        
-        if (((CProperties) p.get("1")).get("equalsValue") != null) {
-            if (!((CProperties) p.get("1")).get("equalsValue").toString().trim().equalsIgnoreCase("")) {
-                String value = ((CProperties) p.get("1")).get("equalsValue").toString().trim();
-                jahr = value;
+        if (((CProperties) p.get("1")).get(EQUALSVALUE) != null && !((CProperties) p.get("1")).get(EQUALSVALUE).toString().trim().equalsIgnoreCase("")) {
+            jahr = ((CProperties) p.get("1")).get(EQUALSVALUE).toString().trim();
             }
-        }
+
         nf.setMinimumFractionDigits(2);
         nf.setMaximumFractionDigits(2);
         String sql = "SELECT distinct s.verein, a.spendentyp " +
@@ -104,34 +103,34 @@ public class CReportSpendenQuittungen extends CCommand implements CReport {
             try (ResultSet rset = stmt.executeQuery()) {
                 HSSFSheet sheet = wb.getSheetAt(0);
                 int line = 1;
-                while (rset.next()) {
-                    HSSFRow row = sheet.createRow(line++);
-                    String mitglied = rset.getString(1);
-                    setCellValue(row, 0, rset.getString(2));
-                    setCellValue(row, 1, rset.getString(3));
-                    setCellValue(row, 2, rset.getString(4));
-                    setCellValue(row, 3, rset.getString(5));
-                    setCellValue(row, 4, rset.getString(6));
-                    setCellValue(row, 5, rset.getString(7));
-                    setCellValue(row, 6, rset.getString(8));
-                    setCellValue(row, 7, rset.getString(9));
-                    setCellValue(row, 8, verein);
-                    setCellValue(row, 9, spendentyp);
-                    setCellValue(row, 10, jahr);
+                String amountSql = "SELECT s.datum, s.betrag, coalesce(s.bemerkung, ' ') " +
+                        "FROM frauenhaus.spende s, frauenhaus.spendenart a " +
+                        "WHERE s.mitglied = ? " +
+                        "AND YEAR(s.datum) = ? " +
+                        "AND s.spendenart = a.spendenart " +
+                        "AND a.spendentyp = ? " +
+                        "AND verein = ? " +
+                        "ORDER BY s.datum";
+                try (PreparedStatement amountStmt = CDataManager.getInstance().getConnection().prepareStatement(amountSql)) {
+                    amountStmt.setString(2, jahr);
+                    amountStmt.setString(3, spendentyp);
+                    amountStmt.setString(4, verein);
+                    while (rset.next()) {
+                        HSSFRow row = sheet.createRow(line++);
+                        String mitglied = rset.getString(1);
+                        setCellValue(row, 0, rset.getString(2));
+                        setCellValue(row, 1, rset.getString(3));
+                        setCellValue(row, 2, rset.getString(4));
+                        setCellValue(row, 3, rset.getString(5));
+                        setCellValue(row, 4, rset.getString(6));
+                        setCellValue(row, 5, rset.getString(7));
+                        setCellValue(row, 6, rset.getString(8));
+                        setCellValue(row, 7, rset.getString(9));
+                        setCellValue(row, 8, verein);
+                        setCellValue(row, 9, spendentyp);
+                        setCellValue(row, 10, jahr);
 
-                    String amountSql = "SELECT s.datum, s.betrag, coalesce(s.bemerkung, ' ') " +
-                            "FROM frauenhaus.spende s, frauenhaus.spendenart a " +
-                            "WHERE s.mitglied = ? " +
-                            "AND YEAR(s.datum) = ? " +
-                            "AND s.spendenart = a.spendenart " +
-                            "AND a.spendentyp = ? " +
-                            "AND verein = ? " +
-                            "ORDER BY s.datum";
-                    try (PreparedStatement amountStmt = CDataManager.getInstance().getConnection().prepareStatement(amountSql)) {
                         amountStmt.setString(1, mitglied);
-                        amountStmt.setString(2, jahr);
-                        amountStmt.setString(3, spendentyp);
-                        amountStmt.setString(4, verein);
                         try (ResultSet rset0 = amountStmt.executeQuery()) {
                             double betrag = 0;
                             StringBuilder betraege = new StringBuilder();
@@ -165,10 +164,7 @@ public class CReportSpendenQuittungen extends CCommand implements CReport {
             ).start();
             CMessage.print(excel + "\\winword.exe /z\"" + vorlagen + SPENDEN_QUITTUNG_PREFIX + verein + spendentyp + ".dot\"");
 
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            Toolkit.getDefaultToolkit().beep();
-        } catch (SQLException e) {
+        } catch (IOException | SQLException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             Toolkit.getDefaultToolkit().beep();
         }
@@ -232,7 +228,7 @@ public class CReportSpendenQuittungen extends CCommand implements CReport {
     }
 
     private void trimTrailingNewline(StringBuilder builder) {
-        if (builder.length() > 0) {
+        if (!builder.isEmpty()) {
             builder.setLength(builder.length() - 1);
         }
     }

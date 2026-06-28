@@ -15,11 +15,10 @@ public class CDataManager {
     private static String schemaSeparator = ".";
     private static CDataManager uniqueInstance = null;
     private final Connection conn;
-    private final Properties properties;
     private CManagingDatabase manager;
 
     private CDataManager() {
-        properties = CPropertyManager.getInstance().getProperties();
+        Properties properties = CPropertyManager.getInstance().getProperties();
         if (properties.get(DATABASE_KEY).toString().equalsIgnoreCase("POSTGRES")
                 || properties.get(DATABASE_KEY).toString().equalsIgnoreCase("SQLSERVER")) {
             manager = new CManagingPostgres();

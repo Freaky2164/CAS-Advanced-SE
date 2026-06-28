@@ -17,15 +17,13 @@ public class CInfoFrame extends CFrame {
     public static final int DELETE = 4;
     public static final int SUB = 5;
     public static final int EDITALL = 6;
+    public static final String APPLY = "apply";
     private static final Logger LOGGER = Logger.getLogger(CInfoFrame.class.getName());
     private final transient CInfoParent infoParent;
     private final CProperties pc;
     private final CProperties papply = new CProperties();
     private final CProperties pok = new CProperties();
-    private transient CInfoFrameStatus status;
-    private transient List<CDisplayField> cFields = new ArrayList<>();
     private final CTabbedPane tabbedPane = new CTabbedPane();
-    private CProperties attributeValues = new CProperties();
     protected CButton bOk;
     protected CButton bApply;
     protected CButton bCancel;
@@ -34,27 +32,10 @@ public class CInfoFrame extends CFrame {
     protected String objectName;
     protected boolean edited = false;
     protected CProperties attributeActions = new CProperties();
+    private transient CInfoFrameStatus status;
+    private transient List<CDisplayField> cFields = new ArrayList<>();
+    private CProperties attributeValues = new CProperties();
     private transient CCommand c;
-    public static final String APPLY = "apply";
-
-    public List<CDisplayField> getcFields() {
-        return cFields;
-    }
-    public void setcFields(List<CDisplayField> cFields) {
-        this.cFields = cFields;
-    }
-    public CProperties getAttributeValues() {
-        return attributeValues;
-    }
-    public void setAttributeValues(CProperties attributeValues) {
-        this.attributeValues = attributeValues;
-    }
-    public CInfoFrameStatus getStatus() {
-        return status;
-    }
-    public void setStatus(CInfoFrameStatus status) {
-        this.status = status;
-    }
 
     public CInfoFrame(int modus, CProperties p, CInfoParent infoParent) throws HeadlessException {
         super(null);
@@ -136,6 +117,31 @@ public class CInfoFrame extends CFrame {
         setVisible(true);
     }
 
+    @Override
+    public List<CDisplayField> getcFields() {
+        return cFields;
+    }
+
+    public void setcFields(List<CDisplayField> cFields) {
+        this.cFields = cFields;
+    }
+
+    public CProperties getAttributeValues() {
+        return attributeValues;
+    }
+
+    public void setAttributeValues(CProperties attributeValues) {
+        this.attributeValues = attributeValues;
+    }
+
+    public CInfoFrameStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CInfoFrameStatus status) {
+        this.status = status;
+    }
+
     protected void cExecute(CProperties prop) {
         c.execute(prop);
     }
@@ -209,7 +215,7 @@ public class CInfoFrame extends CFrame {
             button.getCommand().setOwner(this);
         }
     }
-	
+
 
     private void storeAttributeValue(String name, Object value) {
         if (value == null) {
