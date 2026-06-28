@@ -64,7 +64,7 @@ public class CReportSpendenQuittungen extends CCommand implements CReport {
         String sql = "SELECT distinct s.verein, a.spendentyp " +
                 "FROM frauenhaus.spende s, frauenhaus.spendenart a " +
                 "WHERE a.spendenart = s.spendenart " +
-                "AND YEAR(s.datum) = ? " +
+                "AND s.datum = ? " +
                 "AND a.spendentyp IN ('Geldspende dauer', 'Mitgliedsbeitrag') " +
                 "ORDER BY s.verein, a.spendentyp";
         CMessage.print(sql);

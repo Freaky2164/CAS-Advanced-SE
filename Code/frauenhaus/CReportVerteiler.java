@@ -129,7 +129,7 @@ public class CReportVerteiler extends CCommand implements CReport {
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
         String path = new File(vorlagen + "\\Verteiler.dot").getAbsolutePath();
         try {
-            Runtime.getRuntime().exec(excel + "\\winword.exe -z\"" + path + "\"");
+            new ProcessBuilder(excel + "\\winword.exe -z\"" + path + "\"").start();
         } catch (IOException e1) {
             LOGGER.log(Level.SEVERE, "Failed to launch Word for Verteiler", e1);
         }

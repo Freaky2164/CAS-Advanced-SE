@@ -27,10 +27,10 @@ mit folgender Aufteilung:
 
 1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
 2. **Anwendungsschicht**: Zentrales REST-Backend als Windows-Dienst auf dem Server
-3. **Datenschicht**: MS SQL Server (Standard/Developer Edition) auf demselben Server
+3. **Datenschicht**: PostgreSQL auf demselben Server
 
 ```
-Browser (SPA)  ──HTTPS/REST──►  Backend (Windows-Dienst)  ──JDBC/SSL──►  SQL Server
+Browser (SPA)  ──HTTPS/REST──►  Backend (Windows-Dienst)  ──JDBC/SSL──►  PostgreSQL
 ```
 
 ## Betrachtete Alternativen

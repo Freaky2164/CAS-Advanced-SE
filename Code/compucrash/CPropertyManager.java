@@ -25,6 +25,9 @@ public class CPropertyManager {
     private final CProperties dialogs = new CProperties();
     private final CProperties globals = new CProperties();
 
+    public static void setDebug(boolean debug) {
+        CPropertyManager.debug = debug;
+    }
     private CPropertyManager() {
         super();
 

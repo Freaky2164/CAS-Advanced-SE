@@ -42,7 +42,7 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
 
         p = new CProperties();
         p.put("this", this);
-        p.put("title", "Bu�gelder �bersicht");
+        p.put("title", "Bußgelder Übersicht");
         CProperties pA = new CProperties();
         p.put(Integer.toString(1), pA);
         pA.put("label", "Zeitraum");
@@ -54,7 +54,7 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
 
     public void go() {
         HSSFWorkbook wb;
-        // Datei �ffnen
+        // Datei öffnen
 
         if (((CProperties) p.get("1")).get(FROMVALUE) != null && !((CProperties) p.get("1")).get(FROMVALUE).toString().trim()
                 .equalsIgnoreCase("")) {

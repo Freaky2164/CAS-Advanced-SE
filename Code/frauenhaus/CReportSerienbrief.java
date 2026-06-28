@@ -127,7 +127,7 @@ public class CReportSerienbrief extends CCommand implements CReport {
         }
 
         try {
-            Runtime.getRuntime().exec(excel + "\\winword.exe /z\"" + vorlagen + "\\" + briefkopf + "\"");
+            new ProcessBuilder(excel + "\\winword.exe /z\"" + vorlagen + "\\" + briefkopf + "\"").start();
         } catch (IOException e1) {
             LOGGER.log(Level.SEVERE, "Failed to launch Word for Serienbrief", e1);
         }

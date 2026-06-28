@@ -214,8 +214,7 @@ public class WordProcessing {
         cmd = "WordAPI.exe";
         try {
             new ProcessBuilder(cmd).start();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception _) {
             log.info("{} could not be executed.", cmd);
             log.info("Please ensure that WordAPI.exe may be found by java.exe by putting it in an appropriate directory.");
             return false;

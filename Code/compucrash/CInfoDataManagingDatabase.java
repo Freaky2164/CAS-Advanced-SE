@@ -86,14 +86,11 @@ public abstract class CInfoDataManagingDatabase {
     }
 
     private static void setParameterValue(PreparedStatement pstmt, int k, Object value, int sqlType) throws SQLException {
-        if (value == null) {
-            pstmt.setNull(k, sqlType);
-        } else if (value instanceof LocalDate date) {
-            pstmt.setObject(k, Date.valueOf(date), sqlType);
-        } else if (value instanceof LocalDateTime timestamp) {
-            pstmt.setObject(k, Timestamp.valueOf(timestamp), sqlType);
-        } else {
-            pstmt.setObject(k, value, sqlType);
+        switch (value) {
+            case null -> pstmt.setNull(k, sqlType);
+            case LocalDate date -> pstmt.setObject(k, Date.valueOf(date), sqlType);
+            case LocalDateTime timestamp -> pstmt.setObject(k, Timestamp.valueOf(timestamp), sqlType);
+            default -> pstmt.setObject(k, value, sqlType);
         }
     }
 
@@ -151,22 +148,26 @@ public abstract class CInfoDataManagingDatabase {
             CProperties pAttr = (CProperties) pAttributes.get(Integer.toString(j));
             if (isRelevantValue(actual.get(j)) && isAttributeForTable(pAttr, tableQualified) && isEditableNonSelectable(pAttr)) {
                 k++;
-                CMessage.print(Integer.valueOf(k));
-                setParameterValue(pstmt, k, actual.get(j), ((Integer) pAttr.get(SQL_TYPE_KEY)).intValue());
+                CMessage.print(k);
+                setParameterValue(pstmt, k, actual.get(j), (Integer) pAttr.get(SQL_TYPE_KEY));
             }
         }
     }
 
     private static StringBuilder buildDeleteSql(String tableQualified, CProperties pAttributes) {
         StringBuilder sql = new StringBuilder("DELETE FROM ").append(tableQualified).append(" WHERE ");
+        deleteSqlBuildHelper(pAttributes, sql);
+        sql.setLength(sql.length() - 5);
+        return sql;
+    }
+
+    private static void deleteSqlBuildHelper(CProperties pAttributes, StringBuilder sql) {
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
             if (!pA.get(IS_KEY_KEY).toString().equalsIgnoreCase("0")) {
                 sql.append(pA.get(COLUMN_NAME_KEY)).append(" = ? AND ");
             }
         }
-        sql.setLength(sql.length() - 5);
-        return sql;
     }
 
     private static String buildUpdateSql(String tableQualified, CProperties pAttributes,
@@ -181,12 +182,7 @@ public abstract class CInfoDataManagingDatabase {
         if (setClauses.isEmpty()) return null;
         setClauses.setLength(setClauses.length() - 1);
         StringBuilder whereClauses = new StringBuilder();
-        for (int m = 1; m <= pAttributes.size(); m++) {
-            CProperties pA = (CProperties) pAttributes.get(Integer.toString(m));
-            if (!pA.get(IS_KEY_KEY).toString().equalsIgnoreCase("0")) {
-                whereClauses.append(pA.get(COLUMN_NAME_KEY)).append(" = ? AND ");
-            }
-        }
+        deleteSqlBuildHelper(pAttributes, whereClauses);
         if (whereClauses.length() >= 5) whereClauses.setLength(whereClauses.length() - 5);
         return "UPDATE " + tableQualified + " SET " + setClauses + " WHERE " + whereClauses;
     }
@@ -199,7 +195,7 @@ public abstract class CInfoDataManagingDatabase {
             if (isRelevantValue(actual.get(j))) {
                 if (isAttributeInTable(pAttr, tableQualified) && isEditableNonSelectable(pAttr)) {
                     k++;
-                    setParameterValue(pstmt, k, actual.get(j), ((Integer) pAttr.get(SQL_TYPE_KEY)).intValue());
+                    setParameterValue(pstmt, k, actual.get(j), (Integer) pAttr.get(SQL_TYPE_KEY));
                 }
                 actual.remove(Integer.toString(j));
             }
@@ -210,7 +206,7 @@ public abstract class CInfoDataManagingDatabase {
     protected void forUpdate() {
     }
 
-    protected void prepareSQLString(CProperties p) {
+    protected void prepareSQLString() {
     }
 
     private CProperties getProperties() {

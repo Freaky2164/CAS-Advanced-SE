@@ -24,10 +24,27 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'Code/ext', include: ['*.jar', '*.zip'])
-    implementation 'org.apache.poi:poi:latest.release'
-    implementation 'org.postgresql:postgresql:42.7.8'
+    implementation ("org.apache.poi:poi:latest.release")
+    implementation ("org.postgresql:postgresql:42.7.8")
+    implementation "com.adobe.acrobat:acrobat:1.1"
+    // Source: https://mvnrepository.com/artifact/com.thunderhead/dnsns
+    implementation("com.thunderhead:dnsns:5.0.20.29")
+    // Source: https://mvnrepository.com/artifact/com.thunderhead/localedata
+    implementation("com.thunderhead:localedata:5.0.20.29")
+    implementation("com.enterprisedt:edtFTPj:1.5.3")
+    implementation("mrj:MRJToolkitStubs:1.0")
+    implementation("com.oracle.database.jdbc:ojdbc11:23.26.2.0.0")
+    // Source: https://mvnrepository.com/artifact/com.thunderhead/sunjce_provider
+    implementation("com.thunderhead:sunjce_provider:5.0.20.29")
+    implementation("org.xipki.iaik:sunpkcs11-wrapper:1.4.10")
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
 }
 
+tasks.named('test') {
+    useJUnitPlatform()
+}
 application {
     mainClass = 'compucrash.CStart'
 }
