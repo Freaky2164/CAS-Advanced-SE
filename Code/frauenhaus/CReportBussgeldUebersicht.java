@@ -115,10 +115,10 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
         cell.setCellValue(verein);
         cell.setCellStyle(style1);
         cell = row.createCell((short) 1);
-        cell.setCellValue("Bu�gelder");
+        cell.setCellValue("Bußgelder");
         cell.setCellStyle(style1);
         cell = row.createCell((short) 2);
-        cell.setCellValue("Eing�nge");
+        cell.setCellValue("Eingänge");
         cell.setCellStyle(style1);
 
         double bussgeld = 0;

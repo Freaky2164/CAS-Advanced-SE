@@ -143,11 +143,7 @@ public class CReportSerienbrief extends CCommand implements CReport {
 
     static void collectSelectedValuesHelper(StringBuilder sb, CProperties p) {
         CTable tab = ((CTable) ((CProperties) p.get("1")).get("multipleValue"));
-        int[] rows = tab.getSelectedRows();
-        for (int i = 0; i < rows.length; i++) {
-            sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
-        }
-        if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
+        CReportStichwortSuche.getValueStringBuilder(sb, tab);
     }
 
     private boolean isChecked(String key) {

@@ -22,6 +22,8 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static frauenhaus.CReportStichwortSuche.getStringBuilder;
+
 public class CReportVerteiler extends CCommand implements CReport {
 
     private static final String LABEL = "label";
@@ -136,16 +138,7 @@ public class CReportVerteiler extends CCommand implements CReport {
     }
 
     private StringBuilder collectMultipleValues(String key) {
-        StringBuilder sb = new StringBuilder();
-        if (((CProperties) p.get(key)).get("multipleValue") != null) {
-            CTable tab = ((CTable) ((CProperties) p.get(key)).get("multipleValue"));
-            int[] rows = tab.getSelectedRows();
-            for (int i = 0; i < rows.length; i++) {
-                sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
-            }
-            if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
-        }
-        return sb;
+        return getStringBuilder(key, p);
     }
 
     private String getStringValue(String key, String field) {

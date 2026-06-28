@@ -113,16 +113,24 @@ public class CReportStichwortSuche extends CCommand implements CReport {
     }
 
     private StringBuilder collectSelectedValues(String key) {
+        return getStringBuilder(key, p);
+    }
+
+    static StringBuilder getStringBuilder(String key, CProperties p) {
         StringBuilder sb = new StringBuilder();
         if (((CProperties) p.get(key)).get("multipleValue") != null) {
             CTable tab = ((CTable) ((CProperties) p.get(key)).get("multipleValue"));
-            int[] rows = tab.getSelectedRows();
-            for (int i = 0; i < rows.length; i++) {
-                sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
-            }
-            if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
+            getValueStringBuilder(sb, tab);
         }
         return sb;
+    }
+
+    static void getValueStringBuilder(StringBuilder sb, CTable tab) {
+        int[] rows = tab.getSelectedRows();
+        for (int i = 0; i < rows.length; i++) {
+            sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
+        }
+        if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
     }
 
     private boolean isChecked(String key) {
