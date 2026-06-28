@@ -25,6 +25,7 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'Code/ext', include: ['*.jar', '*.zip'])
     implementation 'org.apache.poi:poi:latest.release'
+    implementation 'org.postgresql:postgresql:42.7.8'
 }
 
 application {

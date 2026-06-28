@@ -15,6 +15,7 @@ public class CTableCellRenderer extends DefaultTableCellRenderer {
         nf.setMinimumFractionDigits(2);
     }
 
+    @Override
     public Component getTableCellRendererComponent(JTable tab, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
         JLabel label = new JLabel();
         if (value != null) label = new JLabel(nf.format(value));

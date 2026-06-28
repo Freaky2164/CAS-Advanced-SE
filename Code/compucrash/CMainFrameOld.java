@@ -50,6 +50,7 @@ public class CMainFrameOld extends CFrame {
         new CListFrame(e.getActionCommand(), this);
     }
 
+    @Override
     public void dispose() {
         System.exit(0);
     }

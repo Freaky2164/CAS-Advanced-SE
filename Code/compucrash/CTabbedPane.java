@@ -5,8 +5,6 @@ import java.awt.*;
 
 public class CTabbedPane extends JTabbedPane {
 
-    private CPanel p;
-
     public CTabbedPane() {
         super();
     }
@@ -17,7 +15,7 @@ public class CTabbedPane extends JTabbedPane {
                 return;
             }
         }
-        p = new CPanel();
+        CPanel p = new CPanel();
         p.setName(name);
         super.addTab(name, new ImageIcon("../hauswert/images/document.gif"), p, "Tooltip Text");
     }

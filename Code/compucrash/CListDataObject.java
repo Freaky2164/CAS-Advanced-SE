@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 
 public class CListDataObject {
 
+    private static final String LABEL = "label";
+    private static final String ATTRIBUTES = "attributes";
     private final CProperties p;
     private final String objectLabel;
     private final CListDataManagingDatabase manager;
@@ -19,11 +21,11 @@ public class CListDataObject {
 
     public CTableModel select(int orderColumn) {
         searchText = null;
-        CProperties pAttributes = (CProperties) p.get("attributes");
+        CProperties pAttributes = (CProperties) p.get(ATTRIBUTES);
         CTableModel tabModel = new CTableModel();
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            tabModel.addColumn(pA.get("label"));
+            tabModel.addColumn(pA.get(LABEL));
         }
         ResultSet rset = manager.getSelect(orderColumn);
         tabModel.addRows(rset);
@@ -40,7 +42,7 @@ public class CListDataObject {
     }
 
     public CProperties getKeys() {
-        CProperties pAttributes = (CProperties) p.get("attributes");
+        CProperties pAttributes = (CProperties) p.get(ATTRIBUTES);
         int j = 0;
         CProperties keys = new CProperties();
         for (int i = 1; i <= pAttributes.size(); i++) {
@@ -60,11 +62,11 @@ public class CListDataObject {
     public CTableModel search(String text, int orderColumn) {
         if (text == null) return select(orderColumn);
         searchText = text;
-        CProperties pAttributes = (CProperties) p.get("attributes");
+        CProperties pAttributes = (CProperties) p.get(ATTRIBUTES);
         CTableModel tabModel = new CTableModel();
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            tabModel.addColumn(pA.get("label"));
+            tabModel.addColumn(pA.get(LABEL));
         }
         ResultSet rset = manager.getSelect(text);
         tabModel.addRows(rset);
@@ -81,11 +83,11 @@ public class CListDataObject {
     }
 
     public TableModel select(CProperties pTab) {
-        CProperties pAttributes = (CProperties) p.get("attributes");
+        CProperties pAttributes = (CProperties) p.get(ATTRIBUTES);
         CTableModel tabModel = new CTableModel();
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            tabModel.addColumn(pA.get("label").toString());
+            tabModel.addColumn(pA.get(LABEL).toString());
         }
         ResultSet rset = manager.select(pTab);
         tabModel.addRows(rset);
@@ -97,11 +99,11 @@ public class CListDataObject {
     public TableModel search(String text) {
         if (text == null || text.isEmpty()) return select(p);
         searchText = text;
-        CProperties pAttributes = (CProperties) p.get("attributes");
+        CProperties pAttributes = (CProperties) p.get(ATTRIBUTES);
         CTableModel tabModel = new CTableModel();
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            tabModel.addColumn(pA.get("label"));
+            tabModel.addColumn(pA.get(LABEL));
         }
         ResultSet rset = manager.getSelect(text);
         tabModel.addRows(rset);

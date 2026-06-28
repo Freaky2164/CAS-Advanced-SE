@@ -14,14 +14,13 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportStichwortSuche extends CCommand implements CReport {
 
+    private static final String LABEL = "label";
     private static final Logger LOGGER = Logger.getLogger(CReportStichwortSuche.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
     private final String reports;
     private final String vorlagen;
     private final String excel;
@@ -54,24 +53,18 @@ public class CReportStichwortSuche extends CCommand implements CReport {
         p.put("this", this);
         CProperties pA = new CProperties();
         p.put(Integer.toString(1), pA);
-        pA.put("label", "SpenderInnen mit einem oder mehreren Stichworten");
+        pA.put(LABEL, "SpenderInnen mit einem oder mehreren Stichworten");
         pA.put("height", "150");
         pA.put("multiple", "1");
         pA.put("source", "stichwort");
         pA.put("columns", "1");
-/*		pA = new CProperties();
-		p.put(Integer.toString(2),pA);
-		pA.put("label", "...aber nicht mit Stichwort");
-		pA.put("height", "150");
-		pA.put("multiple", "1");
-		pA.put("source","stichwort");*/
         pA = new CProperties();
         p.put(Integer.toString(3), pA);
-        pA.put("label", "F�rderverein");
+        pA.put(LABEL, "F�rderverein");
         pA.put("check", "1");
         pA = new CProperties();
         p.put(Integer.toString(4), pA);
-        pA.put("label", "Frauenhaus");
+        pA.put(LABEL, "Frauenhaus");
         pA.put("check", "1");
         new CReportFrame(p);
 
@@ -84,17 +77,20 @@ public class CReportStichwortSuche extends CCommand implements CReport {
         String frauenhaus = getCheckFilter("4", "AND m.frauenhaus = 1 ");
 
         try {
-            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/StichwortSuche.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fsin);
-            String SQLString = "SELECT DISTINCT m.* FROM frauenhaus.mitglied m " +
-                    "WHERE m.mitglied IN (SELECT DISTINCT mitglied " +
-                    "FROM frauenhaus.stichwort_person WHERE stichwort IN (" + verteiler + ")) " +
-                    foerderverein + frauenhaus + " ORDER BY m.name, m.vorname";
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
-            HSSFSheet sheet = wb.getSheetAt(0);
-            writeAllRows(rset, sheet);
-            FileOutputStream fileOut = new FileOutputStream(reports + "\\StichwortSuche.xls");
-            wb.write(fileOut);
+            FileOutputStream fileOut;
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/StichwortSuche.xls"))) {
+                try (HSSFWorkbook wb = new HSSFWorkbook(fsin)) {
+                    String sqlString = "SELECT DISTINCT m.* FROM frauenhaus.mitglied m " +
+                            "WHERE m.mitglied IN (SELECT DISTINCT mitglied " +
+                            "FROM frauenhaus.stichwort_person WHERE stichwort IN (" + verteiler + ")) " +
+                            foerderverein + frauenhaus + " ORDER BY m.name, m.vorname";
+                    ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
+                    HSSFSheet sheet = wb.getSheetAt(0);
+                    writeAllRows(rset, sheet);
+                    fileOut = new FileOutputStream(reports + "\\StichwortSuche.xls");
+                    wb.write(fileOut);
+                }
+            }
             fileOut.close();
         } catch (FileNotFoundException e) {
             LOGGER.log(Level.SEVERE, "Report template file not found", e);

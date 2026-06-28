@@ -14,16 +14,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportBussgeldUebersicht extends CCommand implements CReport {
+    private static final String FROMVALUE = "fromValue";
+    private static final String TOVALUE = "toValue";
 
     private static final Logger LOGGER = Logger.getLogger(CReportBussgeldUebersicht.class.getName());
     private final String reports;
     private final String vorlagen;
-    private final String excel;
     private CProperties p;
     private String dateFrom = "";
     private String dateTo = "";
-    private POIFSFileSystem fsin;
-    private HSSFWorkbook wb;
+
     private HSSFSheet sheet;
     private HSSFCellStyle style1;
     private HSSFCellStyle style2;
@@ -31,13 +31,11 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
     private short rowHeight;
     private int line;
     private HSSFRow row;
-    private HSSFCell cell;
 
 
     public CReportBussgeldUebersicht() {
         this.reports = CPropertyManager.getInstance().getProperty("reports");
         this.vorlagen = CPropertyManager.getInstance().getProperty("vorlagen");
-        this.excel = CPropertyManager.getInstance().getProperty("excel");
     }
 
     public Object execute(Object parameters) {
@@ -55,24 +53,24 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
     }
 
     public void go() {
+        HSSFWorkbook wb;
         // Datei �ffnen
 
-        if (((CProperties) p.get("1")).get("fromValue") != null) {
-            if (!((CProperties) p.get("1")).get("fromValue").toString().trim()
-                    .equalsIgnoreCase("")) {
-                dateFrom = ((CProperties) p.get("1")).get("fromValue").toString().trim();
-            }
-        }
-        if (((CProperties) p.get("1")).get("toValue") != null) {
-            if (!((CProperties) p.get("1")).get("toValue").toString().trim()
-                    .equalsIgnoreCase("")) {
-                dateTo = ((CProperties) p.get("1")).get("toValue").toString().trim();
-            }
+        if (((CProperties) p.get("1")).get(FROMVALUE) != null && !((CProperties) p.get("1")).get(FROMVALUE).toString().trim()
+                .equalsIgnoreCase("")) {
+            dateFrom = ((CProperties) p.get("1")).get(FROMVALUE).toString().trim();
         }
 
+        if (((CProperties) p.get("1")).get(TOVALUE) != null && !((CProperties) p.get("1")).get(TOVALUE).toString().trim()
+                .equalsIgnoreCase("")) {
+            dateTo = ((CProperties) p.get("1")).get(TOVALUE).toString().trim();
+        }
+
+
         try {
-            fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Bu�geld�bersicht.xls"));
-            wb = new HSSFWorkbook(fsin);
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Bu�geld�bersicht.xls"))) {
+                wb = new HSSFWorkbook(fsin);
+            }
             sheet = wb.getSheetAt(0);
             style1 = wb.getSheetAt(0).getRow((short) 0).getCell((short) 0).getCellStyle();
             style2 = wb.getSheetAt(0).getRow((short) 0).getCell((short) 1).getCellStyle();
@@ -104,34 +102,12 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
             LOGGER.log(Level.SEVERE, "Failed to query BussgeldUebersicht data", e);
         }
 
-
-        Runtime r = Runtime.getRuntime();
-        Process p = null;
-        try {
-            p = r.exec(excel + "\\excel.exe " + reports + "\\Bu�geld�bersicht.xls");
-        } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, "Failed to open BussgeldUebersicht in Excel", e1);
-        }
     }
 
     private void compute(String verein) throws SQLException {
-        String SQLString = "SELECT g.bezeichnung, (SELECT coalesce(sum(b.betrag),0) " +
-                "FROM frauenhaus.bussgeld b " +
-                "WHERE b.gericht = g.gericht " +
-                "AND b.datum >= '" + dateFrom + "' " +
-                "AND b.datum <= '" + dateTo + "' " +
-                "AND b.verein = '" + verein + "') bussgeldbetrag, " +
-                "(SELECT ISNULL(sum(e.betrag),0) " +
-                "FROM frauenhaus.eingang e, frauenhaus.bussgeld b2 " +
-                "WHERE b2.bussgeld = e.bussgeld " +
-                "AND b2.gericht = g.gericht " +
-                "AND e.datum >= '" + dateFrom + "' " +
-                "AND e.datum <= '" + dateTo + "' " +
-                "AND b2.verein = '" + verein + "') einzahlbetrag " +
-                "FROM frauenhaus.gericht g " +
-                "ORDER BY g.bezeichnung ";
-//	System.out.println(SQLString);
-        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
+        HSSFCell cell;
+        StringBuilder sqlString = new StringBuilder().append("SELECT g.bezeichnung, (SELECT coalesce(sum(b.betrag),0) ").append("FROM frauenhaus.bussgeld b ").append("WHERE b.gericht = g.gericht ").append("AND b.datum >= '").append(dateFrom).append("' ").append("AND b.datum <= '").append(dateTo).append("' ").append("AND b.verein = '").append(verein).append("') bussgeldbetrag, ").append("(SELECT ISNULL(sum(e.betrag),0) ").append("FROM frauenhaus.eingang e, frauenhaus.bussgeld b2 ").append("WHERE b2.bussgeld = e.bussgeld ").append("AND b2.gericht = g.gericht ").append("AND e.datum >= '").append(dateFrom).append("' ").append("AND e.datum <= '").append(dateTo).append("' ").append("AND b2.verein = '").append(verein).append("') einzahlbetrag ").append("FROM frauenhaus.gericht g ").append("ORDER BY g.bezeichnung ");
+        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(String.valueOf(sqlString));
 
         row = sheet.createRow(line++);
         row.setHeight(rowHeight);

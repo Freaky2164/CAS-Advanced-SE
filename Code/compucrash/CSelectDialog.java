@@ -10,6 +10,9 @@ import java.util.logging.Logger;
 public class CSelectDialog extends JInternalFrame implements CInfoParent {
 
     private static final Logger LOGGER = Logger.getLogger(CSelectDialog.class.getName());
+    private static final String BDELETE = "bdelete";
+    private static final String BEDIT = "bedit";
+    private static final String OBJECTNAME = "objectName";
     private final JPanel p1 = new JPanel();
     private final JPanel p2 = new JPanel();
     private final JPanel p3 = new JPanel();
@@ -22,9 +25,6 @@ public class CSelectDialog extends JInternalFrame implements CInfoParent {
     transient CSelectParent t;
     CProperties pLdo;
     private transient CListDataObject ldo;
-    private static final String BDELETE = "bdelete";
-    private static final String BEDIT = "bedit";
-    private static final String OBJECTNAME = "objectName";
 
     public CSelectDialog(Component o, CSelectParent t, CProperties p) {
         super("Auswahl", true, true, true);

@@ -20,14 +20,12 @@ import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportSerienbriefAdressen extends CCommand implements CReport {
 
     private static final Logger LOGGER = Logger.getLogger(CReportSerienbriefAdressen.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
     private final String reports;
     private final String vorlagen;
     private final String excel;
@@ -77,11 +75,13 @@ public class CReportSerienbriefAdressen extends CCommand implements CReport {
         StringBuilder bcc = new StringBuilder();
 
         try {
-            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Verteiler.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fsin);
-            String SQLString = "SELECT DISTINCT k.anrede, k.vorname, k.name, k.strasse, k.plz, k.ort, k.email, ' ' " +
+            HSSFWorkbook wb;
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Verteiler.xls"))) {
+                wb = new HSSFWorkbook(fsin);
+            }
+            String sqlString = "SELECT DISTINCT k.anrede, k.vorname, k.name, k.strasse, k.plz, k.ort, k.email, ' ' " +
                     "FROM frauenhaus.mitglied k WHERE k.mitglied IN (" + verteiler + ") ORDER BY k.email";
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
+            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
             HSSFSheet sheet = wb.getSheetAt(0);
             int line = 1;
             while (rset.next()) {

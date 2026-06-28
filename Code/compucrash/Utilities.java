@@ -3,14 +3,18 @@
  */
 package compucrash;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
 
 /**
  * @author Peter
  */
 public class Utilities {
+    private Utilities() {
+        /* This utility class should not be instantiated */
+    }
+
     public static final int FIRST_OF_MONTH = 1;
     public static final int LAST_OF_MONTH = 2;
 
@@ -21,22 +25,26 @@ public class Utilities {
         String MM = "";
         String YYYY = "";
         int slash = MM_YY.indexOf('/');
-        if (slash == 1) {
-            MM = "0" + MM_YY.charAt(0);
-            YYYY = MM_YY.substring(2);
-        } else if (slash == 2) {
-            MM = MM_YY.substring(0, 2);
-            YYYY = MM_YY.substring(3);
-        } else {
-            return convertDateStringToDay_noSlash(MM_YY, pos);
+        switch (slash) {
+            case 1 -> {
+                MM = "0" + MM_YY.charAt(0);
+                YYYY = MM_YY.substring(2);
+            }
+            case 2 -> {
+                MM = MM_YY.substring(0, 2);
+                YYYY = MM_YY.substring(3);
+            }
+            default -> {
+                return convertDateStringToDayNoSlash(MM_YY, pos);
+            }
         }
         YYYY = expandTwoDigitYear(YYYY);
         String DD = (pos == 2) ? getLastDayOfMonth(MM, YYYY) : "01";
         return DD + "." + MM + "." + YYYY;
     }
 
-    private static String convertDateStringToDay_noSlash(String MM_YY, int pos) {
-        if (MM_YY.indexOf('.') > 0) {
+    private static String convertDateStringToDayNoSlash(String MM_YY, int pos) {
+        if (MM_YY.indexOf('.') >= 0) {
             return MM_YY;
         }
         return (pos == 2) ? "31.12." + MM_YY : "01.01." + MM_YY;
@@ -54,10 +62,8 @@ public class Utilities {
     }
 
     public static String getLastDayOfMonth(String MM, String YYYY) {
-        GregorianCalendar cal = new GregorianCalendar(Integer.parseInt(YYYY), Integer.parseInt(MM), 1);
-        int dd = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        String DD = Integer.toString(dd);
-        return DD;
+        int dd = YearMonth.of(Integer.parseInt(YYYY), Integer.parseInt(MM)).lengthOfMonth();
+        return Integer.toString(dd);
     }
 
     public static String convertDate(String MM_YY) {
@@ -85,15 +91,10 @@ public class Utilities {
     }
 
     public static String getActualYear() {
-        GregorianCalendar cal = new GregorianCalendar();
-        String YYYY = Integer.toString(cal.get(Calendar.YEAR));
-        return YYYY;
+        return Integer.toString(LocalDate.now(ZoneId.systemDefault()).getYear());
     }
 
     public static String getActualYearMinus1() {
-        GregorianCalendar cal = new GregorianCalendar();
-        cal.setTime(new Date());
-        String YYYY = Integer.toString(cal.get(Calendar.YEAR) - 1);
-        return YYYY;
+        return Integer.toString(LocalDate.now(ZoneId.systemDefault()).minusYears(1).getYear());
     }
 }

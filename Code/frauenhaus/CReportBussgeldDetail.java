@@ -17,31 +17,29 @@ import java.util.logging.Logger;
 public class CReportBussgeldDetail extends CCommand implements CReport {
 
     private static final Logger LOGGER = Logger.getLogger(CReportBussgeldDetail.class.getName());
+    private static final String FROMVALUE = "fromValue";
+    private static final String TOVALUE = "toValue";
+    private static final String ANFANG = "ANFANG";
+    private static final String ENDE = "ENDE";
     private final String reports;
     private final String vorlagen;
-    private final String excel;
     private CProperties p;
     private String dateFrom = "";
     private String dateTo = "";
-    private POIFSFileSystem fsin;
-    private HSSFWorkbook wb;
     private HSSFSheet sheet;
     private HSSFCellStyle styleDate;
-    private HSSFCellStyle styleText;
     private HSSFCellStyle styleMoney;
     private short rowHeight;
     private int line;
     private HSSFRow row;
-    private HSSFCell cell;
     private HSSFCellStyle styleTextTitle;
     private HSSFCellStyle styleDateTitle;
     private HSSFCellStyle styleMoneyTitle;
 
-
     public CReportBussgeldDetail() {
         this.reports = CPropertyManager.getInstance().getProperty("reports");
         this.vorlagen = CPropertyManager.getInstance().getProperty("vorlagen");
-        this.excel = CPropertyManager.getInstance().getProperty("excel");
+
     }
 
     public Object execute(Object parameters) {
@@ -61,46 +59,46 @@ public class CReportBussgeldDetail extends CCommand implements CReport {
     public void go() {
         // Datei �ffnen
 
-        if (((CProperties) p.get("1")).get("fromValue") != null) {
-            if (!((CProperties) p.get("1")).get("fromValue").toString().trim()
-                    .equalsIgnoreCase("")) {
-                dateFrom = ((CProperties) p.get("1")).get("fromValue").toString().trim();
-            }
+        if (((CProperties) p.get("1")).get(FROMVALUE) != null && !((CProperties) p.get("1")).get(FROMVALUE).toString().trim()
+                .equalsIgnoreCase("")) {
+            dateFrom = ((CProperties) p.get("1")).get(FROMVALUE).toString().trim();
         }
-        if (((CProperties) p.get("1")).get("toValue") != null) {
-            if (!((CProperties) p.get("1")).get("toValue").toString().trim()
-                    .equalsIgnoreCase("")) {
-                dateTo = ((CProperties) p.get("1")).get("toValue").toString().trim();
-            }
+
+        if (((CProperties) p.get("1")).get(TOVALUE) != null && !((CProperties) p.get("1")).get(TOVALUE).toString().trim()
+                .equalsIgnoreCase("")) {
+            dateTo = ((CProperties) p.get("1")).get(TOVALUE).toString().trim();
         }
+
 
         try {
-            fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Bu�geldDetail.xls"));
-            wb = new HSSFWorkbook(fsin);
-            sheet = wb.getSheetAt(0);
-            styleTextTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 0).getCellStyle();
-            styleDateTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 1).getCellStyle();
-            styleMoneyTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 2).getCellStyle();
-            styleText = wb.getSheetAt(0).getRow((short) 1).getCell((short) 0).getCellStyle();
-            styleDate = wb.getSheetAt(0).getRow((short) 1).getCell((short) 1).getCellStyle();
-            styleMoney = wb.getSheetAt(0).getRow((short) 1).getCell((short) 2).getCellStyle();
-            rowHeight = wb.getSheetAt(0).getRow((short) 0).getHeight();
-            line = 0;
-            compute("F�rderverein");
-            row = sheet.createRow(line++);
-            row.setHeight(rowHeight);
-            row = sheet.createRow(line++);
-            row.setHeight(rowHeight);
-            compute("Frauenhaus");
+            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Bu�geldDetail.xls"));
+            FileOutputStream fileOut;
+            try (HSSFWorkbook wb = new HSSFWorkbook(fsin)) {
+                sheet = wb.getSheetAt(0);
+                styleTextTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 0).getCellStyle();
+                styleDateTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 1).getCellStyle();
+                styleMoneyTitle = wb.getSheetAt(0).getRow((short) 0).getCell((short) 2).getCellStyle();
 
-            // Header generieren
-            String headerString = sheet.getHeader().getCenter();
-            headerString = headerString.replaceFirst("ANFANG", dateFrom);
-            headerString = headerString.replaceFirst("ENDE", dateTo);
-            sheet.getHeader().setCenter(headerString);
+                styleDate = wb.getSheetAt(0).getRow((short) 1).getCell((short) 1).getCellStyle();
+                styleMoney = wb.getSheetAt(0).getRow((short) 1).getCell((short) 2).getCellStyle();
+                rowHeight = wb.getSheetAt(0).getRow((short) 0).getHeight();
+                line = 0;
+                compute("F�rderverein");
+                row = sheet.createRow(line++);
+                row.setHeight(rowHeight);
+                row = sheet.createRow(line++);
+                row.setHeight(rowHeight);
+                compute("Frauenhaus");
 
-            FileOutputStream fileOut = new FileOutputStream(reports + "/Bu�geldDetail.xls");
-            wb.write(fileOut);
+                // Header generieren
+                String headerString = sheet.getHeader().getCenter();
+                headerString = headerString.replaceFirst(ANFANG, dateFrom);
+                headerString = headerString.replaceFirst(ENDE, dateTo);
+                sheet.getHeader().setCenter(headerString);
+
+                fileOut = new FileOutputStream(reports + "/Bu�geldDetail.xls");
+                wb.write(fileOut);
+            }
             fileOut.close();
 
         } catch (FileNotFoundException e) {
@@ -112,33 +110,16 @@ public class CReportBussgeldDetail extends CCommand implements CReport {
         }
 
 
-        Runtime r = Runtime.getRuntime();
-        Process p = null;
-        try {
-            p = r.exec(excel + "\\excel.exe " + reports + "\\Bu�geldDetail.xls");
-        } catch (IOException e1) {
-            LOGGER.log(Level.SEVERE, "Failed to open BussgeldDetail in Excel", e1);
-        }
     }
 
     private void compute(String verein) throws SQLException {
-        String SQLString = "SELECT b.datum, g.bezeichnung, coalesce(b.aktenzeichen, 'unbekannt'), " +
-                "b.name + ', ' + b.vorname, b.betrag, " +
-                "(SELECT SUM(betrag) FROM frauenhaus.eingang WHERE bussgeld = b.bussgeld) offen, " +
-                "e.datum, e.betrag " +
-                "FROM frauenhaus.gericht g, frauenhaus.bussgeld b, frauenhaus.eingang e " +
-                "WHERE g.gericht = b.gericht " +
-                "AND b.bussgeld = e.bussgeld " +
-                "AND e.datum >= '" + dateFrom + "' " +
-                "AND e.datum <= '" + dateTo + "' " +
-                "AND b.verein = '" + verein + "' " +
-                "ORDER BY b.datum, b.aktenzeichen, e.datum";
+        String sqlString = new StringBuilder().append("SELECT b.datum, g.bezeichnung, coalesce(b.aktenzeichen, 'unbekannt'), ").append("b.name + ', ' + b.vorname, b.betrag, ").append("(SELECT SUM(betrag) FROM frauenhaus.eingang WHERE bussgeld = b.bussgeld) offen, ").append("e.datum, e.betrag ").append("FROM frauenhaus.gericht g, frauenhaus.bussgeld b, frauenhaus.eingang e ").append("WHERE g.gericht = b.gericht ").append("AND b.bussgeld = e.bussgeld ").append("AND e.datum >= '").append(dateFrom).append("' ").append("AND e.datum <= '").append(dateTo).append("' ").append("AND b.verein = '").append(verein).append("' ").append("ORDER BY b.datum, b.aktenzeichen, e.datum").toString();
 
-        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
+        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
 
         row = sheet.createRow(line++);
         row.setHeight(rowHeight);
-        cell = row.createCell((short) 0);
+        HSSFCell cell = row.createCell((short) 0);
         cell.setCellValue(" ");
         cell.setCellStyle(styleTextTitle);
         cell = row.createCell((short) 1);
@@ -158,14 +139,12 @@ public class CReportBussgeldDetail extends CCommand implements CReport {
         cell.setCellStyle(styleTextTitle);
         row = sheet.createRow(line++);
 
-        double bussgeld = 0;
-        double eingang = 0;
         double summe = 0;
         Date datum;
         String gericht;
         String aktenzeichen;
         String name;
-        String aktenzeichenAlt = "ANFANG";
+        String aktenzeichenAlt = ANFANG;
         double betrag = 0;
         double offen = 0;
         while (rset.next()) {
@@ -176,7 +155,7 @@ public class CReportBussgeldDetail extends CCommand implements CReport {
             betrag = rset.getDouble(5);
             offen = rset.getDouble(6);
             if (!aktenzeichenAlt.equalsIgnoreCase(aktenzeichen)) {
-                if (!aktenzeichenAlt.equalsIgnoreCase("ANFANG")) {
+                if (!aktenzeichenAlt.equalsIgnoreCase(ANFANG)) {
                     // Zusammenfassung
                     row = sheet.createRow(line++);
                     cell = row.createCell((short) 3);

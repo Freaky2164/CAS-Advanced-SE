@@ -1,10 +1,10 @@
 package compucrash;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 public abstract class CMediator {
     // TODO implementieren?
-    private final Hashtable<String, CColleague> colleagues = new Hashtable<>(10);
+    private final HashMap<String, CColleague> colleagues = HashMap.newHashMap(10);
 
     public void register(CColleague colleage) {
         colleagues.put(colleage.toString(), colleage);

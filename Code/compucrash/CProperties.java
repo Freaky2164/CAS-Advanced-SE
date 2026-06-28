@@ -1,8 +1,8 @@
 package compucrash;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
-public class CProperties extends Hashtable<Object, Object> {
+public class CProperties extends HashMap<Object, Object> {
 
     public CProperties() {
         super();
@@ -11,9 +11,10 @@ public class CProperties extends Hashtable<Object, Object> {
     public CProperties(CProperties source) {
         super();
         if (source == null) return;
-        source.forEach((key, value) -> {
-            Object copy = value instanceof CProperties ? new CProperties((CProperties) value) : value;
-            put(key, copy);
+        source.forEach((_, value) -> {
+            if (value instanceof CProperties properties) {
+                this.putAll(properties);
+            }
         });
     }
 

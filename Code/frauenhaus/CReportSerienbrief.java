@@ -1,13 +1,5 @@
 package frauenhaus;
 
-import ch.kova.connector.exception.ComponentObjectModelException;
-import ch.kova.connector.exception.ItemNotFoundException;
-import ch.kova.connector.exception.LibraryNotFoundException;
-import ch.kova.connector.ms.outlook.Outlook;
-import ch.kova.connector.ms.outlook.folder.FolderType;
-import ch.kova.connector.ms.outlook.folder.OutlookFolder;
-import ch.kova.connector.ms.outlook.item.ItemType;
-import ch.kova.connector.ms.outlook.mail.OutlookMail;
 import compucrash.*;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -22,14 +14,14 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportSerienbrief extends CCommand implements CReport {
 
+    private static final String LABEL = "label";
+    private static final String CHECK = "check";
     private static final Logger LOGGER = Logger.getLogger(CReportSerienbrief.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
     private final String reports;
     private final String vorlagen;
     private final String excel;
@@ -72,52 +64,43 @@ public class CReportSerienbrief extends CCommand implements CReport {
         p.put("this", this);
         CProperties pA = new CProperties();
         p.put(Integer.toString(1), pA);
-        pA.put("label", "SpenderInnen mit einem oder mehreren Stichworten");
+        pA.put(LABEL, "SpenderInnen mit einem oder mehreren Stichworten");
         pA.put("height", "150");
         pA.put("multiple", "1");
         pA.put("source", "stichwort");
         pA.put("columns", "1");
-        /*		pA = new CProperties();
-         p.put(Integer.toString(2),pA);
-         pA.put("label", "...aber nicht mit Stichwort");
-         pA.put("height", "150");
-         pA.put("multiple", "1");
-         pA.put("source","stichwort");*/
         pA = new CProperties();
         p.put(Integer.toString(3), pA);
-        pA.put("label", "F�rderverein");
-        pA.put("check", "1");
+        pA.put(LABEL, "Förderverein");
+        pA.put(CHECK, "1");
         pA = new CProperties();
         p.put(Integer.toString(4), pA);
-        pA.put("label", "Frauenhaus");
-        pA.put("check", "1");
+        pA.put(LABEL, "Frauenhaus");
+        pA.put(CHECK, "1");
         pA = new CProperties();
         p.put(Integer.toString(5), pA);
-        pA.put("label", "Briefkopf F�rderverein (sonst Frauenhaus)");
-        pA.put("check", "1");
-//        pA = new CProperties();
-//        p.put(Integer.toString(6),pA);
-//        pA.put("label", "Email wenn m�glich");
-//        pA.put("check", "1");
+        pA.put(LABEL, "Briefkopf F�rderverein (sonst Frauenhaus)");
+        pA.put(CHECK, "1");
         new CReportFrame(p);
 
         return null;
     }
 
     public void go() {
-        StringBuilder verteiler = collectSelectedValues("1");
+        StringBuilder verteiler = collectSelectedValues();
         String foerderverein = getCheckFilter("3", "AND m.foerderverein = 1 ");
         String frauenhaus = getCheckFilter("4", "AND m.frauenhaus = 1 ");
         String briefkopf = isChecked("5") ? "FVSerienBrief.dot" : "FHSerienBrief.dot";
         boolean eMail = false;
-        String betreff = "";
         StringBuilder bcc = new StringBuilder();
 
         try {
-            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Serienbrief.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fsin);
-            String SQLString = buildSerienbriefSql(verteiler, foerderverein, frauenhaus, eMail);
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
+            HSSFWorkbook wb;
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Serienbrief.xls"))) {
+                wb = new HSSFWorkbook(fsin);
+            }
+            String sqlString = buildSerienbriefSql(verteiler, foerderverein, frauenhaus, eMail);
+            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
             HSSFSheet sheet = wb.getSheetAt(0);
             int line = 0;
             ResultSetMetaData rsmd = rset.getMetaData();
@@ -125,7 +108,7 @@ public class CReportSerienbrief extends CCommand implements CReport {
             for (int i = 0; i < rsmd.getColumnCount(); i++) {
                 row.createCell((short) i).setCellValue(rsmd.getColumnLabel(i + 1));
             }
-            line = writeResultRows(rset, rsmd, sheet, line, eMail, bcc);
+            writeResultRows(rset, rsmd, sheet, line, eMail, bcc);
             FileOutputStream fileOut = new FileOutputStream(reports + "\\Serienbrief.xls");
             wb.write(fileOut);
             fileOut.close();
@@ -148,22 +131,23 @@ public class CReportSerienbrief extends CCommand implements CReport {
         } catch (IOException e1) {
             LOGGER.log(Level.SEVERE, "Failed to launch Word for Serienbrief", e1);
         }
-        if (eMail && !bcc.isEmpty()) {
-            sendEmail(betreff, bcc.toString(), " ");
-        }
     }
 
-    private StringBuilder collectSelectedValues(String key) {
+    private StringBuilder collectSelectedValues() {
         StringBuilder sb = new StringBuilder();
-        if (((CProperties) p.get(key)).get("multipleValue") != null) {
-            CTable tab = ((CTable) ((CProperties) p.get(key)).get("multipleValue"));
-            int[] rows = tab.getSelectedRows();
-            for (int i = 0; i < rows.length; i++) {
-                sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
-            }
-            if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
+        if (((CProperties) p.get("1")).get("multipleValue") != null) {
+            collectSelectedValuesHelper(sb, p);
         }
         return sb;
+    }
+
+    static void collectSelectedValuesHelper(StringBuilder sb, CProperties p) {
+        CTable tab = ((CTable) ((CProperties) p.get("1")).get("multipleValue"));
+        int[] rows = tab.getSelectedRows();
+        for (int i = 0; i < rows.length; i++) {
+            sb.append("'").append(tab.getValueAt(rows[i], 0).toString().trim()).append("',");
+        }
+        if (!sb.isEmpty()) sb.setLength(sb.length() - 1);
     }
 
     private boolean isChecked(String key) {
@@ -173,26 +157,6 @@ public class CReportSerienbrief extends CCommand implements CReport {
 
     private String getCheckFilter(String key, String filter) {
         return isChecked(key) ? filter : "";
-    }
-
-    private void sendEmail(String betreff, String bcc, String body) {
-        try {
-            Outlook outlookApplication = new Outlook();
-            OutlookFolder outbox = outlookApplication.getDefaultFolder(FolderType.OUTBOX);
-            OutlookMail mail = (OutlookMail) outbox.createItem(ItemType.MAIL);
-            mail.setSubject(betreff);
-            mail.setTo(CPropertyManager.getInstance().getProperty("email"));
-            mail.setBCC(bcc);
-            mail.setBody(body);
-            mail.display();
-            outlookApplication.dispose();
-        } catch (ItemNotFoundException ex) {
-            LOGGER.log(Level.WARNING, "The outbox folder hasn't been found", ex);
-        } catch (ComponentObjectModelException ex) {
-            LOGGER.log(Level.SEVERE, "COM error occurred", ex);
-        } catch (LibraryNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, "The Java Outlook Library has not been found", ex);
-        }
     }
 
     public void set(CProperties p) {

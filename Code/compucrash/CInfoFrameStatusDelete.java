@@ -19,7 +19,7 @@ public class CInfoFrameStatusDelete extends CInfoFrameStatus {
     }
 
     public void entry() {
-        CInfoFrame owner= getOwner();
+        CInfoFrame owner = getOwner();
         owner.setTitle("Delete");
         // get data
         // all fields uneditable

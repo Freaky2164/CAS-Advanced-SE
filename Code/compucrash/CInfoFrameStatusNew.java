@@ -6,9 +6,37 @@ public class CInfoFrameStatusNew extends CInfoFrameStatus {
     private static final String OWNERCONST = "owner";
     private static final String TABLE_NAME = "table_name";
     private static final String COLUMN_NAME = "column_name";
+
     public CInfoFrameStatusNew(CInfoFrame owner) {
         super(owner);
         entry();
+    }
+
+    static void attributeApplication(CInfoFrame owner) {
+        CProperties pAttributes = owner.dataObj.getAttributes();
+        int j = 0;
+        CProperties keys = new CProperties();
+        for (int i = 1; i <= pAttributes.size(); i++) {
+            CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
+            if (!pA.get("iskey").toString().equalsIgnoreCase("0")) {
+                CProperties pKey = new CProperties();
+                j++;
+                keys.put(Integer.toString(j), pKey);
+                pKey.put(OWNERCONST, pA.get(OWNERCONST));
+                pKey.put(TABLE_NAME, pA.get(TABLE_NAME));
+                pKey.put(COLUMN_NAME, pA.get(COLUMN_NAME));
+                for (int k = 0; k < owner.getcFields().size(); k++) {
+                    CProperties pValue = owner.getcFields().get(k).getProperties();
+                    if (pValue.get(COLUMN_NAME).toString().equalsIgnoreCase(pA.get(COLUMN_NAME).toString())
+                            && pValue.get(TABLE_NAME).toString().equalsIgnoreCase(pA.get(TABLE_NAME).toString())
+                            && pValue.get(OWNERCONST).toString().equalsIgnoreCase(pA.get(OWNERCONST).toString())) {
+                        pKey.put("value", owner.getcFields().get(k).getValue());
+                        break;
+                    }
+                }
+            }
+        }
+        owner.p.put("keys", keys);
     }
 
     public void entry() {
@@ -50,33 +78,6 @@ public class CInfoFrameStatusNew extends CInfoFrameStatus {
             owner.getcFields().get(k).refresh();
         }
         owner.setStatus(new CInfoFrameStatusEdit(owner));
-    }
-
-    static void attributeApplication(CInfoFrame owner) {
-        CProperties pAttributes = owner.dataObj.getAttributes();
-        int j = 0;
-        CProperties keys = new CProperties();
-        for (int i = 1; i <= pAttributes.size(); i++) {
-            CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            if (!pA.get("iskey").toString().equalsIgnoreCase("0")) {
-                CProperties pKey = new CProperties();
-                j++;
-                keys.put(Integer.toString(j), pKey);
-                pKey.put(OWNERCONST, pA.get(OWNERCONST));
-                pKey.put(TABLE_NAME, pA.get(TABLE_NAME));
-                pKey.put(COLUMN_NAME, pA.get(COLUMN_NAME));
-                for (int k = 0; k < owner.getcFields().size(); k++) {
-                    CProperties pValue = owner.getcFields().get(k).getProperties();
-                    if (pValue.get(COLUMN_NAME).toString().equalsIgnoreCase(pA.get(COLUMN_NAME).toString())
-                            && pValue.get(TABLE_NAME).toString().equalsIgnoreCase(pA.get(TABLE_NAME).toString())
-                            && pValue.get(OWNERCONST).toString().equalsIgnoreCase(pA.get(OWNERCONST).toString())) {
-                        pKey.put("value", owner.getcFields().get(k).getValue());
-                        break;
-                    }
-                }
-            }
-        }
-        owner.p.put("keys", keys);
     }
 
     public void ok() throws SQLException {

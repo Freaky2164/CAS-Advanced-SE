@@ -24,10 +24,10 @@ public class CFrame extends JFrame {
     private final JPanel mainPaneTopRight = new JPanel();
     private final JTextField statusLine = new JTextField();
     private final JPanel customButtonPane = new JPanel();
-    private transient FTPClientInterface cFields;
-    private String name;
     private final JDesktopPane cp = new JDesktopPane();
     protected CFrame parentFrame;
+    private transient FTPClientInterface cFields;
+    private String name;
 
     public CFrame(CFrame parent) throws HeadlessException {
         super();

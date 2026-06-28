@@ -11,14 +11,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportSpendenUebersicht extends CCommand implements CReport {
 
+    private static final String GESAMT = " Gesamt";
     private static final Logger LOGGER = Logger.getLogger(CReportSpendenUebersicht.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
     private final String reports;
     private final String vorlagen;
     private final String excel;
@@ -55,7 +54,7 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
         while (rset.next()) {
             if (!rset.getString(1).equalsIgnoreCase(verein)) {
                 if (!spendentyp.equalsIgnoreCase("init")) {
-                    line = writeSummaryRow(sheet, line, spendentyp + " Gesamt:", sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
+                    line = writeSummaryRow(sheet, line, spendentyp + GESAMT, sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
                     sum = 0;
                     sumLine = true;
                     line = writeSummaryRow(sheet, line, "Gesamt:", summeGesamt, styles.gelbTitelStyle, styles.gelbGeldStyle);
@@ -67,7 +66,7 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
             }
             if (!rset.getString(2).equalsIgnoreCase(spendentyp)) {
                 if (!sumLine && !spendentyp.equalsIgnoreCase("init")) {
-                    line = writeSummaryRow(sheet, line, spendentyp + " Gesamt:", sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
+                    line = writeSummaryRow(sheet, line, spendentyp + GESAMT, sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
                     sum = 0;
                 }
                 sumLine = false;
@@ -98,7 +97,7 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
             sum += rset.getDouble(7);
             summeGesamt += rset.getDouble(7);
         }
-        writeSummaryRow(sheet, line++, spendentyp + " Gesamt:", sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
+        writeSummaryRow(sheet, line++, spendentyp + GESAMT, sum, styles.gelbTitelStyle, styles.gelbGeldStyle);
         writeSummaryRow(sheet, line, "Gesamt:", summeGesamt, styles.gelbTitelStyle, styles.gelbGeldStyle);
     }
 
@@ -118,13 +117,15 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
     public void go() {
         String jahr = getJahrFilter();
         try {
-            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/SpendenUebersicht.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fsin);
-            String SQLString = "SELECT s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum, s.betrag " +
+            HSSFWorkbook wb;
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/SpendenUebersicht.xls"))) {
+                wb = new HSSFWorkbook(fsin);
+            }
+            String sqlString = "SELECT s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum, s.betrag " +
                     "FROM frauenhaus.mitglied m, frauenhaus.spende s, frauenhaus.spendenart a " +
                     "WHERE s.mitglied = m.mitglied AND s.spendenart = a.spendenart " +
                     jahr + " ORDER BY s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum ";
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
+            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
             HSSFSheet sheet = wb.getSheetAt(0);
             SpendenStyles styles = new SpendenStyles(sheet);
             writeResultToSheet(rset, sheet, styles);

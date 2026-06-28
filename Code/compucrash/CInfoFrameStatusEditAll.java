@@ -1,7 +1,5 @@
 package compucrash;
 
-import com.enterprisedt.net.ftp.FTPClientInterface;
-
 import javax.swing.*;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -10,6 +8,9 @@ import java.util.logging.Logger;
 public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
 
     private static final Logger LOGGER = Logger.getLogger(CInfoFrameStatusEditAll.class.getName());
+    private static final String TABLENAME = "table_name";
+    private static final String OWNER = "owner";
+    private static final String COLUMNNAME = "column_name";
 
     public CInfoFrameStatusEditAll(CInfoFrame owner) {
         super(owner);
@@ -18,6 +19,27 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
 
     private static String toStringOrEmpty(Object obj) {
         return obj != null ? obj.toString() : "";
+    }
+
+    static boolean interactionReturner(StringBuilder errorString, CInfoFrame owner, Logger logger, CDataObject actual) throws SQLException {
+        int returnValue;
+        Object[] options = {"Weiter", "Abbrechen"};
+        if (!errorString.isEmpty()) {
+            returnValue = JOptionPane.showOptionDialog(null, "Achtung, die Daten wurden ver�ndert.\n" + errorString + "Wollen Sie die Daten wirklich l�schen?", "Warnung", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+        } else {
+            returnValue = JOptionPane.OK_OPTION;
+        }
+        if (returnValue != JOptionPane.OK_OPTION) {
+            try {
+                CDataManager.getInstance().getConnection().rollback();
+                CMessage.print("rollback");
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Failed to rollback transaction", e);
+            }
+            return true;
+        }
+        owner.dataObj.update((CProperties) owner.p.get("keys"), actual);
+        return false;
     }
 
     public void entry() {
@@ -52,9 +74,9 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
                 CProperties pKey = new CProperties();
                 j++;
                 keys.put(Integer.toString(j), pKey);
-                pKey.put("owner", pA.get("owner"));
-                pKey.put("table_name", pA.get("table_name"));
-                pKey.put("column_name", pA.get("column_name"));
+                pKey.put(OWNER, pA.get(OWNER));
+                pKey.put(TABLENAME, pA.get(TABLENAME));
+                pKey.put(COLUMNNAME, pA.get(COLUMNNAME));
                 findAndSetKeyValue(pKey, pA);
             }
         }
@@ -65,9 +87,9 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
         CFrame owner = getOwner();
         for (int k = 0; k < owner.getcFields().size(); k++) {
             CProperties pValue = owner.getcFields().get(k).getProperties();
-            if (pValue.get("column_name").toString().equalsIgnoreCase(pA.get("column_name").toString())
-                    && pValue.get("table_name").toString().equalsIgnoreCase(pA.get("table_name").toString())
-                    && pValue.get("owner").toString().equalsIgnoreCase(pA.get("owner").toString())) {
+            if (pValue.get(COLUMNNAME).toString().equalsIgnoreCase(pA.get(COLUMNNAME).toString())
+                    && pValue.get(TABLENAME).toString().equalsIgnoreCase(pA.get(TABLENAME).toString())
+                    && pValue.get(OWNER).toString().equalsIgnoreCase(pA.get(OWNER).toString())) {
                 pKey.put("value", owner.getcFields().get(k).getValue());
                 break;
             }
@@ -99,28 +121,6 @@ public class CInfoFrameStatusEditAll extends CInfoFrameStatus {
         owner.p.put("keys", collectUpdatedKeys(pAttributes));
         owner.setStatus(new CInfoFrameStatusEditAll(owner));
     }
-
-    static boolean interactionReturner(StringBuilder errorString, CInfoFrame owner, Logger logger, CDataObject actual) throws SQLException {
-        int returnValue;
-        Object[] options = {"Weiter", "Abbrechen"};
-        if (!errorString.isEmpty()) {
-            returnValue = JOptionPane.showOptionDialog(null, "Achtung, die Daten wurden ver�ndert.\n" + errorString + "Wollen Sie die Daten wirklich l�schen?", "Warnung", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        } else {
-            returnValue = JOptionPane.OK_OPTION;
-        }
-        if (returnValue != JOptionPane.OK_OPTION) {
-            try {
-                CDataManager.getInstance().getConnection().rollback();
-                CMessage.print("rollback");
-            } catch (SQLException e) {
-                logger.log(Level.SEVERE, "Failed to rollback transaction", e);
-            }
-            return true;
-        }
-        owner.dataObj.update((CProperties) owner.p.get("keys"), actual);
-        return false;
-    }
-
 
     public void ok() throws SQLException {
         // save data

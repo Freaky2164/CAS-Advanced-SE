@@ -25,7 +25,7 @@ public class Test extends JFrame {
         setVisible(true);
     }
 
-    static void main(String[] args) {
+    static void main() {
         new Test();
     }
 }

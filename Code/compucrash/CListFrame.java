@@ -13,6 +13,14 @@ import java.util.logging.Logger;
 public class CListFrame extends CFrame implements CInfoParent, CListParent {
 
     private static final Logger LOGGER = Logger.getLogger(CListFrame.class.getName());
+    private static final String BDISPLAYCONST = "bdisplay";
+    private static final String BEDITCONST = "bedit";
+    private static final String BDELETECONST = "bdelete";
+    private static final String BCOPYCONST = "bcopy";
+    private static final String BNEWCONST = "bnew";
+    private static final String DELETECONST = "delete";
+    private static final String DISPLAYCONST = "display";
+    private static final String DISABLEDCONST = "DISABLED";
     private final transient CListDataObject obj;
     private final String objectName;
     protected CButton bNew;
@@ -25,14 +33,6 @@ public class CListFrame extends CFrame implements CInfoParent, CListParent {
     private final JScrollPane sp = new JScrollPane(tab);
     protected CProperties p;
     private CAddonTableBean searchBean = null;
-    private static final String BDISPLAYCONST = "bdisplay";
-    private static final String BEDITCONST = "bedit";
-    private static final String BDELETECONST = "bdelete";
-    private static final String BCOPYCONST = "bcopy";
-    private static final String BNEWCONST = "bnew";
-    private static final String DELETECONST = "delete";
-    private static final String DISPLAYCONST = "display";
-    private static final String DISABLEDCONST = "DISABLED";
 
     public CListFrame(String objDesc, CFrame parent) {
         super(parent);

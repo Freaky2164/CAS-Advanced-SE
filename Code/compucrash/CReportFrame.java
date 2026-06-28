@@ -8,13 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CReportFrame extends CFrame {
+    private static final String SOURCE = "source";
     private final CProperties p;
-    private final CButton bDisplay;
-    private final CButton bCancel;
     private final Map<String, Component> fields = new HashMap<>();
     private final Map<String, JTextField> files = new HashMap<>();
     GridBagConstraints c = new GridBagConstraints();
-    private CButton bSource;
     private CSelectDialog selectDialog;
 
 
@@ -42,18 +40,11 @@ public class CReportFrame extends CFrame {
             panel.setPreferredSize(new Dimension(800, panel.getPreferredSize().height));
             getMainPaneTop().add(panel, c);
         }
-        bDisplay = CButtonFactory.getButton("display");
-        bDisplay.addActionListener(e -> ok());
-/*		bPrint = CButtonFactory.getButton("print");
-		bPrint.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				ok();
-			}
-		});*/
-        bCancel = CButtonFactory.getButton("cancel");
-        bCancel.addActionListener(e -> dispose());
+        CButton bDisplay = CButtonFactory.getButton("display");
+        bDisplay.addActionListener(_ -> ok());
+        CButton bCancel = CButtonFactory.getButton("cancel");
+        bCancel.addActionListener(_ -> dispose());
         getButtonPaneLeft().add(bDisplay);
-//		getButtonPaneLeft().add(bPrint);
         getButtonPaneRight().add(bCancel);
 
         pack();
@@ -62,15 +53,15 @@ public class CReportFrame extends CFrame {
 
     protected void bSource(ActionEvent e) {
         Component o = fields.get(e.getActionCommand());
-        if (selectDialog instanceof CSelectDialog) {
+        if (selectDialog != null) {
             selectDialog.dispose();
         }
-        selectDialog = new CSelectDialog(o, (CSelectParent) o, CDataObjectFactory.getCListDataObject(((CProperties) (p.get(e.getActionCommand()))).get("source").toString()));
+        selectDialog = new CSelectDialog(o, (CSelectParent) o, CDataObjectFactory.getCListDataObject(((CProperties) (p.get(e.getActionCommand()))).get(SOURCE).toString()));
         selectDialog.setBounds(0, 0, selectDialog.getWidth(), selectDialog.getHeight());
         while (o != null && o.getClass() != CReportFrame.class) {
             o = o.getParent();
         }
-        if (o instanceof CReportFrame) {
+        if (o != null) {
             o.setSize(Math.max(o.getWidth(), selectDialog.getWidth()), Math.max(o.getHeight(), selectDialog.getHeight() + 21));
             o.doLayout();
             ((CReportFrame) o).getDesktopPane().add(selectDialog, JLayeredPane.MODAL_LAYER);
@@ -106,7 +97,7 @@ public class CReportFrame extends CFrame {
         if (pA.get("between") != null) collectBetweenValues(pA);
         if (pA.get("like") != null) pA.put("likeValue", ((JTextField) pA.get("likeTextfield")).getText());
         if (pA.get("check") != null)
-            pA.put("checkValue", Boolean.valueOf(((JCheckBox) pA.get("checkbox")).isSelected()));
+            pA.put("checkValue", ((JCheckBox) pA.get("checkbox")).isSelected());
         if (pA.get("file") != null) pA.put("fileValue", ((JTextField) pA.get("fileTextfield")).getText());
         if (pA.get("text") != null) pA.put("textValue", ((JTextArea) pA.get("textTextfield")).getText());
         if (pA.get("multiple") != null) pA.put("multipleValue", pA.get("multipleTable"));
@@ -131,8 +122,8 @@ public class CReportFrame extends CFrame {
         CExtendedTextField equalsText = new CExtendedTextField(20);
         fields.put(Integer.toString(index), equalsText);
         pA.put("equalsTextfield", equalsText);
-        if (pA.get("source") != null) {
-            bSource = CButtonFactory.getButton("dropdown");
+        if (pA.get(SOURCE) != null) {
+            CButton bSource = CButtonFactory.getButton("dropdown");
             bSource.setActionCommand(Integer.toString(index));
             p1.add(bSource);
             bSource.addActionListener(this::bSource);
@@ -161,7 +152,7 @@ public class CReportFrame extends CFrame {
         if (pA.get("like") == null) return;
         JPanel p3 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panel.add(p3);
-        JLabel likeLabel = new JLabel("enth\u00e4lt");
+        JLabel likeLabel = new JLabel("enthält");
         likeLabel.setPreferredSize(new Dimension(100, likeLabel.getPreferredSize().height));
         p3.add(likeLabel);
         JTextField likeText = new JTextField(20);
@@ -218,10 +209,10 @@ public class CReportFrame extends CFrame {
         multipleLabel.setPreferredSize(new Dimension(100, multipleLabel.getPreferredSize().height));
         p7.add(multipleLabel);
         CTable multipleTable = new CTable();
-        CListDataObject ldo = CDataObjectFactory.getCListDataObject((String) pA.get("source"));
-        CProperties p_ldo = ldo.getCProperties();
+        CListDataObject ldo = CDataObjectFactory.getCListDataObject((String) pA.get(SOURCE));
+        CProperties pLdo = ldo.getCProperties();
         multipleTable.setCListDataObject(ldo);
-        multipleTable.setModel(p_ldo.get("order") != null ? ldo.select(p_ldo) : ldo.select(1));
+        multipleTable.setModel(pLdo.get("order") != null ? ldo.select(pLdo) : ldo.select(1));
         multipleTable.setWidth(ldo.getCProperties());
         multipleTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane sp = new JScrollPane(multipleTable);
@@ -230,6 +221,6 @@ public class CReportFrame extends CFrame {
             sp.setPreferredSize(new Dimension(600, Integer.parseInt(pA.get("height").toString())));
         p7.add(sp);
         pA.put("multipleTable", multipleTable);
-        if (pA.get("columns") != null) multipleTable.setAutoResizeMode(CTable.AUTO_RESIZE_ALL_COLUMNS);
+        if (pA.get("columns") != null) multipleTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
     }
 }

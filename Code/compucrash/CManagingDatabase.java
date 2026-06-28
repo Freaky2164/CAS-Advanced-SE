@@ -58,7 +58,7 @@ public abstract class CManagingDatabase {
                 + "WHERE LOWER(u.user_name) = LOWER(?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlString, ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_READ_ONLY)) {
-            pstmt.setString(1, CPropertyManager.USER);
+            pstmt.setString(1, CPropertyManager.getUser());
             try (ResultSet rset = pstmt.executeQuery()) {
                 rset.first();
                 str = rset.getString(1);
@@ -73,7 +73,7 @@ public abstract class CManagingDatabase {
         String sqlString = "SELECT o.objectName, o.object_label, uor.panel FROM compucrash.object_def o, compucrash.user_object_relation uor "
                 + "WHERE LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
                 + "AND uor.main_pos > 0 ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser());
     }
 
     protected ResultSet getButtons() {
@@ -98,7 +98,7 @@ public abstract class CManagingDatabase {
                 + "AND otc.table_name = ot.table_name AND otc.pos_info > 0 "
                 + "AND LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
                 + "ORDER BY o.objectName, otc.pos_info";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser());
     }
 
     protected ResultSet getCInfoDataCustButtons(String objectName) {
@@ -109,7 +109,7 @@ public abstract class CManagingDatabase {
                 + "AND cbr.dialog_type = 'info' "
                 + "AND cbr.objectName = ? "
                 + "ORDER BY cbr.panel, cbr.pos, cbd.bez ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER, objectName);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser(), objectName);
     }
 
     protected ResultSet getCListDataCustButtons(String objectName) {
@@ -120,7 +120,7 @@ public abstract class CManagingDatabase {
                 + "AND cbr.dialog_type = 'list' "
                 + "AND cbr.objectName = ? "
                 + "ORDER BY cbr.panel, cbr.pos, cbd.bez ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER, objectName);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser(), objectName);
     }
 
     protected ResultSet getGlobals() {
@@ -139,7 +139,7 @@ public abstract class CManagingDatabase {
                 + "AND otc.table_name = ot.table_name AND otc.pos_list > 0 "
                 + "AND LOWER(uor.user_name) = LOWER(?) AND uor.objectName = o.objectName "
                 + "ORDER BY o.objectName, otc.pos_list";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser());
     }
 
     abstract CListDataManagingDatabase createCListDataManagingDatabase(CListDataObject parent);
@@ -157,7 +157,9 @@ public abstract class CManagingDatabase {
     protected void connect() {
         try {
             Class.forName(driverManager);
-            conn = DriverManager.getConnection(connection, CPropertyManager.USER, CPropertyManager.PWD);
+            conn = DriverManager.getConnection(connection,
+                    CPropertyManager.getUser(),
+                    CPropertyManager.getPwd());
             conn.setAutoCommit(false);
             conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         } catch (ClassNotFoundException e) {
@@ -225,7 +227,7 @@ public abstract class CManagingDatabase {
                 + "SELECT panel, main_pos FROM compucrash.cust_button_main_rel "
                 + "WHERE main_pos > 0 AND LOWER(user_name) = LOWER(?) "
                 + "ORDER BY main_pos ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER, CPropertyManager.USER);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser(), CPropertyManager.getUser());
     }
 
     public ResultSet getCustMainButtons() {
@@ -235,6 +237,6 @@ public abstract class CManagingDatabase {
                 + "WHERE cbmr.buttonid = cb.buttonid "
                 + "AND LOWER(user_name) = LOWER(?) "
                 + "ORDER BY main_pos ";
-        return getPreparedResultSet(sqlString, CPropertyManager.USER);
+        return getPreparedResultSet(sqlString, CPropertyManager.getUser());
     }
 }

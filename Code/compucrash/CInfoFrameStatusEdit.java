@@ -1,9 +1,7 @@
 package compucrash;
 
-import javax.swing.*;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CInfoFrameStatusEdit extends CInfoFrameStatus {
@@ -54,12 +52,10 @@ public class CInfoFrameStatusEdit extends CInfoFrameStatus {
             String originalString = toStringOrEmpty(getOriginal().get(i));
             String actualString = toStringOrEmpty(actual.get(i));
             String compareString = toStringOrEmpty(getCompare().get(i));
-            if (!originalString.equals(actualString) && !originalString.equals(compareString)) {
-                // Data changed while dialog opened - lost update problem
-                if (!(actual.get(i) instanceof Blob)) {
-                    errorString.append(getOwner().getcFields().get(i - 1).getLabel()).append(": Original > ").append(originalString).append(", Ge\u00e4ndert > ").append(actualString).append(", Gespeichert > ").append(compareString).append("\n");
-                }
+            if (!originalString.equals(actualString) && !originalString.equals(compareString) && !(actual.get(i) instanceof Blob)) {
+                errorString.append(getOwner().getcFields().get(i - 1).getLabel()).append(": Original > ").append(originalString).append(", Geändert > ").append(actualString).append(", Gespeichert > ").append(compareString).append("\n");
             }
+
         }
         CInfoFrame owner = getOwner();
         if (CInfoFrameStatusEditAll.interactionReturner(errorString, owner, LOGGER, actual)) return;

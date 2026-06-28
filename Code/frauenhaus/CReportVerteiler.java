@@ -19,14 +19,13 @@ import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CReportVerteiler extends CCommand implements CReport {
 
+    private static final String LABEL = "label";
     private static final Logger LOGGER = Logger.getLogger(CReportVerteiler.class.getName());
-    private final NumberFormat nf = NumberFormat.getInstance();
     private final String reports;
     private final String vorlagen;
     private final String excel;
@@ -61,35 +60,24 @@ public class CReportVerteiler extends CCommand implements CReport {
         p.put("this", this);
         CProperties pA = new CProperties();
         p.put(Integer.toString(1), pA);
-        pA.put("label", "Adressen nach Stichwort...");
+        pA.put(LABEL, "Adressen nach Stichwort...");
         pA.put("height", "150");
         pA.put("multiple", "1");
         pA.put("source", "stichwort");
-//		pA = new CProperties();
-//		p.put(Integer.toString(2),pA);
-//		pA.put("label", "...aber nicht aus Verteiler");
-//		pA.put("height", "150");
-//		pA.put("multiple", "1");
-//		pA.put("source","verteiler");
-//		pA = new CProperties();
-//		p.put(Integer.toString(3),pA);
-//		pA.put("label", "Kontaktdatum");
-//		pA.put("between", "1");
         pA = new CProperties();
         p.put(Integer.toString(3), pA);
-        pA.put("label", "Email-Betreff");
+        pA.put(LABEL, "Email-Betreff");
         pA.put("equals", "1");
         pA = new CProperties();
         p.put(Integer.toString(4), pA);
-        pA.put("label", "Email-Text");
+        pA.put(LABEL, "Email-Text");
         pA.put("text", "1");
         pA = new CProperties();
         p.put(Integer.toString(5), pA);
-        pA.put("label", "Email-Anhang");
+        pA.put(LABEL, "Email-Anhang");
         pA.put("file", "1");
         new CReportFrame(p);
 
-//		go();
         return null;
     }
 
@@ -101,26 +89,29 @@ public class CReportVerteiler extends CCommand implements CReport {
         StringBuilder bcc = new StringBuilder();
 
         try {
-            POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Verteiler.xls"));
-            HSSFWorkbook wb = new HSSFWorkbook(fsin);
-            String SQLString = "SELECT DISTINCT k.anrede, k.vorname, k.name, k.strasse, k.plz, k.ort, k.email, name2, name3, briefanrede " +
-                    "FROM frauenhaus.mitglied k " +
-                    "WHERE k.mitglied IN (SELECT mitglied " +
-                    "FROM frauenhaus.stichwort_person WHERE stichwort IN (" + verteiler + ")) ORDER BY k.email";
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(SQLString);
-            HSSFSheet sheet = wb.getSheetAt(0);
-            int line = 1;
-            while (rset.next()) {
-                String emailAdresse = rset.getString(7);
-                if (emailAdresse == null) {
-                    line = writeVerteilerRow(rset, sheet, line, betreff, text);
-                } else {
-                    bcc.append(emailAdresse).append(";");
+            FileOutputStream fileOut;
+            try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/Verteiler.xls"))) {
+                try (HSSFWorkbook wb = new HSSFWorkbook(fsin)) {
+                    String sqlString = "SELECT DISTINCT k.anrede, k.vorname, k.name, k.strasse, k.plz, k.ort, k.email, name2, name3, briefanrede " +
+                            "FROM frauenhaus.mitglied k " +
+                            "WHERE k.mitglied IN (SELECT mitglied " +
+                            "FROM frauenhaus.stichwort_person WHERE stichwort IN (" + verteiler + ")) ORDER BY k.email";
+                    ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
+                    HSSFSheet sheet = wb.getSheetAt(0);
+                    int line = 1;
+                    while (rset.next()) {
+                        String emailAdresse = rset.getString(7);
+                        if (emailAdresse == null) {
+                            line = writeVerteilerRow(rset, sheet, line, betreff, text);
+                        } else {
+                            bcc.append(emailAdresse).append(";");
+                        }
+                    }
+                    sendEmailWithAttachment(betreff, bcc.toString(), text, anhang);
+                    fileOut = new FileOutputStream(reports + "/Verteiler.xls");
+                    wb.write(fileOut);
                 }
             }
-            sendEmailWithAttachment(betreff, bcc.toString(), text, anhang);
-            FileOutputStream fileOut = new FileOutputStream(reports + "/Verteiler.xls");
-            wb.write(fileOut);
             fileOut.close();
         } catch (FileNotFoundException e) {
             LOGGER.log(Level.SEVERE, "Verteiler template not found", e);

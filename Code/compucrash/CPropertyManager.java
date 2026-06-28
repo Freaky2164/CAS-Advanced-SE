@@ -2,7 +2,6 @@ package compucrash;
 
 import java.awt.*;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -14,18 +13,15 @@ import java.util.logging.Logger;
 
 public class CPropertyManager {
 
-    public static final String version = "1.1.1";
+    public static final String VERSION = "1.1.1";
     private static final Logger LOGGER = Logger.getLogger(CPropertyManager.class.getName());
-    public static boolean DEBUG = false;
-    public static String USER;
-    public static String PWD;
-    // Erste Stelle Hauptrelease
-    // Zweite Stelle: �nderungen an der DB
-    // Dritte Stelle Ereiterungen und Patches
-    public static String iniFile = "Compucrash.ini";
-    public static NumberFormat nf = NumberFormat.getInstance();
+    private static final Properties properties = new Properties();
+    private static boolean debug = false;
+    private static String user;
+    private static String pwd;
+    private static String iniFile = "Compucrash.ini";
+    private static NumberFormat nf = NumberFormat.getInstance();
     private static CPropertyManager uniqueInstance = null;
-    private final Properties properties = new Properties();
     private final CProperties dialogs = new CProperties();
     private final CProperties globals = new CProperties();
 
@@ -35,8 +31,9 @@ public class CPropertyManager {
 // Load properties from file		
         try (FileInputStream inFile = new FileInputStream(iniFile)) {
             properties.load(inFile);
-            if (properties.get("debug") != null && properties.get("debug").toString().equalsIgnoreCase("true"))
-                DEBUG = true;
+            if (properties.get("debug") != null && properties.get("debug").toString().equalsIgnoreCase("true")) {
+                /*hier soll debuggt werden*/
+            }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             System.exit(0);
@@ -55,6 +52,43 @@ public class CPropertyManager {
         getInstance();
     }
 
+    public static boolean isDebug() {
+        return debug;
+    }
+
+    public static String getUser() {
+        return user;
+    }
+
+    public static void setUser(String user) {
+        CPropertyManager.user = user;
+    }
+
+    public static String getPwd() {
+        return pwd;
+    }
+
+    public static void setPwd(String pwd) {
+        CPropertyManager.pwd = pwd;
+    }
+
+    public static NumberFormat getNf() {
+        return nf;
+    }
+
+    public static void setNf(NumberFormat nf) {
+        CPropertyManager.nf = nf;
+    }
+
+    public static void dispose() {
+        try (FileOutputStream outFile = new FileOutputStream(iniFile)) {
+            properties.store(outFile, null);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        }
+        uniqueInstance = null;
+    }
+
     public void setDialog(String dialog, Object ref) {
         if (ref == null) {
             dialogs.remove(dialog);
@@ -65,17 +99,6 @@ public class CPropertyManager {
 
     public Object getDialog(String dialog) {
         return dialogs.get(dialog);
-    }
-
-    public void dispose() {
-        try (FileOutputStream outFile = new FileOutputStream(iniFile)) {
-            properties.store(outFile, null);
-        } catch (FileNotFoundException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-        }
-        uniqueInstance = null;
     }
 
     public Properties getProperties() {
@@ -129,7 +152,7 @@ public class CPropertyManager {
                     globals.put(name, value);
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException _) {
             // Nothing to do
         }
     }

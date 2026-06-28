@@ -9,22 +9,22 @@ public class CSearchTableBean extends CAddonTableBean {
 
     private final JTextField search = new JTextField(60);
     private final JLabel searchLabel = new JLabel("Suchen   ");
-    private final CListDataObject obj;
+    private final transient CListDataObject obj;
 
     public CSearchTableBean(CTable tab, CListParent parent) {
         super(tab, parent);
         searchLabel.setPreferredSize(new Dimension(100, searchLabel.getPreferredSize().height));
         obj = tab.getCListDataObject();
-        search.addActionListener(e -> search_actionPerformed());
+        search.addActionListener(e -> searchActionPerformed());
         search.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyReleased(KeyEvent e) {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                        up();
-                        return;
-                    case KeyEvent.VK_DOWN:
-                        down();
-                        return;
+                if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    up();
+                    return;
+                } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    down();
+                    return;
                 }
                 bSearch();
             }
@@ -60,7 +60,7 @@ public class CSearchTableBean extends CAddonTableBean {
         }
     }
 
-    protected void search_actionPerformed() {
+    protected void searchActionPerformed() {
         getAddParent().onEdit();
     }
 

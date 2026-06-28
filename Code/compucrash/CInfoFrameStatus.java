@@ -13,37 +13,38 @@ public abstract class CInfoFrameStatus {
     private CDataObject actual;
     private CDataObject compare;
 
-    public CDataObject getActual() {
-        return actual;
-    }
-    public CDataObject getOriginal() {
-        return original;
-    }
-    public void setActual(CDataObject actual) {
-        this.actual = actual;
-    }
-    public void setOriginal(CDataObject original) {
-        this.original = original;
-    }
-
-    public CInfoFrameStatus(CInfoFrame owner) {
+    protected CInfoFrameStatus(CInfoFrame owner) {
         this.owner = owner;
         original = owner.dataObj.getCDataObject((CProperties) owner.p.get("keys"));
         actual = (CDataObject) original.clone();
         // die attribute dataObj, original und actual sollten evtl in den Status
         for (int i = 0; i < owner.getcFields().size(); i++) {
             Object o = null;
-            String val = "";
             if (actual.get(i + 1) == null) {
-                val = null;
+                /*wenn dieser Fall eintritt, soll nichts passieren*/
             } else if (actual.get(i + 1).getClass() == CNull.class) {
-                val = null;
+                /*hier ebenso*/
             } else {
-                val = actual.get(i + 1).toString();
                 o = actual.get(i + 1);
             }
             owner.getcFields().get(i).setValue(o);
         }
+    }
+
+    public CDataObject getActual() {
+        return actual;
+    }
+
+    public void setActual(CDataObject actual) {
+        this.actual = actual;
+    }
+
+    public CDataObject getOriginal() {
+        return original;
+    }
+
+    public void setOriginal(CDataObject original) {
+        this.original = original;
     }
 
     public abstract void entry();
