@@ -30,7 +30,7 @@ public class CMainFrame extends CFrame {
         p1.setBackground(Color.WHITE);
         p1.setLayout(new BorderLayout());
         getContentPane().add(p1, BorderLayout.NORTH);
-        JLabel titleLabel = new JLabel(CPropertyManager.getInstance().getProperty("title"), new ImageIcon(CPropertyManager.getInstance().getProperty("icon")), 0);
+        JLabel titleLabel = new JLabel(CPropertyManager.getInstance().getProperty("title"), new ImageIcon(CPropertyManager.getInstance().getProperty("icon")), SwingConstants.CENTER);
         p1.add(titleLabel, BorderLayout.NORTH);
         CTabbedPane tabbedPane = new CTabbedPane();
         getMainPane().setLayout(new BorderLayout());

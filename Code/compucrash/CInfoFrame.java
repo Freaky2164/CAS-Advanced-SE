@@ -227,26 +227,28 @@ public class CInfoFrame extends CFrame {
 
     public boolean setAttributeValue(String name, Object value) {
         Object o = attributeValues.get(name);
-        if ((o == null && value == null) || (o != null && value != null && o.toString().equalsIgnoreCase(value.toString()))) {
-            // keine Ver�nderung
-        } else if (o != null && o.toString().equalsIgnoreCase("init")) {
-            // Bei Initialisierung kein Refresh aber Wert zuweisen
-            storeAttributeValue(name, value);
-            CActionCommand ac = (CActionCommand) attributeActions.get(name);
-            if (ac != null) {
-                ac.setOwner(this);
-                ac.execute(name);
+        if ((o != null || value != null) && (o == null || value == null || !o.toString().equalsIgnoreCase(value.toString()))) {
+            if (o != null && o.toString().equalsIgnoreCase("init")) {
+                // Bei Initialisierung kein Refresh aber Wert zuweisen
+                storeAttributeValue(name, value);
+                CActionCommand ac = (CActionCommand) attributeActions.get(name);
+                if (ac != null) {
+                    ac.setOwner(this);
+                    ac.execute(name);
+                }
+            } else {
+                storeAttributeValue(name, value);
+                CActionCommand ac = (CActionCommand) attributeActions.get(name);
+                if (ac != null) {
+                    ac.setOwner(this);
+                    ac.executeChange(name);
+                }
+                refresh();
+                this.edited = true;
+                return true;
             }
         } else {
-            storeAttributeValue(name, value);
-            CActionCommand ac = (CActionCommand) attributeActions.get(name);
-            if (ac != null) {
-                ac.setOwner(this);
-                ac.executeChange(name);
-            }
-            refresh();
-            this.edited = true;
-            return true;
+            LOGGER.log(Level.FINE, "No change for attribute {0}", name);
         }
         return false;
     }

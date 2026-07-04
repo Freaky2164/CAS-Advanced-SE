@@ -91,7 +91,7 @@ public class CCommandBestaetigungBussgeld extends CCommand implements CReport {
                 wert = fmt.format(rset.getDate(9).toLocalDate());
                 insert("datum", wert);
 
-                double restbetrag = 0;
+                double restbetrag;
                 double restbetragsumme = 0;
                 StringBuilder wertBuilder = new StringBuilder();
 

@@ -26,7 +26,7 @@ public class CDisplayFieldHistoryBean extends CDisplayFieldBean implements CInfo
     private CDataObject obj;
     private CProperties pTab;
     private CProperties infoKeys;
-    private CProperties pb = null;
+    private CProperties pb;
 
     public CDisplayFieldHistoryBean(CProperties p, CInfoFrame frame) {
         super(p, frame);

@@ -115,114 +115,117 @@ public class CReportBussgeldDetail extends CCommand implements CReport {
     private void compute(String verein) throws SQLException {
         String sqlString = new StringBuilder().append("SELECT b.datum, g.bezeichnung, coalesce(b.aktenzeichen, 'unbekannt'), ").append("b.name + ', ' + b.vorname, b.betrag, ").append("(SELECT SUM(betrag) FROM frauenhaus.eingang WHERE bussgeld = b.bussgeld) offen, ").append("e.datum, e.betrag ").append("FROM frauenhaus.gericht g, frauenhaus.bussgeld b, frauenhaus.eingang e ").append("WHERE g.gericht = b.gericht ").append("AND b.bussgeld = e.bussgeld ").append("AND e.datum >= '").append(dateFrom).append("' ").append("AND e.datum <= '").append(dateTo).append("' ").append("AND b.verein = '").append(verein).append("' ").append("ORDER BY b.datum, b.aktenzeichen, e.datum").toString();
 
-        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
+        HSSFCell cell;
+        double summe;
+        try (ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString)) {
 
-        row = sheet.createRow(line++);
-        row.setHeight(rowHeight);
-        HSSFCell cell = row.createCell((short) 0);
-        cell.setCellValue(" ");
-        cell.setCellStyle(styleTextTitle);
-        cell = row.createCell((short) 1);
-        cell.setCellValue(verein);
-        cell.setCellStyle(styleTextTitle);
-        cell = row.createCell((short) 2);
-        cell.setCellValue(" ");
-        cell.setCellStyle(styleTextTitle);
-        cell = row.createCell((short) 3);
-        cell.setCellValue(" ");
-        cell.setCellStyle(styleTextTitle);
-        cell = row.createCell((short) 4);
-        cell.setCellValue(" ");
-        cell.setCellStyle(styleTextTitle);
-        cell = row.createCell((short) 5);
-        cell.setCellValue(" ");
-        cell.setCellStyle(styleTextTitle);
-        row = sheet.createRow(line++);
-
-        double summe = 0;
-        Date datum;
-        String gericht;
-        String aktenzeichen;
-        String name;
-        String aktenzeichenAlt = ANFANG;
-        double betrag = 0;
-        double offen = 0;
-        while (rset.next()) {
-            datum = rset.getDate(1);
-            gericht = rset.getString(2);
-            aktenzeichen = rset.getString(3);
-            name = rset.getString(4);
-            betrag = rset.getDouble(5);
-            offen = rset.getDouble(6);
-            if (!aktenzeichenAlt.equalsIgnoreCase(aktenzeichen)) {
-                if (!aktenzeichenAlt.equalsIgnoreCase(ANFANG)) {
-                    // Zusammenfassung
-                    row = sheet.createRow(line++);
-                    cell = row.createCell((short) 3);
-                    cell.setCellValue("Gesamt");
-                    cell.setCellStyle(styleTextTitle);
-                    cell = row.createCell((short) 4);
-                    cell.setCellValue(" ");
-                    cell.setCellStyle(styleTextTitle);
-                    cell = row.createCell((short) 5);
-                    cell.setCellValue(summe);
-                    cell.setCellStyle(styleMoneyTitle);
-                    summe = 0;
-                    row = sheet.createRow(line++);
-                }
-                // Neues Bu�geld
-                row = sheet.createRow(line++);
-                row.setHeight(rowHeight);
-                cell = row.createCell((short) 0);
-                cell.setCellValue(datum);
-                cell.setCellStyle(styleDateTitle);
-                cell = row.createCell((short) 1);
-                cell.setCellValue(gericht);
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 2);
-                cell.setCellValue(aktenzeichen);
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 3);
-                cell.setCellValue(name);
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 4);
-                cell.setCellValue("Betrag:");
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 5);
-                cell.setCellValue("Offen:");
-                cell.setCellStyle(styleTextTitle);
-
-                row = sheet.createRow(line++);
-                cell = row.createCell((short) 4);
-                cell.setCellValue(betrag);
-                cell.setCellStyle(styleMoneyTitle);
-                cell = row.createCell((short) 5);
-                cell.setCellValue(betrag - offen);
-                cell.setCellStyle(styleMoneyTitle);
-
-                row = sheet.createRow(line++);
-                cell = row.createCell((short) 3);
-                cell.setCellValue("Eing�nge");
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 4);
-                cell.setCellValue("Datum");
-                cell.setCellStyle(styleTextTitle);
-                cell = row.createCell((short) 5);
-                cell.setCellValue("Betrag");
-                cell.setCellStyle(styleTextTitle);
-
-                aktenzeichenAlt = aktenzeichen;
-            }
-            // Eing�nge
             row = sheet.createRow(line++);
             row.setHeight(rowHeight);
+            cell = row.createCell((short) 0);
+            cell.setCellValue(" ");
+            cell.setCellStyle(styleTextTitle);
+            cell = row.createCell((short) 1);
+            cell.setCellValue(verein);
+            cell.setCellStyle(styleTextTitle);
+            cell = row.createCell((short) 2);
+            cell.setCellValue(" ");
+            cell.setCellStyle(styleTextTitle);
+            cell = row.createCell((short) 3);
+            cell.setCellValue(" ");
+            cell.setCellStyle(styleTextTitle);
             cell = row.createCell((short) 4);
-            cell.setCellValue(rset.getDate(7)); // Datum
-            cell.setCellStyle(styleDate);
+            cell.setCellValue(" ");
+            cell.setCellStyle(styleTextTitle);
             cell = row.createCell((short) 5);
-            cell.setCellValue(rset.getDouble(8)); // Betrag
-            summe += rset.getDouble(8);
-            cell.setCellStyle(styleMoney);
+            cell.setCellValue(" ");
+            cell.setCellStyle(styleTextTitle);
+            row = sheet.createRow(line++);
+
+            summe = 0;
+            Date datum;
+            String gericht;
+            String aktenzeichen;
+            String name;
+            String aktenzeichenAlt = ANFANG;
+            double betrag;
+            double offen;
+            while (rset.next()) {
+                datum = rset.getDate(1);
+                gericht = rset.getString(2);
+                aktenzeichen = rset.getString(3);
+                name = rset.getString(4);
+                betrag = rset.getDouble(5);
+                offen = rset.getDouble(6);
+                if (!aktenzeichenAlt.equalsIgnoreCase(aktenzeichen)) {
+                    if (!aktenzeichenAlt.equalsIgnoreCase(ANFANG)) {
+                        // Zusammenfassung
+                        row = sheet.createRow(line++);
+                        cell = row.createCell((short) 3);
+                        cell.setCellValue("Gesamt");
+                        cell.setCellStyle(styleTextTitle);
+                        cell = row.createCell((short) 4);
+                        cell.setCellValue(" ");
+                        cell.setCellStyle(styleTextTitle);
+                        cell = row.createCell((short) 5);
+                        cell.setCellValue(summe);
+                        cell.setCellStyle(styleMoneyTitle);
+                        summe = 0;
+                        row = sheet.createRow(line++);
+                    }
+                    // Neues Bu�geld
+                    row = sheet.createRow(line++);
+                    row.setHeight(rowHeight);
+                    cell = row.createCell((short) 0);
+                    cell.setCellValue(datum);
+                    cell.setCellStyle(styleDateTitle);
+                    cell = row.createCell((short) 1);
+                    cell.setCellValue(gericht);
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 2);
+                    cell.setCellValue(aktenzeichen);
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 3);
+                    cell.setCellValue(name);
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 4);
+                    cell.setCellValue("Betrag:");
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 5);
+                    cell.setCellValue("Offen:");
+                    cell.setCellStyle(styleTextTitle);
+
+                    row = sheet.createRow(line++);
+                    cell = row.createCell((short) 4);
+                    cell.setCellValue(betrag);
+                    cell.setCellStyle(styleMoneyTitle);
+                    cell = row.createCell((short) 5);
+                    cell.setCellValue(betrag - offen);
+                    cell.setCellStyle(styleMoneyTitle);
+
+                    row = sheet.createRow(line++);
+                    cell = row.createCell((short) 3);
+                    cell.setCellValue("Eing�nge");
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 4);
+                    cell.setCellValue("Datum");
+                    cell.setCellStyle(styleTextTitle);
+                    cell = row.createCell((short) 5);
+                    cell.setCellValue("Betrag");
+                    cell.setCellStyle(styleTextTitle);
+
+                    aktenzeichenAlt = aktenzeichen;
+                }
+                // Eing�nge
+                row = sheet.createRow(line++);
+                row.setHeight(rowHeight);
+                cell = row.createCell((short) 4);
+                cell.setCellValue(rset.getDate(7)); // Datum
+                cell.setCellStyle(styleDate);
+                cell = row.createCell((short) 5);
+                cell.setCellValue(rset.getDouble(8)); // Betrag
+                summe += rset.getDouble(8);
+                cell.setCellStyle(styleMoney);
+            }
         }
         // Letzte Zusammenfassung
         row = sheet.createRow(line++);

@@ -30,7 +30,7 @@ public class CDisplayFieldNumberBean extends CDisplayFieldBean implements CSelec
         text.setColumns(Integer.parseInt((String) p.get("data_scale")));
         if (p.get("data_precision") != null) {
             try {
-                int dataPrecision = 0;
+                int dataPrecision;
                 dataPrecision = Integer.parseInt(p.get("data_precision").toString());
                 nf.setMaximumFractionDigits(dataPrecision);
                 nf.setMinimumFractionDigits(dataPrecision);

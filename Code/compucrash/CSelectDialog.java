@@ -219,7 +219,7 @@ public class CSelectDialog extends JInternalFrame implements CInfoParent {
             return;
         }
         if (!option.toString().isEmpty()) {
-            CCommand command = null;
+            CCommand command;
             try {
                 command = (CCommand) Class.forName(option.toString()).getDeclaredConstructor().newInstance();
                 command.setOwner(this);

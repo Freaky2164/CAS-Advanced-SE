@@ -35,7 +35,7 @@ public class CReportStichworteZusammenfassen extends CCommand implements CReport
 
     public void go() {
         StringBuilder stichworteAlt = new StringBuilder();
-        String stichwortNeu = "";
+        String stichwortNeu;
 
         if (((CProperties) p.get("1")).get("multipleValue") != null) {
             CReportSerienbrief.collectSelectedValuesHelper(stichworteAlt, p);

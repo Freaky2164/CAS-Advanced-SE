@@ -1,5 +1,6 @@
 package frauenhaus;
 
+import ch.kova.connector.exception.ComponentObjectModelException;
 import ch.kova.connector.exception.ItemNotFoundException;
 import ch.kova.connector.exception.LibraryNotFoundException;
 import ch.kova.connector.ms.outlook.Outlook;

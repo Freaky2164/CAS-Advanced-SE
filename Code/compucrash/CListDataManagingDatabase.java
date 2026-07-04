@@ -119,9 +119,7 @@ public abstract class CListDataManagingDatabase {
         List<String> searchColumns = new ArrayList<>();
         for (int i = 1; i <= pAttributes.size(); i++) {
             CProperties pA = (CProperties) pAttributes.get(Integer.toString(i));
-            if (pA.get(FORMULA) != null) {
-                /*Hier soll nichts passieren*/
-            } else {
+            if (pA.get(FORMULA) == null) {
                 searchColumns.add(sqlIdentifier(pA.get(OWNER)) + CDataManager.getSchemaSeparator() +
                         sqlIdentifier(pA.get(TABLENAME)) + "." +
                         sqlIdentifier(pA.get(COLUMNNAME)));

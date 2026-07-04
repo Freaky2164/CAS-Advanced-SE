@@ -22,8 +22,8 @@ public class Utilities {
         /* Konvertierung eines Formats aus MM/YYYY, MM/YY, M/YY, M/YYYY, YYYY in DD.MM.YYYY
          * Ein korrektes Datum soll so bleiben.
          */
-        String MM = "";
-        String YYYY = "";
+        String MM;
+        String YYYY;
         int slash = MM_YY.indexOf('/');
         switch (slash) {
             case 1 -> {
@@ -68,7 +68,7 @@ public class Utilities {
 
     public static String convertDate(String MM_YY) {
         /* Konvertierung eines Formats aus MM/YYYY, MM/YY, M/YY, M/YYYY in YYYY/MM */
-        String YYYY_MM = "";
+        String YYYY_MM;
         String MM = "";
         String YYYY = "";
         int slash = MM_YY.indexOf('/');
