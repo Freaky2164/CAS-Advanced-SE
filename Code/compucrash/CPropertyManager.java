@@ -34,9 +34,10 @@ public class CPropertyManager {
 // Load properties from file		
         try (FileInputStream inFile = new FileInputStream(iniFile)) {
             properties.load(inFile);
-            if (properties.get("debug") != null && properties.get("debug").toString().equalsIgnoreCase("true")) {
-                /*hier soll debuggt werden*/
-            }
+            if (properties.get("debug") != null) {
+                String debug1 = properties.get("debug").toString();
+                LOGGER.log(Level.FINE, "Debugging is {0}", debug1);
+            }/*hier soll debuggt werden*/
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             System.exit(0);

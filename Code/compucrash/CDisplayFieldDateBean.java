@@ -68,7 +68,7 @@ public class CDisplayFieldDateBean extends CDisplayFieldBean {
     }
 
     public void setValue(Object o) {
-        LocalDate dt = null;
+        LocalDate dt;
         switch (o) {
             case null -> {
                 text.setText(null);

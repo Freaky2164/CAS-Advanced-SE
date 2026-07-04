@@ -74,7 +74,7 @@ public class CDisplayFieldCharFrameBean extends CDisplayFieldBean implements CSe
 
     protected void bSource(ActionEvent e) {
         Component o = this;
-        if (selectDialog instanceof CSelectDialogFrame) {
+        if (selectDialog != null) {
             selectDialog.setVisible(true);
             selectDialog.toFront();
             return;

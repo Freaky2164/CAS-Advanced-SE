@@ -89,7 +89,7 @@ public class CDisplayFieldCharBean extends CDisplayFieldBean implements CSelectP
         Component o = this;
         int offsetX = text.getX();
         int offsetY = text.getY();
-        if (selectDialog instanceof CSelectDialog) {
+        if (selectDialog != null) {
             selectDialog.setVisible(true);
             selectDialog.toFront();
             return;

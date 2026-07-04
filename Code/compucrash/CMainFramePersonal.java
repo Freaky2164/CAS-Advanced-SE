@@ -36,7 +36,7 @@ public class CMainFramePersonal extends CFrame {
         p1.setBackground(Color.WHITE);
         p1.setLayout(new BorderLayout());
         getContentPane().add(p1, BorderLayout.NORTH);
-        JLabel titleLabel = new JLabel("Biopharm GmbH Personaldatenbank", new ImageIcon("../images/biopharm.gif"), 0);
+        JLabel titleLabel = new JLabel("Biopharm GmbH Personaldatenbank", new ImageIcon("../images/biopharm.gif"), SwingConstants.CENTER);
         p1.add(titleLabel, BorderLayout.NORTH);
         CTabbedPane tabbedPane = new CTabbedPane();
         getMainPane().setLayout(new BorderLayout());

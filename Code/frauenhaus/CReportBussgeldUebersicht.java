@@ -107,36 +107,39 @@ public class CReportBussgeldUebersicht extends CCommand implements CReport {
     private void compute(String verein) throws SQLException {
         HSSFCell cell;
         StringBuilder sqlString = new StringBuilder().append("SELECT g.bezeichnung, (SELECT coalesce(sum(b.betrag),0) ").append("FROM frauenhaus.bussgeld b ").append("WHERE b.gericht = g.gericht ").append("AND b.datum >= '").append(dateFrom).append("' ").append("AND b.datum <= '").append(dateTo).append("' ").append("AND b.verein = '").append(verein).append("') bussgeldbetrag, ").append("(SELECT ISNULL(sum(e.betrag),0) ").append("FROM frauenhaus.eingang e, frauenhaus.bussgeld b2 ").append("WHERE b2.bussgeld = e.bussgeld ").append("AND b2.gericht = g.gericht ").append("AND e.datum >= '").append(dateFrom).append("' ").append("AND e.datum <= '").append(dateTo).append("' ").append("AND b2.verein = '").append(verein).append("') einzahlbetrag ").append("FROM frauenhaus.gericht g ").append("ORDER BY g.bezeichnung ");
-        ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(String.valueOf(sqlString));
+        double bussgeld;
+        double eingang;
+        try (ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(String.valueOf(sqlString))) {
 
-        row = sheet.createRow(line++);
-        row.setHeight(rowHeight);
-        cell = row.createCell((short) 0);
-        cell.setCellValue(verein);
-        cell.setCellStyle(style1);
-        cell = row.createCell((short) 1);
-        cell.setCellValue("Bußgelder");
-        cell.setCellStyle(style1);
-        cell = row.createCell((short) 2);
-        cell.setCellValue("Eingänge");
-        cell.setCellStyle(style1);
-
-        double bussgeld = 0;
-        double eingang = 0;
-        while (rset.next()) {
             row = sheet.createRow(line++);
             row.setHeight(rowHeight);
             cell = row.createCell((short) 0);
-            cell.setCellValue(rset.getString(1));
-            cell.setCellStyle(style2);
+            cell.setCellValue(verein);
+            cell.setCellStyle(style1);
             cell = row.createCell((short) 1);
-            cell.setCellValue(rset.getDouble(2));
-            bussgeld += rset.getDouble(2);
-            cell.setCellStyle(style2);
+            cell.setCellValue("Bußgelder");
+            cell.setCellStyle(style1);
             cell = row.createCell((short) 2);
-            cell.setCellValue(rset.getDouble(3));
-            eingang += rset.getDouble(3);
-            cell.setCellStyle(style2);
+            cell.setCellValue("Eingänge");
+            cell.setCellStyle(style1);
+
+            bussgeld = 0;
+            eingang = 0;
+            while (rset.next()) {
+                row = sheet.createRow(line++);
+                row.setHeight(rowHeight);
+                cell = row.createCell((short) 0);
+                cell.setCellValue(rset.getString(1));
+                cell.setCellStyle(style2);
+                cell = row.createCell((short) 1);
+                cell.setCellValue(rset.getDouble(2));
+                bussgeld += rset.getDouble(2);
+                cell.setCellStyle(style2);
+                cell = row.createCell((short) 2);
+                cell.setCellValue(rset.getDouble(3));
+                eingang += rset.getDouble(3);
+                cell.setCellStyle(style2);
+            }
         }
         row = sheet.createRow(line++);
         row.setHeight(rowHeight);

@@ -84,7 +84,7 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         try {
             byte[] b = new byte[stream.available()];
             int k = stream.read(b);
-            String acrobatPath = null;
+            String acrobatPath;
             if (k >= 0) {
                 File fout = new File("out.pdf");
 
@@ -113,10 +113,10 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
             LOGGER.log(Level.WARNING, "Print process interrupted", e);
         }
         boolean deleted;
-        deleted = new File("out.pdf").delete();
-        if (deleted) {
+        if (new File("out.pdf").delete()) deleted = true;
+        else deleted = false;
+        if (!deleted) {
             /*Shouldn't do anything if the deletion worked*/
-        } else {
             LOGGER.log(Level.WARNING, "Failed to delete temporary PDF file");
         }
     }

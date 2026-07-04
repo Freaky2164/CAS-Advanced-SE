@@ -9,7 +9,7 @@ public class CDisplayField extends JPanel implements CInfoParent {
     private final CProperties p;
     private final CDisplayFieldBean display;
     private final CInfoFrame frame;
-    protected String name = null;
+    protected String name;
 
 
     public CDisplayField(CProperties p, CInfoFrame frame) {

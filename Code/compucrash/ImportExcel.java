@@ -25,7 +25,7 @@ public class ImportExcel {
     public ImportExcel() {
         // open file
         POIFSFileSystem fs;
-        String s = "";
+        String s;
         String[] rowData = new String[21];
         try {
             Properties p = CPropertyManager.getInstance().getProperties();

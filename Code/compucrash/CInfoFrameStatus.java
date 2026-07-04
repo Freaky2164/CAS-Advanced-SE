@@ -20,12 +20,12 @@ public abstract class CInfoFrameStatus {
         // die attribute dataObj, original und actual sollten evtl in den Status
         for (int i = 0; i < owner.getcFields().size(); i++) {
             Object o = null;
-            if (actual.get(i + 1) == null) {
-                /*wenn dieser Fall eintritt, soll nichts passieren*/
-            } else if (actual.get(i + 1).getClass() == CNull.class) {
-                /*hier ebenso*/
-            } else {
-                o = actual.get(i + 1);
+            if (actual.get(i + 1) != null) {
+                if (actual.get(i + 1).getClass() != CNull.class) {
+                    o = actual.get(i + 1);
+                } else {
+                    LOGGER.log(Level.FINE, "No change for attribute {0}", owner.getcFields().get(i).getName());
+                }
             }
             owner.getcFields().get(i).setValue(o);
         }
