@@ -1,0 +1,47 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primaer);
+  color: white;
+}
+
+.brand {
+  font-weight: 700;
+}
+
+.topbar nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.topbar a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.topbar a:hover {
+  color: white;
+}
+
+.topbar a.aktiv {
+  color: white;
+  border-bottom-color: white;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.benutzer {
+  opacity: 0.85;
+}
+
+main {
+  padding: 1.5rem;
+  max-width: 70rem;
+  margin: 0 auto;
+}

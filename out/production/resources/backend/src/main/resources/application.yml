@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: frauenhaus-backend
+
+  datasource:
+    # Zugangsdaten NUR über Umgebungsvariablen – nie einchecken (Altsystem hatte Klartext-Passwörter in .ini!)
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:frauenhaus}?sslmode=${DB_SSLMODE:prefer}
+    username: ${DB_USER:frauenhaus_app}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Schema kommt ausschließlich von Flyway
+    open-in-view: false
+
+  flyway:
+    schemas: app, frauenhaus
+    default-schema: app
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, flyway
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+app:
+  security:
+    # Passwort für den initialen Admin beim allerersten Start (danach ignoriert).
+    # Ohne Angabe wird ein Zufallspasswort generiert und einmalig geloggt.
+    initial-admin-password: ${APP_ADMIN_PASSWORD:}

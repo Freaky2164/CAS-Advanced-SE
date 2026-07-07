@@ -1,0 +1,7 @@
+# Lokale Entwicklung: DB-Port auf den Host mappen, damit `./mvnw spring-boot:run`
+# und das Angular-Frontend gegen die Container-DB laufen können.
+# Wird von `docker compose` automatisch geladen; in Produktion diese Datei weglassen.
+services:
+  db:
+    ports:
+      - "5432:5432"
