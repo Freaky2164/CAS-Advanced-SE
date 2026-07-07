@@ -1,0 +1,34 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "db",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": [
+        "compose",
+        "-f", "backend/docker-compose.yml",
+        "-f", "backend/docker-compose.override.yml",
+        "up", "db"
+      ],
+      "port": 5432
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "DB_PASSWORD=frauenhaus",
+        "APP_ADMIN_PASSWORD=admin",
+        "backend/mvnw",
+        "-f", "backend/pom.xml",
+        "spring-boot:run"
+      ],
+      "port": 8080
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start", "--prefix", "frontend"],
+      "port": 4200
+    }
+  ]
+}

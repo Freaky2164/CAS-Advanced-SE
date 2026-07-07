@@ -1,0 +1,35 @@
+<h1>Stichworte</h1>
+
+<section class="card">
+  <h2>Stichworte zusammenführen</h2>
+  <p class="hinweis">
+    Ordnet alle Mitglieder der alten Stichworte einem neuen Stichwort zu.
+    <strong>Zusammenstellen</strong> behält die alten Stichworte,
+    <strong>Zusammenfassen</strong> löscht sie anschließend.
+  </p>
+
+  <div class="feld">
+    <label for="neu">Neues Stichwort</label>
+    <input id="neu" name="neu" [(ngModel)]="neu" placeholder="z. B. Newsletter 2026" />
+  </div>
+  <div class="feld">
+    <label for="alte">Alte Stichworte (kommagetrennt)</label>
+    <input id="alte" name="alte" [(ngModel)]="alte" placeholder="Stichwort1, Stichwort2" />
+  </div>
+
+  <div class="aktionen">
+    <button (click)="zusammenstellen()" [disabled]="laedt || !neu.trim() || alteListe().length === 0">
+      Zusammenstellen
+    </button>
+    <button class="gefahr" (click)="zusammenfassen()" [disabled]="laedt || !neu.trim() || alteListe().length === 0">
+      Zusammenfassen (löscht alte)
+    </button>
+  </div>
+
+  @if (meldung) {
+    <p class="erfolg">{{ meldung }}</p>
+  }
+  @if (fehler) {
+    <p class="fehler">{{ fehler }}</p>
+  }
+</section>

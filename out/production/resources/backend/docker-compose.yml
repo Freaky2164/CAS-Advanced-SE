@@ -1,0 +1,45 @@
+# Entwicklungs- und Produktionsnahe Umgebung: PostgreSQL 16 + pgBackRest-Sidecar + Backend.
+# Start:  DB_PASSWORD=... APP_ADMIN_PASSWORD=... docker compose up -d
+services:
+
+  db:
+    image: postgres:16
+    environment: { POSTGRES_DB: frauenhaus, POSTGRES_USER: frauenhaus_app, POSTGRES_PASSWORD: 'frauenhaus', POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256" }
+    command: >
+      postgres
+        -c archive_mode=on
+        -c archive_command='pgbackrest --stanza=frauenhaus archive-push %p'
+        -c wal_level=replica
+        -c log_connections=on
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./ops/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+      - backup:/var/lib/pgbackrest
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frauenhaus_app -d frauenhaus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Kein Port-Mapping nach außen in Produktion – nur das Backend braucht Zugriff.
+    # Für lokale Entwicklung bei Bedarf einkommentieren:
+    # ports:
+    #   - "5432:5432"
+
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: frauenhaus
+      DB_USER: frauenhaus_app
+      DB_PASSWORD: 'frauenhaus'
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
+  backup:

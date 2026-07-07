@@ -1,0 +1,16 @@
+@if (auth.user(); as user) {
+  <header class="topbar">
+    <span class="brand">Frauenhaus-Verwaltung</span>
+    <nav>
+      <a routerLink="/reports" routerLinkActive="aktiv">Reports</a>
+      <a routerLink="/stichworte" routerLinkActive="aktiv">Stichworte</a>
+    </nav>
+    <span class="spacer"></span>
+    <span class="benutzer">{{ user.username }}</span>
+    <button class="sekundaer" (click)="abmelden()">Abmelden</button>
+  </header>
+}
+
+<main>
+  <router-outlet />
+</main>
