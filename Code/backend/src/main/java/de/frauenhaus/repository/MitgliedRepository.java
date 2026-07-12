@@ -32,8 +32,4 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
             WHERE s.name IN :stichworte AND m.email IS NOT NULL
             ORDER BY m.email""")
     List<String> findVerteilerEmails(@Param("stichworte") Collection<String> stichworte);
-
-    /** Empfänger einer Spendenquittung (alt: CCommandSpendenQuittung). */
-    @Query("SELECT DISTINCT s.mitglied FROM Spende s WHERE s.id = :spendeId")
-    List<Mitglied> findBySpende(@Param("spendeId") Long spendeId);
 }

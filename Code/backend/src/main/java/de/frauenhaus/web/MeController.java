@@ -15,11 +15,11 @@ import java.util.Map;
  * Liefert den aktuell angemeldeten Benutzer.
  */
 @RestController
-@RequestMapping("/api/me")
+@RequestMapping("/api")
 public class MeController {
 
     /** Benutzername und Rollen des angemeldeten Benutzers. */
-    @GetMapping
+    @GetMapping("/me")
     public Map<String, Object> me(Authentication auth) {
         List<String> rollen = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)

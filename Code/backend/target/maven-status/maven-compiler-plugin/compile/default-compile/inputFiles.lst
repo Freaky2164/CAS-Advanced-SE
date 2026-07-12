@@ -20,6 +20,8 @@
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/security/DbUserDetailsService.java
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/BetragInWorten.java
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/BussgeldReportService.java
+/Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/DocumentCreationHelpers.java
+/Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/DocumentCreationService.java
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/ExcelUtil.java
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/SpendenService.java
 /Users/nils/IdeaProjects/CAS-Advanced-SE/Code/backend/src/main/java/de/frauenhaus/service/StichwortService.java

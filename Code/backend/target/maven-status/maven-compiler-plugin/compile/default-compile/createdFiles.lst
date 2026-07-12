@@ -19,6 +19,7 @@ de/frauenhaus/domain/Stichwort.class
 de/frauenhaus/repository/BussgeldRepository.class
 de/frauenhaus/repository/SpendenartRepository.class
 de/frauenhaus/service/ExcelUtil.class
+de/frauenhaus/service/DocumentCreationService.class
 de/frauenhaus/service/SpendenService.class
 de/frauenhaus/FrauenhausApplication.class
 de/frauenhaus/web/ReportController.class
@@ -27,6 +28,7 @@ de/frauenhaus/repository/GerichtRepository.class
 de/frauenhaus/repository/MitgliedRepository.class
 de/frauenhaus/service/BussgeldReportService.class
 de/frauenhaus/domain/Bussgeld.class
+de/frauenhaus/service/DocumentCreationHelpers.class
 de/frauenhaus/domain/Verein.class
 de/frauenhaus/repository/SpendeRepository.class
 de/frauenhaus/repository/StichwortRepository.class

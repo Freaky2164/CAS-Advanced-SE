@@ -33,4 +33,12 @@ class BetragInWortenTest {
     void null_euro() {
         assertEquals("*null Euro*", BetragInWorten.von(BigDecimal.ZERO));
     }
+
+    @Test
+    void ohneWaehrungFuerVorlagenMitEuroImText() {
+        assertEquals("*fünfzig*", BetragInWorten.ohneWaehrung(new BigDecimal("50.00")));
+        assertEquals("*fünfzig Komma null fünf*", BetragInWorten.ohneWaehrung(new BigDecimal("50.05")));
+        assertEquals("*fünf Komma elf*", BetragInWorten.ohneWaehrung(new BigDecimal("5.11")));
+        assertEquals("*null*", BetragInWorten.ohneWaehrung(BigDecimal.ZERO));
+    }
 }

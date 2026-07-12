@@ -1,6 +1,7 @@
 package de.frauenhaus.web;
 
 import de.frauenhaus.service.BussgeldReportService;
+import de.frauenhaus.service.DocumentCreationService;
 import de.frauenhaus.service.SpendenService;
 import de.frauenhaus.service.VerteilerService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,26 +16,30 @@ import java.util.List;
 /**
  * @author Nils
  *
- * REST-Endpunkte für die Report-Generierung (Bußgeld-, Spenden- und
- * Verteiler-Reports als xlsx/docx-Download).
+ * REST-Endpunkte für die Report-Generierung: Übersichten als xlsx,
+ * Bußgeldbestätigungen und Spendenbescheinigungen als Word-Dokumente
+ * aus den Vorlagen in vorlagen/.
  */
 @RestController
 @RequestMapping("/api/reports")
 public class ReportController {
 
     private static final String XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    private static final String DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    private static final String DOC = "application/msword";
 
     private final BussgeldReportService bussgeldReports;
     private final SpendenService spendenService;
     private final VerteilerService verteilerService;
+    private final DocumentCreationService documentCreationService;
 
     public ReportController(BussgeldReportService bussgeldReports,
                             SpendenService spendenService,
-                            VerteilerService verteilerService) {
+                            VerteilerService verteilerService,
+                            DocumentCreationService documentCreationService) {
         this.bussgeldReports = bussgeldReports;
         this.spendenService = spendenService;
         this.verteilerService = verteilerService;
+        this.documentCreationService = documentCreationService;
     }
 
     /** Liefert die Bußgeld-Übersicht (Summen je Gericht und Träger) im gegebenen Zeitraum als xlsx. */
@@ -54,10 +59,11 @@ public class ReportController {
         return download(bussgeldReports.detail(von, bis, verein), "bussgeld-detail.xlsx", XLSX);
     }
 
-    /** Liefert die Zahlungsbestätigung an das Gericht für ein Bußgeld als docx. */
+    /** Liefert die Zahlungsbestätigung an das Gericht (Vorlage FHBG.dot/FVBG.dot) als Word-Dokument. */
     @GetMapping("/bussgeld-bestaetigung/{bussgeldId}")
     public ResponseEntity<byte[]> bussgeldBestaetigung(@PathVariable Long bussgeldId) {
-        return download(bussgeldReports.bestaetigung(bussgeldId), "bestaetigung-" + bussgeldId + ".docx", DOCX);
+        return download(documentCreationService.bussgeldBestaetigung(bussgeldId),
+                "bestaetigung-" + bussgeldId + ".doc", DOC);
     }
 
     /** Liefert alle Spenden eines Jahres, gruppiert nach Träger/Spendentyp/-art, als xlsx. */
@@ -66,10 +72,11 @@ public class ReportController {
         return download(spendenService.uebersicht(jahr), "spenden-uebersicht-" + jahr + ".xlsx", XLSX);
     }
 
-    /** Liefert die Quittungsdaten zu einer Spende (inkl. Betrag in Worten) als xlsx. */
+    /** Liefert die Spendenbescheinigung (Vorlagen FHSB*.dot/FVSB*.dot je Träger und Spendentyp) als Word-Dokument. */
     @GetMapping("/spendenquittung/{spendeId}")
     public ResponseEntity<byte[]> spendenquittung(@PathVariable Long spendeId) {
-        return download(spendenService.quittung(spendeId), "spendenquittung-" + spendeId + ".xlsx", XLSX);
+        return download(documentCreationService.spendenBescheinigung(spendeId),
+                "spendenbescheinigung-" + spendeId + ".doc", DOC);
     }
 
     /** Liefert die E-Mail-Adressen aller Mitglieder mit den gegebenen Verteiler-Stichworten. */
