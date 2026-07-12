@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
 
 /**
  * @author Nils
@@ -12,6 +14,8 @@ import jakarta.persistence.Table;
  */
 @Entity
 @Table(name = "verein", schema = "frauenhaus")
+@Audited
+@AuditTable(value = "verein_aud", schema = "frauenhaus")
 public class Verein {
 
     @Id
@@ -23,6 +27,12 @@ public class Verein {
     /** Für JPA. */
     protected Verein() { }
 
+    public Verein(String name, String bezeichnung) {
+        this.name = name;
+        this.bezeichnung = bezeichnung;
+    }
+
     public String getName() { return name; }
     public String getBezeichnung() { return bezeichnung; }
+    public void setBezeichnung(String bezeichnung) { this.bezeichnung = bezeichnung; }
 }

@@ -1,6 +1,10 @@
 package de.frauenhaus.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +19,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "bussgeld", schema = "frauenhaus")
+@Audited
+@AuditTable(value = "bussgeld_aud", schema = "frauenhaus")
 public class Bussgeld {
 
     @Id
@@ -51,6 +57,7 @@ public class Bussgeld {
 
     private String bemerkung;
 
+    @NotAudited
     @OneToMany(mappedBy = "bussgeld", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Eingang> eingaenge = new ArrayList<>();
 

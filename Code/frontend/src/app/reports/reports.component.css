@@ -16,3 +16,26 @@
   max-height: 12rem;
   overflow-y: auto;
 }
+
+.verteiler-versand {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rand);
+}
+
+textarea {
+  width: 100%;
+  min-height: 10rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  font: inherit;
+  background: white;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: 2px solid var(--primaer-hell);
+  outline-offset: 0;
+  border-color: var(--primaer-hell);
+}

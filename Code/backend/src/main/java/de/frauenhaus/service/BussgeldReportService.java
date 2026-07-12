@@ -6,10 +6,12 @@ import de.frauenhaus.repository.BussgeldRepository;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -17,9 +19,8 @@ import java.util.List;
 /**
  * @author Nils
  *
- * Bußgeld-Reports (Übersicht und Detail als xlsx), portiert aus
- * CReportBussgeldUebersicht und CReportBussgeldDetail. Die Zahlungsbestätigung
- * an das Gericht erzeugt {@link DocumentCreationService} aus den Word-Vorlagen.
+ * Bußgeld-Reports, portiert aus CReportBussgeldUebersicht, CReportBussgeldDetail
+ * und CCommandBestaetigungBussgeld (Word-COM → docx via POI).
  */
 @Service
 @Transactional(readOnly = true)
@@ -29,9 +30,11 @@ public class BussgeldReportService {
     private static final List<String> VEREINE = List.of("Förderverein", "Frauenhaus");
 
     private final BussgeldRepository bussgelder;
+    private final WordTemplateService wordTemplate;
 
-    public BussgeldReportService(BussgeldRepository bussgelder) {
+    public BussgeldReportService(BussgeldRepository bussgelder, WordTemplateService wordTemplate) {
         this.bussgelder = bussgelder;
+        this.wordTemplate = wordTemplate;
     }
 
     /** Übersicht: je Träger die Summen pro Gericht (Bußgelder vs. Zahlungseingänge). */
@@ -61,9 +64,8 @@ public class BussgeldReportService {
         Workbook wb = ExcelUtil.neuesWorkbook("Bußgelder Detail");
         Sheet sheet = wb.getSheetAt(0);
         int line = 0;
-        // Bußgeld-Nr ist die ID für die Dokumenterstellung (/api/reports/bussgeld-bestaetigung/{id})
         ExcelUtil.headerZeile(sheet, ExcelUtil.headerStyle(wb), line++,
-                "Bußgeld-Nr", "Datum", "Gericht", "Aktenzeichen", "Name", "Bußgeld", "Offen", "Eingang am", "Eingang");
+                "Datum", "Gericht", "Aktenzeichen", "Name", "Bußgeld", "Offen", "Eingang am", "Eingang");
 
         for (Bussgeld b : bussgelder.findMitEingaengen(von, bis, verein)) {
             BigDecimal gezahlt = b.getEingaenge().stream()
@@ -73,7 +75,6 @@ public class BussgeldReportService {
             String aktenzeichen = b.getAktenzeichen() == null ? "unbekannt" : b.getAktenzeichen();
             for (Eingang e : b.getEingaenge()) {
                 ExcelUtil.zeile(sheet, line++, java.util.Arrays.asList(
-                        b.getId(),
                         DATUM.format(b.getDatum()),
                         b.getGericht().getBezeichnung(),
                         aktenzeichen,
@@ -85,5 +86,31 @@ public class BussgeldReportService {
             }
         }
         return ExcelUtil.toBytes(wb);
+    }
+
+    /** Zahlungsbestätigung an das Gericht als docx (alt: FHBG.dot + Word-COM). */
+    public byte[] bestaetigung(Long bussgeldId) {
+        Bussgeld b = bussgelder.findById(bussgeldId)
+                .orElseThrow(() -> new IllegalArgumentException("Bußgeld " + bussgeldId + " nicht gefunden"));
+
+        XWPFDocument doc = wordTemplate.neuesDokument();
+        wordTemplate.adresse(doc, b.getGericht().getBezeichnung(), b.getGericht().getStrasse(),
+                b.getGericht().getPlz() + " " + b.getGericht().getOrt());
+        wordTemplate.leerzeile(doc);
+        wordTemplate.ortUndDatum(doc, "Mannheim");
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Aktenzeichen: " + (b.getAktenzeichen() == null ? "unbekannt" : b.getAktenzeichen()));
+        wordTemplate.absatz(doc, "Bußgeld: " + b.getName() + ", " + b.getVorname()
+                + " über " + b.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR vom " + DATUM.format(b.getDatum()));
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Sehr geehrte Damen und Herren,");
+        wordTemplate.absatz(doc, "hiermit bestätigen wir die folgenden Zahlungseingänge:");
+        for (Eingang e : b.getEingaenge()) {
+            wordTemplate.absatz(doc, DATUM.format(e.getDatum()) + "  " + e.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR");
+        }
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Mit freundlichen Grüßen");
+
+        return wordTemplate.toBytes(doc);
     }
 }

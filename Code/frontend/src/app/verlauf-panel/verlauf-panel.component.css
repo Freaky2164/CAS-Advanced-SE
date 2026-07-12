@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  margin: 1rem 0;
+}
+
+.verlauf-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.verlauf-eintrag {
+  border: 1px solid var(--rand);
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  background: var(--hintergrund);
+}
+
+.verlauf-kopf {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.verlauf-zeit,
+.verlauf-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.verlauf-typ {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #ece7ea;
+}
+
+.verlauf-typ[data-typ='INSERT'] {
+  color: var(--erfolg);
+}
+
+.verlauf-typ[data-typ='UPDATE'] {
+  color: var(--primaer);
+}
+
+.verlauf-typ[data-typ='DELETE'] {
+  color: var(--fehler);
+}
+
+.verlauf-aenderungen {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.verlauf-aenderungen li + li {
+  margin-top: 0.2rem;
+}

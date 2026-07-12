@@ -1,7 +1,11 @@
 # Lokale Entwicklung: DB-Port auf den Host mappen, damit `./mvnw spring-boot:run`
-# und das Angular-Frontend gegen die Container-DB laufen können.
+# und das Angular-Frontend gegen die Container-DB laufen können. Zusätzlich Profil "dev"
+# aktivieren, damit realistische Testdaten eingespielt werden (siehe application-dev.yml).
 # Wird von `docker compose` automatisch geladen; in Produktion diese Datei weglassen.
 services:
   db:
     ports:
       - "5432:5432"
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
