@@ -86,3 +86,8 @@ Projektarbeit dienen als Grundlage für die anzufertigende Seminararbeit.
   Metriken für dieses spezielle Projekt erstellen und anwenden.
 - **Werkzeuge:** Es darf zur Erhebung **ausschließlich Open Source-Software**
   verwendet werden.
+
+### Gruppte 7: Testen
+
+- **Konzept:** Erstellen eines neues Testkonzepts für die Software.
+- **Umsetzung:** Integration und Ausführung von geeigneten Tests sowie Dokumentation der Ergebnisse.
