@@ -7,17 +7,12 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -35,9 +30,11 @@ public class BussgeldReportService {
     private static final List<String> VEREINE = List.of("Förderverein", "Frauenhaus");
 
     private final BussgeldRepository bussgelder;
+    private final WordTemplateService wordTemplate;
 
-    public BussgeldReportService(BussgeldRepository bussgelder) {
+    public BussgeldReportService(BussgeldRepository bussgelder, WordTemplateService wordTemplate) {
         this.bussgelder = bussgelder;
+        this.wordTemplate = wordTemplate;
     }
 
     /** Übersicht: je Träger die Summen pro Gericht (Bußgelder vs. Zahlungseingänge). */
@@ -96,37 +93,24 @@ public class BussgeldReportService {
         Bussgeld b = bussgelder.findById(bussgeldId)
                 .orElseThrow(() -> new IllegalArgumentException("Bußgeld " + bussgeldId + " nicht gefunden"));
 
-        try (XWPFDocument doc = new XWPFDocument();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-
-            absatz(doc, b.getGericht().getBezeichnung());
-            absatz(doc, b.getGericht().getStrasse());
-            absatz(doc, b.getGericht().getPlz() + " " + b.getGericht().getOrt());
-            absatz(doc, "");
-            absatz(doc, "Mannheim, " + DATUM.format(LocalDate.now(ZoneId.systemDefault())));
-            absatz(doc, "");
-            absatz(doc, "Aktenzeichen: " + (b.getAktenzeichen() == null ? "unbekannt" : b.getAktenzeichen()));
-            absatz(doc, "Bußgeld: " + b.getName() + ", " + b.getVorname()
-                    + " über " + b.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR vom " + DATUM.format(b.getDatum()));
-            absatz(doc, "");
-            absatz(doc, "Sehr geehrte Damen und Herren,");
-            absatz(doc, "hiermit bestätigen wir die folgenden Zahlungseingänge:");
-            for (Eingang e : b.getEingaenge()) {
-                absatz(doc, DATUM.format(e.getDatum()) + "  " + e.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR");
-            }
-            absatz(doc, "");
-            absatz(doc, "Mit freundlichen Grüßen");
-
-            doc.write(out);
-            return out.toByteArray();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Bestätigung konnte nicht erzeugt werden", e);
+        XWPFDocument doc = wordTemplate.neuesDokument();
+        wordTemplate.adresse(doc, b.getGericht().getBezeichnung(), b.getGericht().getStrasse(),
+                b.getGericht().getPlz() + " " + b.getGericht().getOrt());
+        wordTemplate.leerzeile(doc);
+        wordTemplate.ortUndDatum(doc, "Mannheim");
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Aktenzeichen: " + (b.getAktenzeichen() == null ? "unbekannt" : b.getAktenzeichen()));
+        wordTemplate.absatz(doc, "Bußgeld: " + b.getName() + ", " + b.getVorname()
+                + " über " + b.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR vom " + DATUM.format(b.getDatum()));
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Sehr geehrte Damen und Herren,");
+        wordTemplate.absatz(doc, "hiermit bestätigen wir die folgenden Zahlungseingänge:");
+        for (Eingang e : b.getEingaenge()) {
+            wordTemplate.absatz(doc, DATUM.format(e.getDatum()) + "  " + e.getBetrag().setScale(2, RoundingMode.HALF_UP) + " EUR");
         }
-    }
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, "Mit freundlichen Grüßen");
 
-    /** Fügt dem Word-Dokument einen einfachen Textabsatz hinzu. */
-    private static void absatz(XWPFDocument doc, String text) {
-        XWPFParagraph p = doc.createParagraph();
-        p.createRun().setText(text == null ? "" : text);
+        return wordTemplate.toBytes(doc);
     }
 }

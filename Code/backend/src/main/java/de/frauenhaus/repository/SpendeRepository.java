@@ -1,6 +1,8 @@
 package de.frauenhaus.repository;
 
 import de.frauenhaus.domain.Spende;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +16,35 @@ import java.util.List;
  * und für die Summenbildung bei Dauerspenden-Quittungen.
  */
 public interface SpendeRepository extends JpaRepository<Spende, Long> {
+
+    /** Generische Suche über die wichtigsten Textfelder der Spendenliste. */
+    @Query(value = """
+            SELECT s FROM Spende s
+            JOIN s.mitglied m
+            JOIN s.spendenart sa
+            JOIN s.verein v
+            WHERE LOWER(COALESCE(m.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(m.vorname, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(sa.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(sa.spendentyp, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(v.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(v.bezeichnung, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+               OR LOWER(COALESCE(s.bemerkung, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+            """,
+            countQuery = """
+                    SELECT COUNT(s) FROM Spende s
+                    JOIN s.mitglied m
+                    JOIN s.spendenart sa
+                    JOIN s.verein v
+                    WHERE LOWER(COALESCE(m.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(m.vorname, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(sa.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(sa.spendentyp, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(v.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(v.bezeichnung, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                       OR LOWER(COALESCE(s.bemerkung, '')) LIKE LOWER(CONCAT('%', :suche, '%'))
+                    """)
+    Page<Spende> suchen(@Param("suche") String suche, Pageable pageable);
 
     /** Spendenübersicht eines Jahres (alt: CReportSpendenUebersicht). */
     @Query("""

@@ -1,6 +1,13 @@
 package de.frauenhaus.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
 
 /**
  * @author Nils
@@ -9,6 +16,8 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "gericht", schema = "frauenhaus")
+@Audited
+@AuditTable(value = "gericht_aud", schema = "frauenhaus")
 public class Gericht {
 
     @Id

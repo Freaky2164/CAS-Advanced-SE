@@ -40,6 +40,16 @@
   opacity: 0.85;
 }
 
+.topbar button.sekundaer {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+}
+
+.topbar button.sekundaer:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 main {
   padding: 1.5rem;
   max-width: 70rem;

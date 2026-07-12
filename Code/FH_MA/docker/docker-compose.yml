@@ -1,0 +1,111 @@
+# docker-compose.yml
+# Frauenhaus Adress- und Bußgeldverwaltung
+# ==========================================
+#
+# Quickstart:
+#   1. Passwort setzen:  echo "MeinSicheresPasswort123!" > secrets/db_password.txt
+#   2. Starten:          docker compose up -d
+#   3. Browser öffnen:   https://localhost
+#
+# Befehle:
+#   Starten:   docker compose up -d
+#   Stoppen:   docker compose down
+#   Status:    docker compose ps
+#   Logs:      docker compose logs -f
+#   Update:    docker compose pull && docker compose up -d
+
+services:
+
+  # ===== WEB-ANWENDUNG =====
+  app:
+    image: frauenhaus/verwaltung:latest
+    container_name: frauenhaus-app
+    restart: always
+    ports:
+      - "443:8443"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://db:1433;databaseName=frauenhaus;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_FLYWAY_ENABLED: "true"
+    env_file:
+      - .env
+    volumes:
+      - templates:/app/vorlagen
+      - reports:/app/reports
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ===== DATENBANK =====
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: frauenhaus-db
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Express
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:1433:1433"
+    volumes:
+      - db-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -C -b
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ===== AUTOMATISCHES BACKUP =====
+  backup:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: frauenhaus-backup
+    restart: always
+    entrypoint: /bin/bash
+    command: >
+      -c "
+      echo '[BACKUP] Backup-Service gestartet.'
+      while true; do
+        TIMESTAMP=$$(date +%Y%m%d_%H%M%S)
+        echo \"[BACKUP] $$TIMESTAMP: Starte Backup...\"
+        /opt/mssql-tools18/bin/sqlcmd -S db -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"
+          BACKUP DATABASE [frauenhaus]
+          TO DISK = N'/backups/frauenhaus_$$TIMESTAMP.bak'
+          WITH COMPRESSION, CHECKSUM, STATS = 10
+        \" 2>&1
+        if [ $$? -eq 0 ]; then
+          echo \"[BACKUP] $$TIMESTAMP: Backup ERFOLGREICH.\"
+        else
+          echo \"[BACKUP] $$TIMESTAMP: Backup FEHLGESCHLAGEN!\"
+        fi
+        echo '[CLEANUP] Loesche Backups aelter als 30 Tage...'
+        find /backups -name '*.bak' -mtime +30 -delete 2>/dev/null
+        echo '[BACKUP] Naechstes Backup in 24 Stunden.'
+        sleep 86400
+      done
+      "
+    env_file:
+      - .env
+    volumes:
+      - backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+    name: frauenhaus-db-data
+  backups:
+    name: frauenhaus-backups
+  templates:
+    name: frauenhaus-templates
+  reports:
+    name: frauenhaus-reports

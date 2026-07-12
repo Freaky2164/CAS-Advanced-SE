@@ -6,15 +6,23 @@ Spring Boot 3 / Java 17 / PostgreSQL 16. Neubau der alten Compucrash-Swing-Anwen
 ## Start (lokal)
 
     docker compose up -d db
-    DB_PASSWORD=frauenhaus APP_ADMIN_PASSWORD=<initiales Admin-Passwort> ./mvnw spring-boot:run
+    DB_PASSWORD=frauenhaus APP_ADMIN_PASSWORD=<initiales Admin-Passwort> SPRING_PROFILES_ACTIVE=dev ./mvnw spring-boot:run
 
 Maven muss nicht installiert sein – der Maven Wrapper (`./mvnw`) lädt sich die
 passende Version selbst. `docker-compose.override.yml` mappt den DB-Port 5432
 für die lokale Entwicklung auf den Host (in Produktion weglassen).
 
-Oder komplett in Containern: `docker compose up -d` (siehe docker-compose.yml).
+Oder komplett in Containern: `docker compose up -d` (siehe docker-compose.yml; das
+lokale `docker-compose.override.yml` aktiviert dabei automatisch `SPRING_PROFILES_ACTIVE=dev`).
 Flyway legt das Schema beim ersten Start an; beim allerersten Start wird der
 Benutzer `admin` angelegt (Passwort aus `APP_ADMIN_PASSWORD`, sonst geloggter Zufallswert).
+
+### Testdaten
+
+Mit aktivem Profil `dev` spielt Flyway zusätzlich `db/testdata/V5__testdaten.sql` ein
+(realistische, frei erfundene Mitglieder/Spenden/Bußgelder/Gerichte für Demo & manuelle Tests).
+Ohne `SPRING_PROFILES_ACTIVE=dev` (z. B. in Produktion) bleibt die Datenbank leer bis auf
+die festen Stammwerte aus `V1__baseline_schema.sql` ('Frauenhaus'/'Förderverein').
 
 Das Angular-Frontend liegt in `../frontend` (Start: `npm start`, siehe dortiges README).
 
