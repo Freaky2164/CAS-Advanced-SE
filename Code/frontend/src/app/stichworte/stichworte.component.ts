@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ApiService, fehlertext } from '../api.service';
@@ -22,7 +22,10 @@ export class StichworteComponent {
   fehler = '';
   laedt = false;
 
-  constructor(private readonly api: ApiService) {}
+  constructor(
+    private readonly api: ApiService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   zusammenstellen(): void {
     this.ausfuehren('zusammenstellen');
@@ -54,10 +57,12 @@ export class StichworteComponent {
       next: ergebnis => {
         this.laedt = false;
         this.meldung = `Fertig: ${ergebnis.zugeordnet} Mitglieder dem Stichwort „${this.neu.trim()}“ neu zugeordnet.`;
+        this.cdr.markForCheck();
       },
       error: err => {
         this.laedt = false;
         this.fehler = fehlertext(err);
+        this.cdr.markForCheck();
       },
     });
   }

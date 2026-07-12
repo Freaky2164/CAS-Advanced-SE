@@ -1,0 +1,7 @@
+/* Nutzt die globalen .liste/.formular/.seiten-Stile aus styles.css. */
+
+.formular-aktionen {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

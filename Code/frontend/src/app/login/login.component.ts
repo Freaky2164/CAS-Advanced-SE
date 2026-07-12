@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -52,6 +52,7 @@ export class LoginComponent {
   constructor(
     private readonly auth: AuthService,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   anmelden(): void {
@@ -62,6 +63,7 @@ export class LoginComponent {
       error: err => {
         this.laedt = false;
         this.fehler = err.status === 401 ? 'Benutzername oder Passwort falsch.' : 'Backend nicht erreichbar.';
+        this.cdr.markForCheck();
       },
     });
   }

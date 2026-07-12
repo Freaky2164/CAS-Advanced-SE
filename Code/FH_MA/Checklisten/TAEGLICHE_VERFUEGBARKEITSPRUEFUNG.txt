@@ -1,0 +1,69 @@
+#!/bin/bash
+# Praktische Checklisten als Downloads
+
+# ============================================================
+# TÄGLICH (vor Arbeitsbeginn) - 5 Minuten
+# ============================================================
+
+DAILY_CHECKLIST="
+🔍 TÄGLICHE VERFÜGBARKEITSPRÜFUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Datum: ___________
+Geprüft von: _____________________
+
+☑ SCHRITT 1: Application Response
+  - Öffne https://frauenhaus.local in Browser
+  - Warte max. 10 Sekunden auf Login-Screen
+  Status: ☐ OK  ☐ TIMEOUT  ☐ ERROR
+
+  Falls nicht OK:
+    → Browser-Cache löschen (Ctrl+Shift+Del)
+    → Page Reload (Ctrl+F5)
+    → Warte 2 Minuten
+    → Neuer Versuch
+    Falls dann immer noch nicht OK:
+      → IT-Support: +49 XXXXX
+
+☑ SCHRITT 2: Login Test
+  - Melde dich an mit deinem Benutzernamen
+  - Gebe Passwort ein
+  Status: ☐ OK  ☐ FAILED
+
+  Falls FAILED:
+    → Überprüfe Caps Lock
+    → Passwort vergessen? → Kontaktiere Admin
+    → Immer noch kein Erfolg? → IT-Support
+
+☑ SCHRITT 3: Data Test
+  - Navigiere zu: Mitglieder → [Liste]
+  - Anzahl der Einträge: ________
+  Status: ☐ OK  ☐ ERROR  ☐ SLOW (>5s)
+
+  Falls ERROR oder SLOW:
+    → Browser neu starten
+    → 1 Minute warten
+    → Test wiederholen
+    Falls immer noch Problem:
+      → Admin-Dashboard prüfen oder
+      → IT-Support anrufen
+
+☑ SCHRITT 4: Database Connection
+  - Navigiere zu: Admin → System Health
+  - Database Status: ☐ GREEN  ☐ YELLOW  ☐ RED
+
+  Falls YELLOW oder RED:
+    → Admin informieren (Backup aktiv?)
+    → Wenn > 10 Minuten: IT-Support
+
+ERGEBNIS:
+┌─────────────────────────────────┐
+│ ✓ ALLES OK - Arbeitation möglich │
+│ ✗ PROBLEM - Admin/IT informieren│
+└─────────────────────────────────┘
+
+Unterschrift des Prüfers: ________________
+Zeit: ___________
+"
+
+echo "$DAILY_CHECKLIST"

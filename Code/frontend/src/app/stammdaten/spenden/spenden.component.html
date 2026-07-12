@@ -1,0 +1,97 @@
+@if (fehler) {
+  <p class="fehler">{{ fehler }}</p>
+}
+
+<div class="seiten">
+  <button (click)="neu()">+ Neue Spende</button>
+  <span>{{ totalElements }} Spenden</span>
+</div>
+
+<div class="seiten suchleiste">
+  <div class="feld suchfeld">
+    <label for="spenden-suche">Suche</label>
+    <input id="spenden-suche" [(ngModel)]="suche" (ngModelChange)="sucheGeaendert()" name="spendenSuche" />
+  </div>
+</div>
+
+@if (bearbeitetId !== null) {
+  <section class="card">
+    <h2>{{ bearbeitetId ? 'Spende bearbeiten' : 'Neue Spende' }}</h2>
+    <div class="formular">
+      <div class="feld"><label>Mitglied-ID *</label><input type="number" [(ngModel)]="formular.mitgliedId" name="mitgliedId" required /></div>
+      <div class="feld">
+        <label>Spendenart *</label>
+        <select [(ngModel)]="formular.spendenart" name="spendenart">
+          <option value="" disabled>Bitte wählen</option>
+          @for (sa of spendenarten; track sa.name) {
+            <option [value]="sa.name">{{ sa.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="feld">
+        <label>Verein *</label>
+        <select [(ngModel)]="formular.verein" name="verein">
+          <option value="" disabled>Bitte wählen</option>
+          @for (v of vereine; track v.name) {
+            <option [value]="v.name">{{ v.bezeichnung }}</option>
+          }
+        </select>
+      </div>
+      <div class="feld"><label>Datum *</label><input type="date" [(ngModel)]="formular.datum" name="datum" required /></div>
+      <div class="feld"><label>Betrag (€) *</label><input type="number" step="0.01" min="0" [(ngModel)]="formular.betrag" name="betrag" required /></div>
+      <div class="feld"><label>Bemerkung</label><input [(ngModel)]="formular.bemerkung" name="bemerkung" /></div>
+    </div>
+    <div class="formular-aktionen">
+      <button (click)="speichern()" [disabled]="!formular.spendenart || !formular.verein || !formular.datum || !formular.mitgliedId">
+        Speichern
+      </button>
+      <button class="sekundaer" (click)="abbrechen()">Abbrechen</button>
+    </div>
+  </section>
+}
+
+<table class="liste">
+  <thead>
+    <tr><th>Datum</th><th>Mitglied</th><th>Spendenart</th><th>Verein</th><th>Betrag</th><th class="aktionen">Aktionen</th></tr>
+  </thead>
+  <tbody>
+    @for (s of spenden; track s.id) {
+      <tr>
+        <td>{{ s.datum }}</td>
+        <td>{{ s.mitgliedName }}</td>
+        <td>{{ s.spendenart }}</td>
+        <td>{{ s.verein }}</td>
+        <td>{{ s.betrag | number: '1.2-2' }} €</td>
+        <td class="aktionen">
+          <button (click)="bearbeiten(s)">Bearbeiten</button>
+          <button class="sekundaer" (click)="verlaufAnzeigen(s)">{{ verlaufId === s.id ? 'Verlauf schließen' : 'Verlauf' }}</button>
+          <button class="sekundaer" (click)="dokumenteAnzeigen(s)">{{ dokumenteId === s.id ? 'Dokumente schließen' : 'Dokumente' }}</button>
+          <button class="gefahr" (click)="loeschen(s)">Löschen</button>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+
+@if (verlaufId !== null) {
+  <app-verlauf-panel
+    [titel]="verlaufTitel"
+    [eintraege]="verlaufEintraege"
+    [laedt]="verlaufLaedt"
+    [fehler]="verlaufFehler">
+  </app-verlauf-panel>
+}
+
+@if (dokumenteId !== null) {
+  <app-dokumente-panel
+    [titel]="dokumenteTitel"
+    [entityTyp]="'SPENDE'"
+    [entityId]="dokumenteId">
+  </app-dokumente-panel>
+}
+
+<div class="seiten">
+  <button (click)="laden(seite - 1)" [disabled]="seite <= 0">← Zurück</button>
+  <span>Seite {{ seite + 1 }} von {{ totalPages || 1 }}</span>
+  <button (click)="laden(seite + 1)" [disabled]="seite + 1 >= totalPages">Weiter →</button>
+</div>

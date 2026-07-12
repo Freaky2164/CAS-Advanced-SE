@@ -1,6 +1,10 @@
 package de.frauenhaus.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -12,6 +16,8 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "spende", schema = "frauenhaus")
+@Audited
+@AuditTable(value = "spende_aud", schema = "frauenhaus")
 public class Spende {
 
     @Id
@@ -23,6 +29,7 @@ public class Spende {
     @JoinColumn(name = "mitglied")
     private Mitglied mitglied;
 
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
     @ManyToOne(optional = false)
     @JoinColumn(name = "spendenart")
     private Spendenart spendenart;

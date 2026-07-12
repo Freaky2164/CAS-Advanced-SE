@@ -1,6 +1,10 @@
 package de.frauenhaus.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -12,6 +16,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "mitglied", schema = "frauenhaus")
+@Audited
+@AuditTable(value = "mitglied_aud", schema = "frauenhaus")
 public class Mitglied {
 
     @Id
@@ -44,6 +50,7 @@ public class Mitglied {
     private String bemerkung;
 
     /** Verteiler-Zuordnung (alt: frauenhaus.stichwort_person). */
+    @NotAudited
     @ManyToMany
     @JoinTable(name = "stichwort_person", schema = "frauenhaus",
             joinColumns = @JoinColumn(name = "mitglied"),
@@ -51,6 +58,7 @@ public class Mitglied {
     private Set<Stichwort> stichworte = new LinkedHashSet<>();
 
     /** Vereinszugehörigkeit (alt: frauenhaus.verein_mitglied). */
+    @NotAudited
     @ManyToMany
     @JoinTable(name = "verein_mitglied", schema = "frauenhaus",
             joinColumns = @JoinColumn(name = "mitglied"),
