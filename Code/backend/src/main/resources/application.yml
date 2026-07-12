@@ -10,12 +10,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate   # Schema kommt ausschließlich von Flyway
+      ddl-auto: validate   # Schema kommt ausschließlich aus den DB-Init-Skripten (docker-compose)
     open-in-view: false
-
-  flyway:
-    schemas: app, frauenhaus
-    default-schema: app
 
 server:
   port: ${SERVER_PORT:8080}
@@ -24,7 +20,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, flyway
+        include: health, info, metrics
   endpoint:
     health:
       probes:
@@ -35,3 +31,7 @@ app:
     # Passwort für den initialen Admin beim allerersten Start (danach ignoriert).
     # Ohne Angabe wird ein Zufallspasswort generiert und einmalig geloggt.
     initial-admin-password: ${APP_ADMIN_PASSWORD:}
+  vorlagen:
+    # Verzeichnis mit den Word-Vorlagen (.dot) für Bußgeldbestätigungen und
+    # Spendenbescheinigungen; im Docker-Image unter /app/vorlagen.
+    pfad: ${APP_VORLAGEN_PFAD:vorlagen}

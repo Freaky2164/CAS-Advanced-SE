@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="de.frauenhaus.service.BetragInWortenTest" time="0.013" tests="4" errors="0" skipped="0" failures="0" flakes="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="de.frauenhaus.service.DocumentCreationHelpersTest" time="0.199" tests="3" errors="0" skipped="0" failures="0" flakes="0">
   <properties>
     <property name="java.specification.version" value="26"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -59,8 +59,27 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="70.0"/>
   </properties>
-  <testcase name="ohneWaehrungFuerVorlagenMitEuroImText" classname="de.frauenhaus.service.BetragInWortenTest" time="0.01"/>
-  <testcase name="ganzeBetraege" classname="de.frauenhaus.service.BetragInWortenTest" time="0.001"/>
-  <testcase name="null_euro" classname="de.frauenhaus.service.BetragInWortenTest" time="0.0"/>
-  <testcase name="mitCent" classname="de.frauenhaus.service.BetragInWortenTest" time="0.0"/>
+  <testcase name="fuelltSpendenbescheinigungsVorlage" classname="de.frauenhaus.service.DocumentCreationHelpersTest" time="0.162">
+    <system-out><![CDATA[16:23:07.405 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;SummaryInformation of size 396
+16:23:07.406 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;DocumentSummaryInformation of size 284
+]]></system-out>
+  </testcase>
+  <testcase name="unbekannteLesezeichenBleibenUnangetastet" classname="de.frauenhaus.service.DocumentCreationHelpersTest" time="0.013">
+    <system-out><![CDATA[16:23:07.456 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;SummaryInformation of size 412
+16:23:07.457 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;DocumentSummaryInformation of size 284
+]]></system-out>
+  </testcase>
+  <testcase name="fuelltBussgeldVorlage" classname="de.frauenhaus.service.DocumentCreationHelpersTest" time="0.013">
+    <system-out><![CDATA[16:23:07.470 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;SummaryInformation of size 396
+16:23:07.470 [main] INFO org.apache.poi.POIDocument -- Wrote property set &amp#5;DocumentSummaryInformation of size 304
+16:23:07.471 [main] WARN org.apache.poi.hwpf.model.PAPBinTable -- Paragraph [246; 266) has no PAPX. Creating new one.
+16:23:07.476 [main] WARN org.apache.poi.hwpf.converter.AbstractWordConverter -- Unsupported field type: 
+	CharacterRun of 1 characters - &amp#19;
+	CharacterRun of 20 characters -  TIME \@ "dd.MM.yy" 
+	CharacterRun of 1 characters - &amp#20;
+	CharacterRun of 8 characters - 15.10.12
+	CharacterRun of 1 characters - &amp#21;
+
+]]></system-out>
+  </testcase>
 </testsuite>

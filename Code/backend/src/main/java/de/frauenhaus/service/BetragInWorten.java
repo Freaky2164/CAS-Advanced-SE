@@ -20,6 +20,28 @@ public final class BetragInWorten {
     private BetragInWorten() { }
 
     /**
+     * Zahlwort ohne Währungsangabe – für Vorlagen, die das Wort "Euro" bereits
+     * enthalten (Lesezeichen {@code worte} in den Spendenbescheinigungen),
+     * z.B. {@code 50.05} -> {@code "*fünfzig Komma null fünf*"}.
+     */
+    public static String ohneWaehrung(BigDecimal betrag) {
+        BigDecimal gerundet = betrag.setScale(2, RoundingMode.HALF_UP);
+        long euro = gerundet.longValue();
+        int cent = gerundet.remainder(BigDecimal.ONE).movePointRight(2).intValue();
+
+        StringBuilder sb = new StringBuilder("*");
+        sb.append(euro == 0 ? "null" : zahlInWorten(euro));
+        if (cent > 0) {
+            sb.append(" Komma ");
+            if (cent < 10) {
+                sb.append("null ");
+            }
+            sb.append(zahlInWorten(cent));
+        }
+        return sb.append('*').toString();
+    }
+
+    /**
      * Wandelt einen Geldbetrag in die für Spendenquittungen übliche Textform um,
      * z.B. {@code 50.05} -> {@code "*fünfzig Euro und fünf Cent*"}.
      */
