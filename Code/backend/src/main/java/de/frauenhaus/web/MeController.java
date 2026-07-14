@@ -18,7 +18,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class MeController {
 
-    /** Benutzername und Rollen des angemeldeten Benutzers. */
+    /**
+     * @author Nils
+     *
+     * Benutzername und Rollen des angemeldeten Benutzers.
+     */
     @GetMapping("/me")
     public Map<String, Object> me(Authentication auth) {
         List<String> rollen = auth.getAuthorities().stream()

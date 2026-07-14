@@ -29,19 +29,31 @@ public class WordTemplateService {
 
     public static final DateTimeFormatter DATUM = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    /** Neues, leeres Word-Dokument. */
+    /**
+     * @author Nils
+     *
+     * Neues, leeres Word-Dokument.
+     */
     public XWPFDocument neuesDokument() {
         return new XWPFDocument();
     }
 
-    /** Einfacher Textabsatz. */
+    /**
+     * @author Nils
+     *
+     * Einfacher Textabsatz.
+     */
     public XWPFParagraph absatz(XWPFDocument doc, String text) {
         XWPFParagraph p = doc.createParagraph();
         p.createRun().setText(text == null ? "" : text);
         return p;
     }
 
-    /** Fett hervorgehobener Textabsatz (z. B. Betreffzeile). */
+    /**
+     * @author Nils
+     *
+     * Fett hervorgehobener Textabsatz (z. B. Betreffzeile).
+     */
     public XWPFParagraph absatzFett(XWPFDocument doc, String text) {
         XWPFParagraph p = doc.createParagraph();
         XWPFRun run = p.createRun();
@@ -50,19 +62,31 @@ public class WordTemplateService {
         return p;
     }
 
-    /** Rechtsbündiger Textabsatz (z. B. Ort/Datum-Zeile). */
+    /**
+     * @author Nils
+     *
+     * Rechtsbündiger Textabsatz (z. B. Ort/Datum-Zeile).
+     */
     public XWPFParagraph absatzRechts(XWPFDocument doc, String text) {
         XWPFParagraph p = absatz(doc, text);
         p.setAlignment(ParagraphAlignment.RIGHT);
         return p;
     }
 
-    /** Leerzeile zur optischen Gliederung. */
+    /**
+     * @author Nils
+     *
+     * Leerzeile zur optischen Gliederung.
+     */
     public void leerzeile(XWPFDocument doc) {
         doc.createParagraph();
     }
 
-    /** Mehrzeiliger Adress-/Absenderblock, eine Zeile pro Argument (leere/{@code null}-Zeilen werden übersprungen). */
+    /**
+     * @author Nils
+     *
+     * Mehrzeiliger Adress-/Absenderblock, eine Zeile pro Argument (leere/{@code null}-Zeilen werden übersprungen).
+     */
     public void adresse(XWPFDocument doc, String... zeilen) {
         for (String zeile : zeilen) {
             if (zeile != null && !zeile.isBlank()) {
@@ -71,12 +95,20 @@ public class WordTemplateService {
         }
     }
 
-    /** "Ort, TT.MM.JJJJ"-Zeile mit dem heutigen Datum. */
+    /**
+     * @author Nils
+     *
+     * "Ort, TT.MM.JJJJ"-Zeile mit dem heutigen Datum.
+     */
     public void ortUndDatum(XWPFDocument doc, String ort) {
         absatzRechts(doc, ort + ", " + DATUM.format(LocalDate.now(ZoneId.systemDefault())));
     }
 
-    /** Serialisiert das Dokument als docx-Bytes. */
+    /**
+     * @author Nils
+     *
+     * Serialisiert das Dokument als docx-Bytes.
+     */
     public byte[] toBytes(XWPFDocument doc) {
         try (doc; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             doc.write(out);

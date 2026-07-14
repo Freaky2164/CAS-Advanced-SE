@@ -23,13 +23,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /** BCrypt-Passwort-Encoder für die in {@link de.frauenhaus.security.AppUser} gespeicherten Hashes. */
+    /**
+     * @author Nils
+     *
+     * BCrypt-Passwort-Encoder für die in {@link de.frauenhaus.security.AppUser} gespeicherten Hashes.
+     */
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     /**
+     * @author Nils
+     *
      * Definiert die Filterkette: CSRF-Schutz deaktiviert (rein zustandslose API),
      * Health-Endpunkt frei zugänglich, Admin-Endpunkte nur für Rolle ADMIN,
      * alle übrigen Anfragen erfordern eine Anmeldung per HTTP Basic.
@@ -48,6 +54,8 @@ public class SecurityConfig {
     }
 
     /**
+     * @author Nils
+     *
      * 401 ohne "WWW-Authenticate: Basic"-Header, damit der Browser beim
      * SPA-Frontend keinen nativen Login-Dialog öffnet.
      */

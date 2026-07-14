@@ -77,6 +77,44 @@ Das neue Backend liegt in `backend/` (Spring Boot 3.3, Java 17, Maven). Umgesetz
 
 Noch offen: `mvn verify` lokal ausführen (in der Sandbox war kein Maven/JDK 17 verfügbar), Datenübernahme aus der Alt-DB, CRUD-Endpoints fürs Frontend, Git-Repo initialisieren.
 
+**Update 12.07.2026 – Datenübernahme und Vorlagen umgesetzt:**
+
+- **Datenübernahme:** Das Backup des Altsystems (`Code/data.sql`, rebasedata-Dump mit
+  `public._frauenhaus_*`-Tabellen, alles untypisiert als varchar) wird beim ersten
+  `docker compose up` automatisch eingespielt und von
+  `backend/db/init/04_datenuebernahme.sql` in das Zielschema `frauenhaus.*` überführt
+  (Typkonvertierung, NULL-Bereinigung, Ableitung `bussgeld.bezahlt` aus dem Status,
+  Ersatz-Spendenart `unbekannt`, Sequenz-Anpassung). Ergebnis: 2325 Mitglieder,
+  8161 Spenden, 219 Bußgelder, 695 Eingänge, 13014 Stichwort-Zuordnungen;
+  7 Alt-Spenden ohne Datum/Träger werden übersprungen (siehe DB-Log).
+- **Schema-Verwaltung:** Statt Flyway legen die `docker-entrypoint-initdb.d`-Skripte
+  das Schema an (`V1__baseline_schema.sql` + Datenübernahme); Flyway wurde aus
+  pom.xml/application.yml entfernt, Hibernate validiert weiterhin (`ddl-auto: validate`).
+- **Dokumente aus Vorlagen:** `DocumentCreationService` befüllt die Original-Word-Vorlagen
+  aus `backend/vorlagen/` über ihre Lesezeichen mit POI-HWPF (kein Word/COM nötig):
+  Bußgeldbestätigungen aus `FHBG.dot`/`FVBG.dot`, Spendenbescheinigungen aus den
+  `FHSB*`/`FVSB*`-Vorlagen je Träger und Spendentyp (Dauerspenden mit Jahressumme und
+  Einzelbeträgen, Betrag in Worten). Die Endpunkte `/api/reports/bussgeld-bestaetigung/{id}`
+  und `/api/reports/spendenquittung/{id}` liefern jetzt .doc-Dateien aus diesen Vorlagen.
+
+**Update 12.07.2026 (abends) – PostgreSQL 18, Row Level Security, Aufzählungen:**
+
+- **PostgreSQL 18** statt 16 (`docker-compose.yml`): Das offizielle 18er-Image legt die
+  Daten unter `/var/lib/postgresql/18/docker` ab, Volume-Mount und `pgbackrest.conf`
+  (`pg1-path`) wurden entsprechend angepasst.
+- **Row Level Security (DSGVO):** Die Anwendung verbindet sich als eingeschränkte Rolle
+  `frauenhaus_backend` (kein DDL, kein BYPASSRLS, `db/init/05_sicherheit.sh`). Alle
+  Tabellen mit personenbezogenen Daten tragen RLS-Policies, die Zeilen nur bei gesetztem
+  Benutzerkontext freigeben; `RowLevelSecurityDataSource` setzt diesen Kontext pro
+  Connection-Ausleihe aus dem Spring-Security-Login. Direktzugriffe mit den
+  Backend-Zugangsdaten ohne App (psql, kompromittierter Client) sehen null Zeilen.
+  Damit ist auch das Fokusthema "Least-Privilege-DB-User" aus Abschnitt 4 umgesetzt.
+- **Aufzählungen in Vorlagen:** Mehrzeilig befüllte Lesezeichen (Zahlungsliste,
+  Einzelspenden) verloren ab der zweiten Zeile die Listenformatierung, weil neu
+  eingefügte Absatzmarken im Word-Binärformat keine Absatz-Eigenschaften (PAPX) haben.
+  `DocumentCreationHelpers` klont jetzt die Formatierung des Vorlagen-Absatzes auf alle
+  eingefügten Zeilen – Bulletpoints/Nummerierungen werden je Zeile weitergeführt.
+
 ## 6. Ursprünglich empfohlene Reihenfolge
 
 1. Git-Repo initialisieren (aktuell keine Versionskontrolle!).

@@ -1,3 +1,4 @@
+-- @author Nils
 -- Datenübernahme aus dem Altsystem-Backup (data.sql, eingespielt als 03_altdaten.sql).
 --
 -- Das Backup stammt aus einer rebasedata-Konvertierung: alle Fachtabellen liegen als

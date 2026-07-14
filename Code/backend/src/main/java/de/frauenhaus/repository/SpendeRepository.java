@@ -17,7 +17,11 @@ import java.util.List;
  */
 public interface SpendeRepository extends JpaRepository<Spende, Long> {
 
-    /** Generische Suche über die wichtigsten Textfelder der Spendenliste. */
+    /**
+     * @author Nils
+     *
+     * Generische Suche über die wichtigsten Textfelder der Spendenliste.
+     */
     @Query(value = """
             SELECT s FROM Spende s
             JOIN s.mitglied m
@@ -46,7 +50,11 @@ public interface SpendeRepository extends JpaRepository<Spende, Long> {
                     """)
     Page<Spende> suchen(@Param("suche") String suche, Pageable pageable);
 
-    /** Spendenübersicht eines Jahres (alt: CReportSpendenUebersicht). */
+    /**
+     * @author Nils
+     *
+     * Spendenübersicht eines Jahres (alt: CReportSpendenUebersicht).
+     */
     @Query("""
             SELECT s FROM Spende s
             WHERE YEAR(s.datum) = :jahr
@@ -55,6 +63,8 @@ public interface SpendeRepository extends JpaRepository<Spende, Long> {
     List<Spende> findUebersicht(@Param("jahr") int jahr);
 
     /**
+     * @author Nils
+     *
      * Alle Einzelspenden eines Mitglieds im Jahr für einen Spendentyp/Träger –
      * Summenbildung für Dauerspenden-Quittungen (alt: fillDonationSummary).
      */

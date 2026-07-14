@@ -24,7 +24,11 @@ public class Verein {
 
     private String bezeichnung;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected Verein() { }
 
     public Verein(String name, String bezeichnung) {

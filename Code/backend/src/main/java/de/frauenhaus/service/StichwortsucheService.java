@@ -32,12 +32,20 @@ public class StichwortsucheService {
         this.mitglieder = mitglieder;
     }
 
-    /** Mitglieder, die mindestens eines der gegebenen Stichworte tragen (mit optionalen Filtern). */
+    /**
+     * @author Nils
+     *
+     * Mitglieder, die mindestens eines der gegebenen Stichworte tragen (mit optionalen Filtern).
+     */
     public List<Mitglied> suchen(Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
         return mitglieder.findByStichwortSuche(stichworte, foerderverein, frauenhaus);
     }
 
-    /** Suchergebnis als Vorschau-Liste für die UI. */
+    /**
+     * @author Nils
+     *
+     * Suchergebnis als Vorschau-Liste für die UI.
+     */
     public List<MitgliedService.MitgliedResponse> suchenAlsResponses(
             Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
         return suchen(stichworte, foerderverein, frauenhaus).stream()
@@ -45,7 +53,11 @@ public class StichwortsucheService {
                 .toList();
     }
 
-    /** Suchergebnis als xlsx-Report (alt: StichwortSuche.xls). */
+    /**
+     * @author Nils
+     *
+     * Suchergebnis als xlsx-Report (alt: StichwortSuche.xls).
+     */
     public byte[] suchenAlsExcel(Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
         Workbook wb = ExcelUtil.neuesWorkbook("StichwortSuche");
         Sheet sheet = wb.getSheetAt(0);

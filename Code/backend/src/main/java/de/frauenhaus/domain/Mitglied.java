@@ -39,17 +39,29 @@ public class Mitglied {
     private String tel2;
     private String fax;
 
-    /** Mitglied im Förderverein (Flag aus dem Altsystem). */
+    /**
+     * @author Nils
+     *
+     * Mitglied im Förderverein (Flag aus dem Altsystem).
+     */
     @Column(nullable = false)
     private boolean foerderverein;
 
-    /** Mitglied im Frauenhaus-Verein (Flag aus dem Altsystem). */
+    /**
+     * @author Nils
+     *
+     * Mitglied im Frauenhaus-Verein (Flag aus dem Altsystem).
+     */
     @Column(nullable = false)
     private boolean frauenhaus;
 
     private String bemerkung;
 
-    /** Verteiler-Zuordnung (alt: frauenhaus.stichwort_person). */
+    /**
+     * @author Nils
+     *
+     * Verteiler-Zuordnung (alt: frauenhaus.stichwort_person).
+     */
     @NotAudited
     @ManyToMany
     @JoinTable(name = "stichwort_person", schema = "frauenhaus",
@@ -57,7 +69,11 @@ public class Mitglied {
             inverseJoinColumns = @JoinColumn(name = "stichwort"))
     private Set<Stichwort> stichworte = new LinkedHashSet<>();
 
-    /** Vereinszugehörigkeit (alt: frauenhaus.verein_mitglied). */
+    /**
+     * @author Nils
+     *
+     * Vereinszugehörigkeit (alt: frauenhaus.verein_mitglied).
+     */
     @NotAudited
     @ManyToMany
     @JoinTable(name = "verein_mitglied", schema = "frauenhaus",

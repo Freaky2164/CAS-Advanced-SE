@@ -46,7 +46,11 @@ public class Bussgeld {
     @Column(nullable = false)
     private LocalDate datum;
 
-    /** Zahlungsziel (alt: zieldatum). */
+    /**
+     * @author Nils
+     *
+     * Zahlungsziel (alt: zieldatum).
+     */
     private LocalDate zieldatum;
 
     @Column(nullable = false)

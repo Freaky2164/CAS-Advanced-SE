@@ -22,6 +22,8 @@ public class DbUserDetailsService implements UserDetailsService {
     }
 
     /**
+     * @author Nils
+     *
      * Sucht den Benutzer über {@link AppUserRepository#findByUsername(String)} und
      * bildet ihn auf Spring Securitys {@link UserDetails} ab (Passwort-Hash, Rolle, aktiviert-Flag).
      */

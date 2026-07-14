@@ -19,6 +19,8 @@ import java.util.List;
 public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
 
     /**
+     * @author Nils
+     *
      * Generische Suche über die wichtigsten Textfelder der Mitgliederliste
      * (alt: Filter im generischen Listen-Frame).
      */
@@ -47,6 +49,8 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
     Page<Mitglied> suchen(@Param("suche") String suche, Pageable pageable);
 
     /**
+     * @author Nils
+     *
      * Serienbrief-Adressen für Verteiler-Stichworte
      * (alt: CReportSerienbriefAdressen – jetzt parameterisiert statt String-Konkatenation).
      */
@@ -56,18 +60,28 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
             ORDER BY m.name, m.vorname""")
     List<Mitglied> findVerteiler(@Param("stichworte") Collection<String> stichworte);
 
-    /** E-Mail-Verteiler (alt: CReportVerteiler). */
+    /**
+     * @author Nils
+     *
+     * E-Mail-Verteiler (alt: CReportVerteiler).
+     */
     @Query("""
             SELECT DISTINCT m.email FROM Mitglied m JOIN m.stichworte s
             WHERE s.name IN :stichworte AND m.email IS NOT NULL
             ORDER BY m.email""")
     List<String> findVerteilerEmails(@Param("stichworte") Collection<String> stichworte);
 
-    /** Empfänger einer Spendenquittung (alt: CCommandSpendenQuittung). */
+    /**
+     * @author Nils
+     *
+     * Empfänger einer Spendenquittung (alt: CCommandSpendenQuittung).
+     */
     @Query("SELECT DISTINCT s.mitglied FROM Spende s WHERE s.id = :spendeId")
     List<Mitglied> findBySpende(@Param("spendeId") Long spendeId);
 
     /**
+     * @author Nils
+     *
      * Mitgliedersuche über ein oder mehrere Stichworte, optional zusätzlich auf
      * Förderverein-/Frauenhaus-Mitglieder eingeschränkt (alt: CReportStichwortSuche).
      */

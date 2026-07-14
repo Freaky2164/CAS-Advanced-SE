@@ -78,7 +78,11 @@ public class BussgeldController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Fügt dem Bußgeld einen Zahlungseingang hinzu (alt: Sub-Tabelle in CInfoFrameStatusSub). */
+    /**
+     * @author Nils
+     *
+     * Fügt dem Bußgeld einen Zahlungseingang hinzu (alt: Sub-Tabelle in CInfoFrameStatusSub).
+     */
     @PostMapping("/{id}/eingaenge")
     public ResponseEntity<BussgeldResponse> eingangHinzufuegen(@PathVariable Long id, @Valid @RequestBody EingangRequest r) {
         BussgeldResponse aktualisiert = bussgeldService.eingangHinzufuegen(id, r.datum(), r.betrag(), r.bemerkung());

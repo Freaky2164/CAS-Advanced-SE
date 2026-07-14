@@ -32,14 +32,22 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Transactional
 public class BussgeldService {
 
-    /** Zahlungseingang ohne Rückverweis auf das Bußgeld. */
+    /**
+     * @author Nils
+     *
+     * Zahlungseingang ohne Rückverweis auf das Bußgeld.
+     */
     public record EingangResponse(Long id, LocalDate datum, BigDecimal betrag, String bemerkung) {
         static EingangResponse of(Eingang e) {
             return new EingangResponse(e.getId(), e.getDatum(), e.getBetrag(), e.getBemerkung());
         }
     }
 
-    /** Bußgeld mit aufgelösten Zahlungseingängen statt lazy Collection. */
+    /**
+     * @author Nils
+     *
+     * Bußgeld mit aufgelösten Zahlungseingängen statt lazy Collection.
+     */
     public record BussgeldResponse(
             Long id, Long gerichtId, String gerichtBezeichnung, String verein, String status,
             String name, String vorname, String aktenzeichen, LocalDate datum, LocalDate zieldatum,
@@ -108,7 +116,11 @@ public class BussgeldService {
         bussgelder.deleteById(id);
     }
 
-    /** Fügt einen Zahlungseingang hinzu (alt: CInfoFrameStatusSub -> neue Zeile in frauenhaus.eingang). */
+    /**
+     * @author Nils
+     *
+     * Fügt einen Zahlungseingang hinzu (alt: CInfoFrameStatusSub -> neue Zeile in frauenhaus.eingang).
+     */
     public BussgeldResponse eingangHinzufuegen(Long bussgeldId, LocalDate datum, BigDecimal betrag, String bemerkung) {
         Bussgeld b = holen(bussgeldId);
         Eingang e = new Eingang();
@@ -122,7 +134,11 @@ public class BussgeldService {
         return BussgeldResponse.of(bussgelder.saveAndFlush(b));
     }
 
-    /** Entfernt einen Zahlungseingang (orphanRemoval löscht ihn beim Speichern). */
+    /**
+     * @author Nils
+     *
+     * Entfernt einen Zahlungseingang (orphanRemoval löscht ihn beim Speichern).
+     */
     public BussgeldResponse eingangEntfernen(Long bussgeldId, Long eingangId) {
         Bussgeld b = holen(bussgeldId);
         boolean entfernt = b.getEingaenge().removeIf(e -> e.getId().equals(eingangId));

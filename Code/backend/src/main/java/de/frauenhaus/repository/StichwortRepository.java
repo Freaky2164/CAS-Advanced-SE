@@ -17,6 +17,8 @@ import java.util.Collection;
 public interface StichwortRepository extends JpaRepository<Stichwort, String> {
 
     /**
+     * @author Nils
+     *
      * Verteiler zusammenstellen: alle Mitglieder der alten Stichworte dem neuen
      * Stichwort zuordnen (alt: CReportStichwortZusammenstellen – jetzt parameterisiert).
      */
@@ -30,13 +32,21 @@ public interface StichwortRepository extends JpaRepository<Stichwort, String> {
                                       WHERE stichwort = :neu)""", nativeQuery = true)
     int stichworteZuordnen(@Param("neu") String neu, @Param("alte") Collection<String> alte);
 
-    /** Alte Zuordnungen nach Zusammenfassen entfernen (alt: CReportStichworteZusammenfassen). */
+    /**
+     * @author Nils
+     *
+     * Alte Zuordnungen nach Zusammenfassen entfernen (alt: CReportStichworteZusammenfassen).
+     */
     @Modifying
     @Query(value = "DELETE FROM frauenhaus.stichwort_person WHERE stichwort IN (:alte)",
             nativeQuery = true)
     int zuordnungenLoeschen(@Param("alte") Collection<String> alte);
 
-    /** Alte Stichworte nach Zusammenfassen endgültig löschen. */
+    /**
+     * @author Nils
+     *
+     * Alte Stichworte nach Zusammenfassen endgültig löschen.
+     */
     @Modifying
     @Query(value = "DELETE FROM frauenhaus.stichwort WHERE stichwort IN (:alte)",
             nativeQuery = true)

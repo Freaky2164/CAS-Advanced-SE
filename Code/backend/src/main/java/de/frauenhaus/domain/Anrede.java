@@ -20,7 +20,11 @@ public class Anrede {
     @Column(name = "anrede")
     private String name;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected Anrede() { }
 
     public Anrede(String name) {

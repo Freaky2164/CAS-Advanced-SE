@@ -38,7 +38,11 @@ public class SpendenService {
         this.wordTemplate = wordTemplate;
     }
 
-    /** Alle Spenden eines Jahres, gruppiert nach Träger/Spendentyp/-art. */
+    /**
+     * @author Nils
+     *
+     * Alle Spenden eines Jahres, gruppiert nach Träger/Spendentyp/-art.
+     */
     public byte[] uebersicht(int jahr) {
         Workbook wb = ExcelUtil.neuesWorkbook("Spendenübersicht " + jahr);
         Sheet sheet = wb.getSheetAt(0);

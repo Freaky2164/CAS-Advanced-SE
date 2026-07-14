@@ -2,7 +2,11 @@ import { HttpClient, HttpErrorResponse, HttpParams, HttpResponse } from '@angula
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-/** Ausschnitt der Spring-Data-Page-Antwort, den das Frontend benötigt. */
+/**
+ * @author Nils
+ *
+ * Ausschnitt der Spring-Data-Page-Antwort, den das Frontend benötigt.
+ */
 export interface Seite<T> {
   content: T[];
   totalElements: number;
@@ -220,18 +224,30 @@ export class ApiService {
   dokumentHerunterladen(id: number): Observable<void> { return this.download(`/api/dokumente/${id}/download`, {}); }
   dokumentLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/dokumente/${id}`); }
 
-  /** E-Mail-Verteiler zu den gegebenen Stichworten. */
+  /**
+   * @author Nils
+   *
+   * E-Mail-Verteiler zu den gegebenen Stichworten.
+   */
   verteilerEmails(stichworte: string[]): Observable<string[]> {
     const params = new HttpParams({ fromObject: { stichworte } });
     return this.http.get<string[]>('/api/reports/verteiler-emails', { params });
   }
 
-  /** Verteiler-E-Mail an alle Empfänger per BCC versenden. */
+  /**
+   * @author Nils
+   *
+   * Verteiler-E-Mail an alle Empfänger per BCC versenden.
+   */
   verteilerVersenden(request: VerteilerVersandRequest): Observable<VerteilerVersandErgebnis> {
     return this.http.post<VerteilerVersandErgebnis>('/api/reports/verteiler/versenden', request);
   }
 
-  /** Mitgliedersuche über ein oder mehrere Stichworte, optional auf Förderverein/Frauenhaus eingeschränkt. */
+  /**
+   * @author Nils
+   *
+   * Mitgliedersuche über ein oder mehrere Stichworte, optional auf Förderverein/Frauenhaus eingeschränkt.
+   */
   stichwortsuche(stichworte: string[], foerderverein: boolean, frauenhaus: boolean): Observable<Mitglied[]> {
     const params = new HttpParams({
       fromObject: { stichworte, foerderverein: String(foerderverein), frauenhaus: String(frauenhaus) },
@@ -239,12 +255,20 @@ export class ApiService {
     return this.http.get<Mitglied[]>('/api/reports/stichwortsuche', { params });
   }
 
-  /** Neues Stichwort aus bestehenden zusammenstellen (alte bleiben erhalten). */
+  /**
+   * @author Nils
+   *
+   * Neues Stichwort aus bestehenden zusammenstellen (alte bleiben erhalten).
+   */
   zusammenstellen(neu: string, alte: string[]): Observable<{ zugeordnet: number }> {
     return this.http.post<{ zugeordnet: number }>('/api/stichworte/zusammenstellen', { neu, alte });
   }
 
-  /** Stichworte zu einem neuen zusammenfassen, alte werden gelöscht. */
+  /**
+   * @author Nils
+   *
+   * Stichworte zu einem neuen zusammenfassen, alte werden gelöscht.
+   */
   zusammenfassen(neu: string, alte: string[]): Observable<{ zugeordnet: number }> {
     return this.http.post<{ zugeordnet: number }>('/api/stichworte/zusammenfassen', { neu, alte });
   }
@@ -261,7 +285,11 @@ export class ApiService {
     return this.http.put<AppUser>(`/api/admin/users/${id}/passwort`, { neuesPasswort });
   }
 
-  /** Lädt einen Report herunter und stößt das Speichern im Browser an. */
+  /**
+   * @author Nils
+   *
+   * Lädt einen Report herunter und stößt das Speichern im Browser an.
+   */
   download(pfad: string, params: Record<string, string | readonly string[]>): Observable<void> {
     return this.http
       .get(pfad, {
@@ -284,7 +312,11 @@ export class ApiService {
   }
 }
 
-/** Fehlermeldung für die Anzeige im UI. */
+/**
+ * @author Nils
+ *
+ * Fehlermeldung für die Anzeige im UI.
+ */
 export function fehlertext(err: HttpErrorResponse): string {
   const detail = typeof err.error === 'string'
     ? err.error
@@ -300,7 +332,11 @@ export function fehlertext(err: HttpErrorResponse): string {
   return `Fehler ${err.status}${detail ? ': ' + detail : err.message ? ': ' + err.message : ''}`;
 }
 
-/** Speichert die Antwort als Datei; Dateiname aus dem Content-Disposition-Header. */
+/**
+ * @author Nils
+ *
+ * Speichert die Antwort als Datei; Dateiname aus dem Content-Disposition-Header.
+ */
 function speichern(res: HttpResponse<Blob>): void {
   const disposition = res.headers.get('Content-Disposition') ?? '';
   const name = /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? 'report';
