@@ -51,7 +51,11 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
     }
 
-    /** Rolle und Aktiv-Status ändern; ein Benutzer darf sich nicht selbst deaktivieren oder degradieren. */
+    /**
+     * @author Nils
+     *
+     * Rolle und Aktiv-Status ändern; ein Benutzer darf sich nicht selbst deaktivieren oder degradieren.
+     */
     @PutMapping("/{id}")
     public AppUserResponse aendern(@PathVariable Long id, @Valid @RequestBody UpdateRequest request, Authentication auth) {
         pruefeNichtSelbst(id, auth, "Sie können sich nicht selbst deaktivieren oder degradieren");

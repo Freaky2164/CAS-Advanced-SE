@@ -14,7 +14,11 @@ import java.time.OffsetDateTime;
 @Table(name = "app_user", schema = "app")
 public class AppUser {
 
-    /** Rollen der Anwendung: Administration bzw. Sachbearbeitung. */
+    /**
+     * @author Nils
+     *
+     * Rollen der Anwendung: Administration bzw. Sachbearbeitung.
+     */
     public enum Role { ADMIN, SACHBEARBEITUNG }
 
     @Id
@@ -38,7 +42,11 @@ public class AppUser {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected AppUser() { }
 
     public AppUser(String username, String passwordHash, Role role) {

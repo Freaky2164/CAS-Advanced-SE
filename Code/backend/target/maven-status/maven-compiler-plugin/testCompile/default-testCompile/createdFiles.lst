@@ -1,2 +1,4 @@
-de/frauenhaus/service/BetragInWortenTest.class
+de/frauenhaus/service/StammdatenSucheIntegrationTest.class
+de/frauenhaus/web/VerteilerVersandIntegrationTest.class
 de/frauenhaus/service/DocumentCreationHelpersTest.class
+de/frauenhaus/service/BetragInWortenTest.class

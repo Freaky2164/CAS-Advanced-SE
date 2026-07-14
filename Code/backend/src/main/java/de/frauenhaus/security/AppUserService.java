@@ -26,7 +26,11 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Transactional
 public class AppUserService {
 
-    /** Öffentlich sichtbare Benutzerdaten ohne Passwort-Hash. */
+    /**
+     * @author Nils
+     *
+     * Öffentlich sichtbare Benutzerdaten ohne Passwort-Hash.
+     */
     public record AppUserResponse(Long id, String username, AppUser.Role role, boolean enabled, OffsetDateTime createdAt) {
         static AppUserResponse of(AppUser u) {
             return new AppUserResponse(u.getId(), u.getUsername(), u.getRole(), u.isEnabled(), u.getCreatedAt());
@@ -46,7 +50,11 @@ public class AppUserService {
         return users.findAll(Sort.by("username")).stream().map(AppUserResponse::of).toList();
     }
 
-    /** Legt einen neuen Benutzer mit BCrypt-gehashtem Passwort an. */
+    /**
+     * @author Nils
+     *
+     * Legt einen neuen Benutzer mit BCrypt-gehashtem Passwort an.
+     */
     public AppUserResponse anlegen(String username, String passwort, AppUser.Role role) {
         if (users.findByUsername(username).isPresent()) {
             throw new ResponseStatusException(CONFLICT, "Benutzername '" + username + "' existiert bereits");
@@ -56,6 +64,8 @@ public class AppUserService {
     }
 
     /**
+     * @author Nils
+     *
      * Ändert Rolle und Aktiv-Status. Verhindert, dass der letzte aktive Administrator
      * degradiert oder deaktiviert wird (sonst kann sich niemand mehr anmelden, der
      * weitere Admins verwalten könnte).
@@ -73,7 +83,11 @@ public class AppUserService {
         return AppUserResponse.of(u);
     }
 
-    /** Setzt das Passwort eines Benutzers zurück (Admin-Funktion, kein Einmal-Link-Flow nötig). */
+    /**
+     * @author Nils
+     *
+     * Setzt das Passwort eines Benutzers zurück (Admin-Funktion, kein Einmal-Link-Flow nötig).
+     */
     public AppUserResponse passwortZuruecksetzen(Long id, String neuesPasswort) {
         AppUser u = finden(id);
         u.setPasswordHash(encoder.encode(neuesPasswort));

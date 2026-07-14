@@ -21,7 +21,11 @@ public class Spendentyp {
     @Column(name = "spendentyp")
     private String name;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected Spendentyp() { }
 
     public Spendentyp(String name) {

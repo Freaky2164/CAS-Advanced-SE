@@ -35,7 +35,11 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Transactional
 public class MitgliedService {
 
-    /** Vollständige Mitglied-Daten inkl. aufgelöster Stichwort-/Vereinsnamen. */
+    /**
+     * @author Nils
+     *
+     * Vollständige Mitglied-Daten inkl. aufgelöster Stichwort-/Vereinsnamen.
+     */
     public record MitgliedResponse(
             Long id, String anrede, String vorname, String name, String name2, String name3,
             String briefanrede, String strasse, String plz, String ort, String email,
@@ -99,7 +103,11 @@ public class MitgliedService {
         return MitgliedResponse.of(m);
     }
 
-    /** Dupliziert ein Mitglied inkl. Stammdaten und Zuordnungen (alt: CInfoFrameStatusCopy). */
+    /**
+     * @author Nils
+     *
+     * Dupliziert ein Mitglied inkl. Stammdaten und Zuordnungen (alt: CInfoFrameStatusCopy).
+     */
     public MitgliedResponse duplizieren(Long id) {
         Mitglied original = holen(id);
         Mitglied kopie = new Mitglied();

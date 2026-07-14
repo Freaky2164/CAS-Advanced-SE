@@ -23,6 +23,8 @@ public class AdminBootstrap {
     private static final Logger LOG = LoggerFactory.getLogger(AdminBootstrap.class);
 
     /**
+     * @author Nils
+     *
      * Erstellt beim Anwendungsstart genau dann einen Admin-Benutzer, wenn die
      * Benutzertabelle noch leer ist. Nutzt {@code app.security.initial-admin-password},
      * falls gesetzt, andernfalls ein zufällig generiertes Einmal-Passwort.

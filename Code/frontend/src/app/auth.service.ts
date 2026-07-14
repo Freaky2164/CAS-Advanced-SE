@@ -2,7 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
-/** Antwort von GET /api/me. */
+/**
+ * @author Nils
+ *
+ * Antwort von GET /api/me.
+ */
 export interface Me {
   username: string;
   roles: string[];
@@ -28,7 +32,11 @@ export class AuthService {
     return sessionStorage.getItem(HEADER_KEY) !== null;
   }
 
-  /** Hinterlegt die Zugangsdaten und prüft sie gegen /api/me. */
+  /**
+   * @author Nils
+   *
+   * Hinterlegt die Zugangsdaten und prüft sie gegen /api/me.
+   */
   login(username: string, passwort: string): Observable<Me> {
     sessionStorage.setItem(HEADER_KEY, basicHeader(username, passwort));
     return this.http.get<Me>('/api/me').pipe(
@@ -49,7 +57,11 @@ export class AuthService {
   }
 }
 
-/** Basic-Auth-Header, UTF-8-sicher (btoa allein scheitert an Umlauten). */
+/**
+ * @author Nils
+ *
+ * Basic-Auth-Header, UTF-8-sicher (btoa allein scheitert an Umlauten).
+ */
 function basicHeader(username: string, passwort: string): string {
   const bytes = new TextEncoder().encode(`${username}:${passwort}`);
   return 'Basic ' + btoa(String.fromCodePoint(...bytes));

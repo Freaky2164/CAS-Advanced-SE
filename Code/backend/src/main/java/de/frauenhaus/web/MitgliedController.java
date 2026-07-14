@@ -25,7 +25,11 @@ import java.util.List;
 @RequestMapping("/api/mitglieder")
 public class MitgliedController {
 
-    /** Anfrage zum Anlegen/Ändern eines Mitglieds; {@code stichworte}/{@code vereine} sind optional. */
+    /**
+     * @author Nils
+     *
+     * Anfrage zum Anlegen/Ändern eines Mitglieds; {@code stichworte}/{@code vereine} sind optional.
+     */
     public record MitgliedRequest(
             String anrede, String vorname, @NotBlank String name, String name2, String name3,
             String briefanrede, String strasse, String plz, String ort, String email,
@@ -89,7 +93,11 @@ public class MitgliedController {
         return mitgliedService.aendern(id, request.toEntity(), request.stichworte(), request.vereine());
     }
 
-    /** Dupliziert ein Mitglied inkl. Stammdaten und Zuordnungen. */
+    /**
+     * @author Nils
+     *
+     * Dupliziert ein Mitglied inkl. Stammdaten und Zuordnungen.
+     */
     @PostMapping("/{id}/duplizieren")
     public ResponseEntity<MitgliedResponse> duplizieren(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.CREATED).body(mitgliedService.duplizieren(id));

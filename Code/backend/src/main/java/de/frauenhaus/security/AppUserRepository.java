@@ -11,6 +11,10 @@ import java.util.Optional;
  */
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
-    /** Sucht einen Benutzer anhand seines eindeutigen Benutzernamens. */
+    /**
+     * @author Nils
+     *
+     * Sucht einen Benutzer anhand seines eindeutigen Benutzernamens.
+     */
     Optional<AppUser> findByUsername(String username);
 }

@@ -12,7 +12,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class FrauenhausApplication {
 
-    /** Startet den Spring-Application-Context. */
+    /**
+     * @author Nils
+     *
+     * Startet den Spring-Application-Context.
+     */
     public static void main(String[] args) {
         SpringApplication.run(FrauenhausApplication.class, args);
     }

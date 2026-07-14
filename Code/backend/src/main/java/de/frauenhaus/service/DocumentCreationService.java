@@ -39,7 +39,11 @@ public class DocumentCreationService {
 
     private static final DateTimeFormatter DATUM = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    /** Vorlagen-Namenszusatz je Spendentyp (FHSB + Zusatz + ".dot"). */
+    /**
+     * @author Nils
+     *
+     * Vorlagen-Namenszusatz je Spendentyp (FHSB + Zusatz + ".dot").
+     */
     private static final Map<String, String> VORLAGE_JE_SPENDENTYP = Map.of(
             "Geldspende dauer", "Dauerspende",
             "Geldspende einmalig", "Geldspende",
@@ -59,6 +63,8 @@ public class DocumentCreationService {
     }
 
     /**
+     * @author Nils
+     *
      * Zahlungsbestätigung an das Gericht (Vorlage FHBG.dot bzw. FVBG.dot):
      * Anschrift des Gerichts, Strafsache, Bußgeldbetrag sowie die Liste der
      * Zahlungseingänge mit Restsummen-Hinweis.
@@ -94,6 +100,8 @@ public class DocumentCreationService {
     }
 
     /**
+     * @author Nils
+     *
      * Spendenbescheinigung (Vorlagen FHSB*.dot bzw. FVSB*.dot je Träger und
      * Spendentyp). Bei Dauerspenden werden alle Einzelspenden des Jahres
      * summiert und als Liste am Lesezeichen {@code einzelbetrag} eingesetzt
@@ -133,7 +141,11 @@ public class DocumentCreationService {
         return DocumentCreationHelpers.fuelleVorlage(spendenVorlage(verein, spendentyp), werte);
     }
 
-    /** FHSB<Typ>.dot bzw. FVSB<Typ>.dot; fehlt die typspezifische Vorlage, die allgemeine FHSB.dot/FVSB.dot. */
+    /**
+     * @author Nils
+     *
+     * FHSB<Typ>.dot bzw. FVSB<Typ>.dot; fehlt die typspezifische Vorlage, die allgemeine FHSB.dot/FVSB.dot.
+     */
     private Path spendenVorlage(String verein, String spendentyp) {
         String praefix = praefix(verein);
         String zusatz = VORLAGE_JE_SPENDENTYP.getOrDefault(spendentyp, "");
@@ -141,11 +153,20 @@ public class DocumentCreationService {
         return Files.exists(spezifisch) ? spezifisch : vorlage(praefix + "SB.dot");
     }
 
-    /** Vorlagen-Präfix des Trägers: Förderverein -> FV, sonst FH. */
+    /**
+     * @author Nils
+     *
+     * Vorlagen-Präfix des Trägers: Förderverein -> FV, sonst FH.
+     */
     private static String praefix(String verein) {
         return "Förderverein".equals(verein) ? "FV" : "FH";
     }
 
+    /**
+     * @author Nils
+     *
+     * Absoluter Pfad einer Vorlage; schlägt mit klarer Meldung fehl, wenn sie fehlt.
+     */
     private Path vorlage(String dateiname) {
         Path pfad = vorlagen.resolve(dateiname);
         if (!Files.exists(pfad)) {
@@ -154,7 +175,11 @@ public class DocumentCreationService {
         return pfad;
     }
 
-    /** Hinweistext zum noch offenen Betrag (alt: Restsummen-Logik der Bußgeldbestätigung). */
+    /**
+     * @author Nils
+     *
+     * Hinweistext zum noch offenen Betrag (alt: Restsummen-Logik der Bußgeldbestätigung).
+     */
     private static String restsummenText(BigDecimal betrag, BigDecimal gezahlt, NumberFormat waehrung) {
         if (gezahlt.signum() == 0) {
             return "Es wurden noch keine Zahlungen geleistet.";

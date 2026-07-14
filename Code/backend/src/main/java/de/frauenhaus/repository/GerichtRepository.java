@@ -14,7 +14,11 @@ import java.util.List;
  */
 public interface GerichtRepository extends JpaRepository<Gericht, Long> {
 
-    /** Generische Suche über die wichtigsten Textfelder der Gerichte. */
+    /**
+     * @author Nils
+     *
+     * Generische Suche über die wichtigsten Textfelder der Gerichte.
+     */
     @Query("""
             SELECT g FROM Gericht g
             WHERE LOWER(COALESCE(g.bezeichnung, '')) LIKE LOWER(CONCAT('%', :suche, '%'))

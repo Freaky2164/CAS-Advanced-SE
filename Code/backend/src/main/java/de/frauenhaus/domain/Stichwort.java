@@ -19,7 +19,11 @@ public class Stichwort {
     @Column(name = "stichwort")
     private String name;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected Stichwort() { }
 
     public Stichwort(String name) { this.name = name; }

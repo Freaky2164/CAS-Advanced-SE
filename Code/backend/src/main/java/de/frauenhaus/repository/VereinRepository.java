@@ -15,7 +15,11 @@ import java.util.List;
  */
 public interface VereinRepository extends JpaRepository<Verein, String> {
 
-    /** Generische Suche über Kürzel und Bezeichnung der Vereine. */
+    /**
+     * @author Nils
+     *
+     * Generische Suche über Kürzel und Bezeichnung der Vereine.
+     */
     @Query("""
             SELECT v FROM Verein v
             WHERE LOWER(COALESCE(v.name, '')) LIKE LOWER(CONCAT('%', :suche, '%'))

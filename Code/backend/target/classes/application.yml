@@ -13,6 +13,15 @@ spring:
       ddl-auto: validate   # Schema kommt ausschließlich aus den DB-Init-Skripten (docker-compose)
     open-in-view: false
 
+  # SMTP für den Verteiler-Versand; ohne spring.mail.host legt Spring keinen
+  # JavaMailSender an und die Anwendung startet nicht (VerteilerService).
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    absender: ${MAIL_ABSENDER:no-reply@localhost}
+
 server:
   port: ${SERVER_PORT:8080}
 
@@ -25,6 +34,10 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    mail:
+      # SMTP ist optional (nur Verteiler-Versand) – Health soll ohne Mailserver nicht DOWN sein
+      enabled: false
 
 app:
   security:

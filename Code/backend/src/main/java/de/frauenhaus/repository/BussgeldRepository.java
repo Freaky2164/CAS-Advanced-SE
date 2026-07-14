@@ -19,7 +19,11 @@ import java.util.List;
  */
 public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
 
-    /** Generische Suche über die wichtigsten Textfelder der Bußgeldliste. */
+    /**
+     * @author Nils
+     *
+     * Generische Suche über die wichtigsten Textfelder der Bußgeldliste.
+     */
     @Query(value = """
             SELECT b FROM Bussgeld b
             JOIN b.gericht g
@@ -48,14 +52,22 @@ public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
                     """)
     Page<Bussgeld> suchen(@Param("suche") String suche, Pageable pageable);
 
-    /** Zeile der Bußgeld-Übersicht: Summen je Gericht (alt: CReportBussgeldUebersicht.compute). */
+    /**
+     * @author Nils
+     *
+     * Zeile der Bußgeld-Übersicht: Summen je Gericht (alt: CReportBussgeldUebersicht.compute).
+     */
     interface UebersichtZeile {
         String getBezeichnung();
         BigDecimal getBussgelder();
         BigDecimal getEingaenge();
     }
 
-    /** Summen der Bußgelder und Zahlungseingänge je Gericht im Zeitraum, für einen Träger. */
+    /**
+     * @author Nils
+     *
+     * Summen der Bußgelder und Zahlungseingänge je Gericht im Zeitraum, für einen Träger.
+     */
     @Query(value = """
             SELECT g.bezeichnung AS bezeichnung,
                    coalesce((SELECT sum(b.betrag) FROM frauenhaus.bussgeld b
@@ -74,7 +86,11 @@ public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
                                      @Param("bis") LocalDate bis,
                                      @Param("verein") String verein);
 
-    /** Bußgelder mit Zahlungseingängen im Zeitraum (alt: CReportBussgeldDetail). */
+    /**
+     * @author Nils
+     *
+     * Bußgelder mit Zahlungseingängen im Zeitraum (alt: CReportBussgeldDetail).
+     */
     @Query("""
             SELECT DISTINCT b FROM Bussgeld b
             JOIN b.eingaenge e

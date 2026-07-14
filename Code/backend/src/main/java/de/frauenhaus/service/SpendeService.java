@@ -30,7 +30,11 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 @Transactional
 public class SpendeService {
 
-    /** Spende mit aufgelöstem Mitgliedsnamen statt verschachtelter Entity. */
+    /**
+     * @author Nils
+     *
+     * Spende mit aufgelöstem Mitgliedsnamen statt verschachtelter Entity.
+     */
     public record SpendeResponse(Long id, Long mitgliedId, String mitgliedName, String spendenart,
                                   String verein, LocalDate datum, BigDecimal betrag, String bemerkung) {
         static SpendeResponse of(Spende s) {

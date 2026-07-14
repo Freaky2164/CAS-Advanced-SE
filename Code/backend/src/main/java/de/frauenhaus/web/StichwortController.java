@@ -21,7 +21,11 @@ import java.util.Map;
 @RequestMapping("/api/stichworte")
 public class StichwortController {
 
-    /** Anfrage zum Zusammenführen: {@code neu} ist das Ziel-Stichwort, {@code alte} die Quell-Stichworte. */
+    /**
+     * @author Nils
+     *
+     * Anfrage zum Zusammenführen: {@code neu} ist das Ziel-Stichwort, {@code alte} die Quell-Stichworte.
+     */
     public record ZusammenfuehrenRequest(@NotBlank String neu, @NotEmpty List<String> alte) { }
 
     private final StichwortService stichwortService;
@@ -30,13 +34,21 @@ public class StichwortController {
         this.stichwortService = stichwortService;
     }
 
-    /** Ordnet dem neuen Stichwort alle Mitglieder der alten Stichworte zu; die alten bleiben erhalten. */
+    /**
+     * @author Nils
+     *
+     * Ordnet dem neuen Stichwort alle Mitglieder der alten Stichworte zu; die alten bleiben erhalten.
+     */
     @PostMapping("/zusammenstellen")
     public Map<String, Integer> zusammenstellen(@RequestBody ZusammenfuehrenRequest request) {
         return Map.of("zugeordnet", stichwortService.zusammenstellen(request.neu(), request.alte()));
     }
 
-    /** Wie {@link #zusammenstellen}, löscht danach aber die alten Stichworte und ihre Zuordnungen. */
+    /**
+     * @author Nils
+     *
+     * Wie {@link #zusammenstellen}, löscht danach aber die alten Stichworte und ihre Zuordnungen.
+     */
     @PostMapping("/zusammenfassen")
     public Map<String, Integer> zusammenfassen(@RequestBody ZusammenfuehrenRequest request) {
         return Map.of("zugeordnet", stichwortService.zusammenfassen(request.neu(), request.alte()));

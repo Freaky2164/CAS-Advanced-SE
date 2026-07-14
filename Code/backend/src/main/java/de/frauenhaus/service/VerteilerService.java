@@ -55,12 +55,20 @@ public class VerteilerService {
         this.absender = absender;
     }
 
-    /** E-Mail-Adressen der Mitglieder mit den gegebenen Stichworten. */
+    /**
+     * @author Nils
+     *
+     * E-Mail-Adressen der Mitglieder mit den gegebenen Stichworten.
+     */
     public List<String> emails(Collection<String> stichworte) {
         return mitglieder.findVerteilerEmails(stichworte);
     }
 
-    /** Versendet eine Sammel-E-Mail an den Verteiler per BCC. */
+    /**
+     * @author Nils
+     *
+     * Versendet eine Sammel-E-Mail an den Verteiler per BCC.
+     */
     public VersandErgebnis versenden(Collection<String> stichworte, String traeger, String betreff, String text) {
         List<String> empfaenger = emails(stichworte);
         if (empfaenger.isEmpty()) {
@@ -87,7 +95,11 @@ public class VerteilerService {
         }
     }
 
-    /** Serienbrief-Adressliste als xlsx (Datenquelle für den Seriendruck). */
+    /**
+     * @author Nils
+     *
+     * Serienbrief-Adressliste als xlsx (Datenquelle für den Seriendruck).
+     */
     public byte[] adressen(Collection<String> stichworte) {
         Workbook wb = ExcelUtil.neuesWorkbook("Serienbrief-Adressen");
         Sheet sheet = wb.getSheetAt(0);
@@ -103,6 +115,8 @@ public class VerteilerService {
     }
 
     /**
+     * @author Nils
+     *
      * Serienbrief-Generierung: ein fertig adressiertes Anschreiben je Empfänger im Verteiler
      * (alt: CCommandBriefFrauenhaus/CCommandBriefFoerderverein + FHBrief.dot/FVBrief.dot).
      * Briefkopf, Anschrift und Briefanrede werden vorausgefüllt; der eigentliche Brieftext

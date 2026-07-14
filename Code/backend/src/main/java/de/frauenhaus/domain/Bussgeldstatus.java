@@ -20,7 +20,11 @@ public class Bussgeldstatus {
     @Column(name = "bussgeldstatus")
     private String name;
 
-    /** Für JPA. */
+    /**
+     * @author Nils
+     *
+     * Für JPA.
+     */
     protected Bussgeldstatus() { }
 
     public Bussgeldstatus(String name) {

@@ -7,16 +7,25 @@
 services:
 
   db:
-    image: postgres:16
-    environment: { POSTGRES_DB: frauenhaus, POSTGRES_USER: frauenhaus_app, POSTGRES_PASSWORD: 'frauenhaus', POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256" }
+    image: postgres:18
+    environment:
+      POSTGRES_DB: frauenhaus
+      POSTGRES_USER: frauenhaus_app
+      POSTGRES_PASSWORD: 'frauenhaus'
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+      # Passwort der eingeschränkten App-Rolle (frauenhaus_backend, unterliegt Row Level Security)
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-frauenhaus}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Ab postgres:18 liegt das Datenverzeichnis unter /var/lib/postgresql/<major>/docker,
+      # das Volume muss daher /var/lib/postgresql (statt .../data) mounten.
+      - pgdata:/var/lib/postgresql
       - ./ops/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
       - backup:/var/lib/pgbackrest
       - ./V1__baseline_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./db/init/02_altdaten_vorbereitung.sql:/docker-entrypoint-initdb.d/02_altdaten_vorbereitung.sql:ro
       - ../data.sql:/docker-entrypoint-initdb.d/03_altdaten.sql:ro
       - ./db/init/04_datenuebernahme.sql:/docker-entrypoint-initdb.d/04_datenuebernahme.sql:ro
+      - ./db/init/05_sicherheit.sh:/docker-entrypoint-initdb.d/05_sicherheit.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U frauenhaus_app -d frauenhaus"]
       interval: 10s
@@ -32,9 +41,18 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: frauenhaus
-      DB_USER: frauenhaus_app
-      DB_PASSWORD: 'frauenhaus'
+      # Eingeschränkte App-Rolle: kein DDL, kein BYPASSRLS – Zugriff auf personenbezogene
+      # Daten nur mit gesetztem Benutzerkontext (Row Level Security, 05_sicherheit.sh)
+      DB_USER: frauenhaus_backend
+      DB_PASSWORD: ${DB_APP_PASSWORD:-frauenhaus}
       APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
+      # SMTP für den Verteiler-Versand (optional; ohne echten Mailserver
+      # funktioniert alles außer /api/reports/verteiler/versenden)
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-25}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ABSENDER: ${MAIL_ABSENDER:-no-reply@localhost}
     ports:
       - "8080:8080"
 

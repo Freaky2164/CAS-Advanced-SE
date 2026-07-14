@@ -20,6 +20,8 @@ public final class BetragInWorten {
     private BetragInWorten() { }
 
     /**
+     * @author Nils
+     *
      * Zahlwort ohne Währungsangabe – für Vorlagen, die das Wort "Euro" bereits
      * enthalten (Lesezeichen {@code worte} in den Spendenbescheinigungen),
      * z.B. {@code 50.05} -> {@code "*fünfzig Komma null fünf*"}.
@@ -42,6 +44,8 @@ public final class BetragInWorten {
     }
 
     /**
+     * @author Nils
+     *
      * Wandelt einen Geldbetrag in die für Spendenquittungen übliche Textform um,
      * z.B. {@code 50.05} -> {@code "*fünfzig Euro und fünf Cent*"}.
      */
@@ -59,7 +63,11 @@ public final class BetragInWorten {
         return sb.append('*').toString();
     }
 
-    /** Wandelt eine nichtnegative Ganzzahl rekursiv in deutsche Zahlwörter um. */
+    /**
+     * @author Nils
+     *
+     * Wandelt eine nichtnegative Ganzzahl rekursiv in deutsche Zahlwörter um.
+     */
     private static String zahlInWorten(long n) {
         if (n < 20) {
             return n != 1 ? EINER[(int) n] : "eins";
@@ -83,7 +91,11 @@ public final class BetragInWorten {
         return (mioText + (rest > 0 ? zahlInWorten(rest) : "")).trim();
     }
 
-    /** Standalone "eins" wird als Multiplikator zu "ein" (eintausend, einhunderteintausend). */
+    /**
+     * @author Nils
+     *
+     * Standalone "eins" wird als Multiplikator zu "ein" (eintausend, einhunderteintausend).
+     */
     private static String alsPrefix(String zahlwort) {
         return zahlwort.endsWith("eins")
                 ? zahlwort.substring(0, zahlwort.length() - 1)

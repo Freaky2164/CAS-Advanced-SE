@@ -34,7 +34,11 @@ public class BussgeldReportService {
         this.bussgelder = bussgelder;
     }
 
-    /** Übersicht: je Träger die Summen pro Gericht (Bußgelder vs. Zahlungseingänge). */
+    /**
+     * @author Nils
+     *
+     * Übersicht: je Träger die Summen pro Gericht (Bußgelder vs. Zahlungseingänge).
+     */
     public byte[] uebersicht(LocalDate von, LocalDate bis) {
         Workbook wb = ExcelUtil.neuesWorkbook("Bußgelder Übersicht");
         Sheet sheet = wb.getSheetAt(0);
@@ -56,7 +60,11 @@ public class BussgeldReportService {
         return ExcelUtil.toBytes(wb);
     }
 
-    /** Detail: Bußgelder mit allen Zahlungseingängen im Zeitraum. */
+    /**
+     * @author Nils
+     *
+     * Detail: Bußgelder mit allen Zahlungseingängen im Zeitraum.
+     */
     public byte[] detail(LocalDate von, LocalDate bis, String verein) {
         Workbook wb = ExcelUtil.neuesWorkbook("Bußgelder Detail");
         Sheet sheet = wb.getSheetAt(0);

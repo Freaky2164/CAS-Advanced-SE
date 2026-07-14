@@ -22,14 +22,22 @@ public class StichwortService {
         this.stichworte = stichworte;
     }
 
-    /** Neues Stichwort aus bestehenden zusammenstellen (alte bleiben erhalten). */
+    /**
+     * @author Nils
+     *
+     * Neues Stichwort aus bestehenden zusammenstellen (alte bleiben erhalten).
+     */
     @Transactional
     public int zusammenstellen(String neu, Collection<String> alte) {
         stichworte.findById(neu).orElseGet(() -> stichworte.save(new Stichwort(neu)));
         return stichworte.stichworteZuordnen(neu, alte);
     }
 
-    /** Stichworte zu einem neuen zusammenfassen, alte Stichworte werden gelöscht. */
+    /**
+     * @author Nils
+     *
+     * Stichworte zu einem neuen zusammenfassen, alte Stichworte werden gelöscht.
+     */
     @Transactional
     public int zusammenfassen(String neu, Collection<String> alte) {
         int zugeordnet = zusammenstellen(neu, alte);
