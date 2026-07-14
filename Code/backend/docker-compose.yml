@@ -1,5 +1,13 @@
-# Entwicklungs- und Produktionsnahe Umgebung: PostgreSQL 16 + pgBackRest-Sidecar + Backend.
-# Start:  DB_PASSWORD=... APP_ADMIN_PASSWORD=... docker compose up -d
+# @author Nils
+# Entwicklungs- und produktionsnahe Umgebung:
+# PostgreSQL 18 + pgBackRest-Sidecar + Backend + Web (nginx mit Angular-Build).
+# Start:  APP_ADMIN_PASSWORD=... docker compose up -d --build   ->  http://localhost:${WEB_PORT:-80}
+#
+# Einziger nach außen veröffentlichter Port ist der des Web-Containers; nginx
+# reverse-proxyt /api intern auf backend:8080. Backend und DB sind vom Host aus
+# nicht erreichbar. Nur für die lokale Entwicklung mappt docker-compose.override.yml
+# Backend (127.0.0.1:8080) und DB (127.0.0.1:5432) auf den Host – in Produktion
+# die Override-Datei weglassen: docker compose -f docker-compose.yml up -d
 #
 # Die Init-Skripte (Schema + Datenübernahme aus dem Altsystem-Backup ../data.sql)
 # laufen nur beim allerersten Start auf leerem Volume. Neu aufsetzen mit:
@@ -53,9 +61,25 @@ services:
       MAIL_USER: ${MAIL_USER:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_ABSENDER: ${MAIL_ABSENDER:-no-reply@localhost}
+    # Bewusst KEIN ports-Mapping: erreichbar nur im Compose-Netz (über den
+    # Web-Proxy) bzw. lokal über docker-compose.override.yml.
+
+  web:
+    build: ../frontend
+    depends_on:
+      - backend
     ports:
-      - "8080:8080"
+      - "${WEB_PORT:-80}:80"
+      - "${WEB_TLS_PORT:-443}:443"
+    volumes:
+      # Dev: hier landet das beim ersten Start erzeugte selbstsignierte Zertifikat
+      # (bleibt so über Container-Neustarts stabil). Produktion: stattdessen das
+      # echte Zertifikat read-only mounten, z.B.:
+      #   - /etc/letsencrypt/live/<domain>/fullchain.pem:/etc/nginx/tls/tls.crt:ro
+      #   - /etc/letsencrypt/live/<domain>/privkey.pem:/etc/nginx/tls/tls.key:ro
+      - tls:/etc/nginx/tls
 
 volumes:
   pgdata:
   backup:
+  tls:

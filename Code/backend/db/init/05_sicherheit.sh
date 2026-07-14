@@ -63,5 +63,3 @@ BEGIN
 END
 \$\$;
 EOSQL
-
-echo "05_sicherheit: Rolle frauenhaus_backend angelegt, Row Level Security aktiv."
