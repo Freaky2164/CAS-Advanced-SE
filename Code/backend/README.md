@@ -7,6 +7,25 @@ Spring Boot / Java 25 / PostgreSQL 18. Neubau der alten Compucrash-Swing-Anwendu
 
     APP_ADMIN_PASSWORD=<initiales Admin-Passwort> docker compose up -d --build
 
+Danach läuft die komplette Anwendung unter **https://localhost** (Ports über
+`WEB_PORT`/`WEB_TLS_PORT` änderbar, HTTP leitet auf HTTPS um). Einziger
+veröffentlichter Dienst ist der `web`-Container (nginx mit dem Angular-Build);
+`/api` wird intern auf `backend:8080` geproxyt, Backend und DB sind vom Host aus
+nicht erreichbar. Die `docker-compose.override.yml` mappt nur für die lokale
+Entwicklung Backend (127.0.0.1:8080) und DB (127.0.0.1:15432) auf den Host –
+Produktion startet ohne sie:
+
+    docker compose -f docker-compose.yml up -d --build
+
+**TLS:** nginx terminiert HTTPS mit dem Zertifikat unter `/etc/nginx/tls/tls.{crt,key}`.
+Liegt dort keines, erzeugt der Container beim ersten Start ein selbstsigniertes
+für `localhost` (Browser-Warnung ist dann normal; es bleibt im `tls`-Volume
+über Neustarts erhalten – neu erzeugen mit `docker volume rm backend_tls`).
+In Produktion das echte Zertifikat read-only über das Volume mounten (Beispiel
+in docker-compose.yml) und dort auch den auskommentierten HSTS-Header in
+`frontend/nginx.conf` aktivieren. Private Schlüssel liegen nie im Repository
+oder im Image.
+
 Beim allerersten Start (leeres DB-Volume) laufen die Init-Skripte:
 
 1. `V1__baseline_schema.sql` – Zielschema (`frauenhaus.*`, `app.app_user`, Envers-Audit)
@@ -40,11 +59,12 @@ Beim allerersten Anwendungsstart wird der Benutzer `admin` angelegt
 ## Start (Backend lokal, DB im Container)
 
     docker compose up -d db
-    DB_PASSWORD=frauenhaus APP_ADMIN_PASSWORD=<initiales Admin-Passwort> ./mvnw spring-boot:run
+    DB_PORT=15432 DB_PASSWORD=frauenhaus APP_ADMIN_PASSWORD=<initiales Admin-Passwort> ./mvnw spring-boot:run
 
 Maven muss nicht installiert sein – der Maven Wrapper (`./mvnw`) lädt sich die
-passende Version selbst. `docker-compose.override.yml` mappt den DB-Port 5432
-für die lokale Entwicklung auf den Host (in Produktion weglassen).
+passende Version selbst. `docker-compose.override.yml` mappt den DB-Port für die
+lokale Entwicklung auf Host-Port **15432** (5432 ist auf Entwickler-Rechnern oft
+von einem lokalen Postgres belegt). Tests analog: `DB_PORT=15432 mvn test`.
 
 Das Angular-Frontend liegt in `../frontend` (Start: `npm start`, siehe dortiges README).
 

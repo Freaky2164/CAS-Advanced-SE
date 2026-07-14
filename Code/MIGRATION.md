@@ -114,6 +114,14 @@ Noch offen: `mvn verify` lokal ausführen (in der Sandbox war kein Maven/JDK 17 
   eingefügte Absatzmarken im Word-Binärformat keine Absatz-Eigenschaften (PAPX) haben.
   `DocumentCreationHelpers` klont jetzt die Formatierung des Vorlagen-Absatzes auf alle
   eingefügten Zeilen – Bulletpoints/Nummerierungen werden je Zeile weitergeführt.
+- **Ein Einstiegspunkt, TLS terminiert im nginx:** Der Compose-Stack enthält jetzt einen
+  `web`-Container (nginx + Angular-Build, `frontend/Dockerfile`), der als einziger Ports
+  veröffentlicht (80 → Redirect, 443 → App) und `/api` intern auf `backend:8080` proxyt.
+  Backend und DB sind von außen nicht mehr erreichbar (Dev-Mappings nur über
+  `docker-compose.override.yml`, an 127.0.0.1 gebunden; DB auf Host-Port 15432, weil
+  5432 lokal oft belegt ist). TLS: echtes Zertifikat per Volume-Mount, sonst erzeugt
+  `frontend/tls-selbstsigniert.sh` beim ersten Start ein selbstsigniertes – die
+  Basic-Auth-Zugangsdaten laufen damit nie mehr im Klartext übers Netz.
 
 ## 6. Ursprünglich empfohlene Reihenfolge
 
