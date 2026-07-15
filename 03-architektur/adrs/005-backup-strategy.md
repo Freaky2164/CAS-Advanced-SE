@@ -1,4 +1,4 @@
-# ADR-004: Backup-Strategie – pgBackRest mit WAL-Archivierung und 3-2-1-Regel
+# ADR-005: Backup-Strategie – pgBackRest mit WAL-Archivierung und 3-2-1-Regel
 
 ## Status
 

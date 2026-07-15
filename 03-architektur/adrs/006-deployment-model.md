@@ -1,4 +1,4 @@
-# ADR-005: Deployment-Modell – On-Premises statt Cloud (DSGVO)
+# ADR-006: Deployment-Modell – On-Premises statt Cloud (DSGVO)
 
 ## Status
 

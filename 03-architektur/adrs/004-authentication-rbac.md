@@ -1,4 +1,4 @@
-# ADR-003: Authentifizierung & Autorisierung – Zustandslose HTTP-Basic-Auth mit BCrypt und RBAC
+# ADR-004: Authentifizierung & Autorisierung – Zustandslose HTTP-Basic-Auth mit BCrypt und RBAC
 
 ## Status
 
