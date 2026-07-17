@@ -10,15 +10,12 @@ Das bestehende System ist eine Java-Swing-Desktop-Anwendung (ca. 2005–2013) mi
 2-Schichten-Architektur: Ein Fat Client pro Arbeitsplatz kommuniziert direkt per JDBC mit
 einer MS SQL Server Express Datenbank. Dieses Modell verursacht erhebliche Probleme:
 
-- **Sicherheit**: Datenbank-Zugangsdaten liegen im Klartext auf jedem Client-PC (.ini-Dateien),
-  SQL-Queries werden per String-Konkatenation gebaut (SQL-Injection-Anfälligkeit),
+- **Sicherheit**: Datenbank-Zugangsdaten liegen im Klartext auf jedem Client-PC (.ini-Dateien), SQL-Queries werden per String-Konkatenation gebaut (SQL-Injection-Anfälligkeit),
   kein Rollenkonzept auf Anwendungsebene
-- **Wartung**: Jede Änderung erfordert Neuinstallation auf allen PCs, kein zentrales Logging,
-  kein automatisiertes Update-Verfahren
+- **Wartung**: Jede Änderung erfordert Neuinstallation auf allen PCs, kein zentrales Logging, kein automatisiertes Update-Verfahren
 - **Betrieb**: Keine Zwischenschicht für Geschäftslogik, Validierung und Zugriffskontrolle
 
-Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und gleichzeitig
-im Rahmen eines kleinen Teams (Verein mit wenigen Arbeitsplätzen, kein IT-Personal) betreibbar bleibt.
+Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und gleichzeitig im Rahmen eines kleinen Teams (Verein mit wenigen Arbeitsplätzen, kein IT-Personal) betreibbar bleibt.
 
 ## Entscheidung
 
@@ -27,10 +24,10 @@ mit folgender Aufteilung:
 
 1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
 2. **Anwendungsschicht**: Zentrales REST-Backend als Windows-Dienst auf dem Server
-3. **Datenschicht**: MS SQL Server (Standard/Developer Edition) auf demselben Server
+3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben Server
 
 ```
-Browser (SPA)  ──HTTPS/REST──►  Backend (Windows-Dienst)  ──JDBC/SSL──►  SQL Server
+Browser (SPA)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
 ```
 
 ## Betrachtete Alternativen
@@ -44,7 +41,7 @@ Beibehaltung der 2-Schichten-Architektur mit modernisiertem Desktop-Client (z.B.
 | Client-Deployment | ❌ Weiterhin Installation auf jedem PC nötig |
 | Sicherheit | ❌ DB-Credentials weiterhin auf Clients, kein zentraler Sicherheitsfilter |
 | Updates | ❌ Jedes Update muss auf allen PCs eingespielt werden |
-| Offline-Fähigkeit | ✅ Lokale Anwendung funktioniert ohne Netzwerk |
+| Offline-Fähigkeit | ✅ Lokale Anwendung kann auch ohne Netzwerk funktionieren |
 | Komplexität | ✅ Einfachere Gesamtarchitektur (weniger Komponenten) |
 
 **Ablehnung**: Das Kernproblem – verteilte Installation, fehlende Sicherheitsschicht,
@@ -61,7 +58,7 @@ Spenden-Service, Bußgeld-Service, Auth-Service).
 | Technologiefreiheit | ✅ Jeder Service kann andere Technologie nutzen |
 | Betriebskomplexität | ❌ Service Discovery, API Gateway, verteiltes Logging nötig |
 | Infrastruktur | ❌ Erfordert Container-Orchestrierung (Docker/Kubernetes) |
-| Teamgröße | ❌ Für ein kleines Team (3–5 Nutzer, kein IT-Personal) massiv überdimensioniert |
+| Teamgröße | ❌ Für ein kleines Team (kein IT-Personal) massiv überdimensioniert |
 | Datenkonsistenz | ❌ Verteilte Transaktionen zwischen Services komplex |
 
 **Ablehnung**: Unverhältnismäßiger Betriebsaufwand für eine Vereinsanwendung mit
@@ -75,29 +72,20 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 | Sicherheit | ✅ Zentrale Authentifizierung/Autorisierung im Backend, kein DB-Zugriff vom Client |
 | Updates | ✅ JAR austauschen + Dienst neustarten – alle Clients sofort aktuell |
 | Wartung | ✅ Ein Server, eine Konfiguration, zentrales Logging |
-| Betriebskomplexität | ✅ Ein Windows-Dienst + SQL Server – beherrschbar ohne IT-Abteilung |
+| Betriebskomplexität | ✅ Ein Windows-Dienst + Datenbank – beherrschbar ohne IT-Abteilung |
 | Offline-Fähigkeit | ⚠️ Erfordert Netzwerkverbindung zum Server (akzeptabel im LAN) |
 
 ## Begründung
 
-1. **Eliminierung des Hauptproblems**: Die zentrale Schwachstelle des IST-Systems – verteilte
-   Fat Clients mit direktem DB-Zugriff – wird vollständig eliminiert. Kein Client hat mehr
-   Datenbank-Credentials oder kann SQL-Queries direkt absetzen.
+1. **Eliminierung des Hauptproblems**: Die zentrale Schwachstelle des IST-Systems – verteilte Fat Clients mit direktem DB-Zugriff – wird vollständig eliminiert. Kein Client hat mehr Datenbank-Credentials oder kann SQL-Queries direkt absetzen.
 
-2. **Defence in Depth**: Die Anwendungsschicht bildet eine verbindliche Sicherheitsbarriere
-   zwischen Nutzer und Datenbank (Authentifizierung, Autorisierung, Input-Validierung,
-   Prepared Statements).
+2. **Defence in Depth**: Die Anwendungsschicht bildet eine verbindliche Sicherheitsbarriere    zwischen Nutzer und Datenbank (Authentifizierung, Autorisierung, Input-Validierung, Prepared Statements).
 
-3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + SQL Server)
-   ist für einen Verein ohne IT-Personal betreibbar. Updates erfolgen durch JAR-Austausch
-   in unter 10 Minuten.
+3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + Datenbank) ist für einen Verein ohne IT-Personal betreibbar. Die operative Komplexität des aktuellen IST-Systems wird mit der neuen Lösung nicht überstiegen.
 
-4. **Zukunftsfähigkeit**: Die REST-API ermöglicht später zusätzliche Clients (Mobile App,
-   Automatisierungsskripte) ohne Backend-Änderung.
+4. **Zukunftsfähigkeit**: Die REST-API ermöglicht später zusätzliche Clients (Mobile App, Automatisierungsskripte) ohne Backend-Änderung.
 
-5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss
-   zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext
-   (kleiner Verein, LAN-Betrieb, wenige Nutzer).
+5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
 
 ## Konsequenzen
 
