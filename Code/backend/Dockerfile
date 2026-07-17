@@ -4,7 +4,9 @@ WORKDIR /build
 COPY pom.xml .
 RUN mvn -q dependency:go-offline
 COPY src ./src
-RUN mvn -q -DskipTests package
+# -Pproduction baut das Vaadin-Frontend als optimiertes Produktions-Bundle
+# (das vaadin-maven-plugin lädt sich Node.js dafür selbst herunter)
+RUN mvn -q -DskipTests -Pproduction package
 
 # Run (schlankes JRE, non-root)
 FROM eclipse-temurin:25-jre

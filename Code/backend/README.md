@@ -1,30 +1,28 @@
-# Frauenhaus-Verwaltung – Backend
+# Frauenhaus-Verwaltung – Backend + Vaadin-UI
 
-Spring Boot / Java 25 / PostgreSQL 18. Neubau der alten Compucrash-Swing-Anwendung
-(Adress-, Spenden- und Bußgeldverwaltung). Details zur Migration: ../MIGRATION.md.
+Spring Boot / Java 25 / Vaadin 25 / PostgreSQL 18. Neubau der alten
+Compucrash-Swing-Anwendung (Adress-, Spenden- und Bußgeldverwaltung).
+Details zur Migration: ../MIGRATION.md.
+
+Das UI ist seit dem Vaadin-Umbau (Branch `vaadin-prototype`) ein server-seitiges
+Java-UI (Vaadin Flow, Paket `de.frauenhaus.ui`) und wird direkt vom Backend
+ausgeliefert – das frühere Angular/npm-Frontend und der nginx-Container entfallen.
+Die Views rufen die Service-Schicht direkt auf; die REST-API unter `/api` bleibt
+unverändert bestehen (HTTP Basic, z.B. für Skripte und Tests).
 
 ## Start (komplett in Containern, mit Bestandsdaten)
 
     APP_ADMIN_PASSWORD=<initiales Admin-Passwort> docker compose up -d --build
 
-Danach läuft die komplette Anwendung unter **https://localhost** (Ports über
-`WEB_PORT`/`WEB_TLS_PORT` änderbar, HTTP leitet auf HTTPS um). Einziger
-veröffentlichter Dienst ist der `web`-Container (nginx mit dem Angular-Build);
-`/api` wird intern auf `backend:8080` geproxyt, Backend und DB sind vom Host aus
-nicht erreichbar. Die `docker-compose.override.yml` mappt nur für die lokale
-Entwicklung Backend (127.0.0.1:8080) und DB (127.0.0.1:15432) auf den Host –
-Produktion startet ohne sie:
+Danach läuft die komplette Anwendung unter **http://localhost:8080** (Port über
+`WEB_PORT` änderbar) – Anmeldung über die Login-Seite mit den `app.app_user`-Benutzern.
+Die DB bleibt vom Host aus unerreichbar; `docker-compose.override.yml` mappt sie
+nur für die lokale Entwicklung auf 127.0.0.1:15432. Produktion startet ohne sie:
 
     docker compose -f docker-compose.yml up -d --build
 
-**TLS:** nginx terminiert HTTPS mit dem Zertifikat unter `/etc/nginx/tls/tls.{crt,key}`.
-Liegt dort keines, erzeugt der Container beim ersten Start ein selbstsigniertes
-für `localhost` (Browser-Warnung ist dann normal; es bleibt im `tls`-Volume
-über Neustarts erhalten – neu erzeugen mit `docker volume rm backend_tls`).
-In Produktion das echte Zertifikat read-only über das Volume mounten (Beispiel
-in docker-compose.yml) und dort auch den auskommentierten HSTS-Header in
-`frontend/nginx.conf` aktivieren. Private Schlüssel liegen nie im Repository
-oder im Image.
+**TLS:** terminiert in Produktion ein vorgelagerter Reverse-Proxy (nginx, caddy,
+Traefik …) vor `backend:8080`; der Prototyp selbst spricht HTTP.
 
 Beim allerersten Start (leeres DB-Volume) laufen die Init-Skripte:
 
@@ -66,7 +64,11 @@ passende Version selbst. `docker-compose.override.yml` mappt den DB-Port für di
 lokale Entwicklung auf Host-Port **15432** (5432 ist auf Entwickler-Rechnern oft
 von einem lokalen Postgres belegt). Tests analog: `DB_PORT=15432 mvn test`.
 
-Das Angular-Frontend liegt in `../frontend` (Start: `npm start`, siehe dortiges README).
+UI und API laufen dann gemeinsam unter http://localhost:8080. Im Entwicklungsmodus
+nutzt Vaadin sein vorkompiliertes Dev-Bundle – npm/Node ist lokal nicht nötig,
+solange nur Standard-Komponenten verwendet werden. Erst der Produktions-Build
+(`./mvnw package -Pproduction`, macht das Dockerfile) baut das optimierte
+Frontend-Bundle und lädt sich Node.js dafür bei Bedarf selbst herunter.
 
 ## Dokumente aus Word-Vorlagen
 

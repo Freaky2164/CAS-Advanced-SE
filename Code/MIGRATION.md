@@ -132,3 +132,19 @@ Noch offen: `mvn verify` lokal ausführen (in der Sandbox war kein Maven/JDK 17 
 5. Fachlogik aus `frauenhaus/` als Services portieren (erst Reports, dann Serienbriefe).
 6. Backup-Konzept (pgBackRest) parallel zur ersten Prod-Umgebung aufsetzen.
 7. Danach: Alt-Code-Reste (`compucrash/`, `frauenhaus/`, `de/`) löschen, sobald portiert.
+
+## 7. Update Juli 2026: Vaadin statt Angular/npm (Branch `vaadin-prototype`)
+
+Das Angular/npm-Frontend (`frontend/`) wurde durch ein server-seitiges
+Vaadin-Flow-UI im Backend ersetzt (Paket `de.frauenhaus.ui`, Vaadin 25):
+
+- Die Views rufen die bestehende Service-Schicht direkt auf – kein HTTP-Zwischenschritt,
+  kein eigenes npm-Projekt, keine TypeScript-Toolchain mehr.
+- Login als Vaadin-Formular-Login (Session) über eine zweite Security-Filterkette;
+  die REST-API unter `/api` bleibt unverändert zustandslos per HTTP Basic bestehen.
+- Row Level Security funktioniert unverändert: Vaadin-Requests laufen durch dieselbe
+  Spring-Security-Kette, `RowLevelSecurityDataSource` setzt den Benutzerkontext.
+- Der `web`-/nginx-Container entfällt; das Backend veröffentlicht Port 8080 selbst,
+  TLS terminiert in Produktion ein vorgelagerter Reverse-Proxy.
+- Report-Downloads laufen über Vaadin `DownloadHandler` direkt auf die Report-Services,
+  Datei-Anhänge über `UploadHandler` (Byte-Array-Overload in `DokumentService`).

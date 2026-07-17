@@ -1,8 +1,11 @@
 package de.frauenhaus.config;
 
+import com.vaadin.flow.spring.security.VaadinSecurityConfigurer;
+import de.frauenhaus.ui.LoginView;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,8 +18,9 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * @author Nils
  *
- * Sicherheitskonfiguration der REST-API: zustandslose HTTP-Basic-Authentifizierung
- * mit rollenbasiertem Zugriff (ADMIN vs. übrige Endpunkte).
+ * Sicherheitskonfiguration mit zwei Filterketten: die REST-API bleibt zustandslos
+ * per HTTP Basic abgesichert (z.B. für Skripte und Tests), das Vaadin-UI nutzt
+ * eine Session mit Formular-Login über die {@link LoginView}.
  */
 @Configuration
 @EnableWebSecurity
@@ -36,30 +40,47 @@ public class SecurityConfig {
     /**
      * @author Nils
      *
-     * Definiert die Filterkette: CSRF-Schutz deaktiviert (rein zustandslose API),
+     * Filterkette der REST-API: CSRF-Schutz deaktiviert (rein zustandslose API),
      * Health-Endpunkt frei zugänglich, Admin-Endpunkte nur für Rolle ADMIN,
      * alle übrigen Anfragen erfordern eine Anmeldung per HTTP Basic.
      */
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
+                .securityMatcher("/api/**", "/actuator/**")
                 .csrf(csrf -> csrf.disable()) // zustandslose REST-API; bei Cookie-Sessions wieder aktivieren!
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
-                .httpBasic(basic -> basic.authenticationEntryPoint(spaEntryPoint()));
+                .httpBasic(basic -> basic.authenticationEntryPoint(apiEntryPoint()));
         return http.build();
     }
 
     /**
      * @author Nils
      *
-     * 401 ohne "WWW-Authenticate: Basic"-Header, damit der Browser beim
-     * SPA-Frontend keinen nativen Login-Dialog öffnet.
+     * Filterkette des Vaadin-UIs: der {@link VaadinSecurityConfigurer} übernimmt
+     * CSRF-Behandlung, statische Ressourcen und die annotierte Zugriffskontrolle
+     * der Views (@PermitAll/@RolesAllowed); nicht angemeldete Benutzer landen
+     * auf der Login-View.
      */
-    private static AuthenticationEntryPoint spaEntryPoint() {
+    @Bean
+    @Order(2)
+    SecurityFilterChain uiFilterChain(HttpSecurity http) throws Exception {
+        http.with(VaadinSecurityConfigurer.vaadin(), configurer -> configurer.loginView(LoginView.class));
+        return http.build();
+    }
+
+    /**
+     * @author Nils
+     *
+     * 401 ohne "WWW-Authenticate: Basic"-Header, damit API-Clients im Browser
+     * keinen nativen Login-Dialog auslösen.
+     */
+    private static AuthenticationEntryPoint apiEntryPoint() {
         return (request, response, authException) ->
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
     }

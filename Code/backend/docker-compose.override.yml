@@ -4,16 +4,14 @@
 #  - DB-Port auf Host-Port 15432 (5432 ist auf Entwickler-Rechnern oft von einem
 #    lokalen Postgres belegt!), damit `DB_PORT=15432 ./mvnw spring-boot:run` und
 #    `DB_PORT=15432 mvn test` gegen die Container-DB laufen können
-#  - Backend-Port auf den Host, damit `ng serve` (proxy.conf.json) und
-#    curl-Tests direkt gegen die API gehen können
 #  - Profil "dev" fürs Backend (siehe application-dev.yml)
-# Beide Ports bewusst nur an 127.0.0.1 gebunden, nicht ins lokale Netz.
+# Der DB-Port ist bewusst nur an 127.0.0.1 gebunden, nicht ins lokale Netz.
+# (Der Backend-Port kommt bereits aus docker-compose.yml: UI und API laufen
+# seit der Vaadin-Umstellung gemeinsam unter http://localhost:8080.)
 services:
   db:
     ports:
       - "127.0.0.1:15432:5432"
   backend:
-    ports:
-      - "127.0.0.1:8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: dev

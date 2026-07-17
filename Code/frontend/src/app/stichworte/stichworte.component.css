@@ -1,9 +1,0 @@
-.card {
-  max-width: 34rem;
-}
-
-.aktionen {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}

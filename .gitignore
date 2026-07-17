@@ -33,3 +33,16 @@ Code/frauenhaus/vorlagen
 **/*.xls
 **/*.xlsx
 .junie
+
+# Maven-Build-Output (war teils versehentlich eingecheckt)
+Code/backend/target/
+
+# Vaadin: generiertes Frontend und npm-Artefakte des Produktions-Builds
+Code/backend/src/main/frontend/generated/
+Code/backend/node_modules/
+Code/backend/package.json
+Code/backend/package-lock.json
+Code/backend/vite.generated.ts
+Code/backend/vite.config.ts
+Code/backend/tsconfig.json
+Code/backend/types.d.ts

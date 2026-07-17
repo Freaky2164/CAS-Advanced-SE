@@ -75,23 +75,42 @@ public class DokumentService {
     }
 
     public DokumentMetadaten hochladen(String entityTyp, String entityId, MultipartFile datei) {
+        pruefeDatei(datei);
+        try {
+            return hochladen(entityTyp, entityId, dateiname(datei), contentType(datei), datei.getBytes());
+        } catch (IOException e) {
+            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Datei konnte nicht gelesen werden", e);
+        }
+    }
+
+    /**
+     * @author Nils
+     *
+     * Upload-Variante für das Vaadin-UI, das die Datei bereits als Byte-Array vorliegen hat.
+     */
+    public DokumentMetadaten hochladen(String entityTyp, String entityId,
+                                       String dateiname, String contentType, byte[] inhalt) {
         Dokument.EntityTyp typ = pruefeEntityTyp(entityTyp);
         String normalisierteEntityId = pruefeEntityId(typ, entityId);
-        pruefeDatei(datei);
+        if (inhalt == null || inhalt.length == 0) {
+            throw new ResponseStatusException(BAD_REQUEST, "Bitte eine Datei auswählen");
+        }
+        if (inhalt.length > MAX_DATEIGROESSE) {
+            throw new ResponseStatusException(PAYLOAD_TOO_LARGE, "Datei ist zu groß – maximal 10 MB");
+        }
+        if (!StringUtils.hasText(dateiname)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Dateiname fehlt");
+        }
 
         Dokument dokument = new Dokument();
         dokument.setEntityTyp(typ);
         dokument.setEntityId(normalisierteEntityId);
-        dokument.setDateiname(dateiname(datei));
-        dokument.setContentType(contentType(datei));
-        dokument.setGroesse(datei.getSize());
+        dokument.setDateiname(dateiname);
+        dokument.setContentType(StringUtils.hasText(contentType) ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        dokument.setGroesse(inhalt.length);
         dokument.setHochgeladenAm(OffsetDateTime.now());
         dokument.setHochgeladenVon(aktuellerBenutzer());
-        try {
-            dokument.setInhalt(datei.getBytes());
-        } catch (IOException e) {
-            throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Datei konnte nicht gelesen werden", e);
-        }
+        dokument.setInhalt(inhalt);
         return DokumentMetadaten.of(dokumente.save(dokument));
     }
 
