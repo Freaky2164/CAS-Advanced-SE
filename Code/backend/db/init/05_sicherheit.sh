@@ -9,12 +9,17 @@
 #
 # 2. Row Level Security auf allen Tabellen mit personenbezogenen Daten
 #    (DSGVO Art. 5/9 – Adressen, Spenden, Bußgelder, Anhänge, Änderungshistorie):
-#    Zeilen sind nur sichtbar/änderbar, wenn die Anwendung pro Verbindung den
-#    authentifizierten Benutzerkontext gesetzt hat
-#    (Session-Variablen app.benutzer / app.benutzer_rolle, siehe
-#    RowLevelSecurityDataSource im Backend). Eine Verbindung mit den
-#    Backend-Zugangsdaten OHNE diesen Kontext – etwa ein direkt angebundenes
-#    psql oder ein kompromittierter Client – sieht keine einzige Zeile.
+#    Zeilen sind nur sichtbar/änderbar, wenn die Verbindung den Benutzerkontext
+#    trägt (Session-Variablen app.benutzer / app.benutzer_rolle, siehe
+#    RowLevelSecurityDataSource im Backend).
+#
+#    GRENZE (Gruppen-Review): Die Session-Variablen kann jede Verbindung selbst
+#    per set_config setzen – auch eine mit geleakten Backend-Zugangsdaten. RLS
+#    schützt hier also vor kontextlosem Zugriff (versehentliches psql, naive
+#    Clients), ist aber KEINE harte Barriere gegen einen Angreifer, der die
+#    Zugangsdaten kennt. Deshalb zusätzlich: Audit-Historie ist für die
+#    App-Rolle append-only (kein UPDATE/DELETE, s.u.), Manipulationen bleiben
+#    damit zumindest nachvollziehbar.
 #
 # Bewusst ohne RLS:
 #  - app.app_user: wird bei der Anmeldung gelesen, BEVOR ein Benutzerkontext
@@ -31,6 +36,15 @@ CREATE ROLE frauenhaus_backend LOGIN PASSWORD '${DB_APP_PASSWORD:-frauenhaus}'
 GRANT USAGE ON SCHEMA frauenhaus, app TO frauenhaus_backend;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA frauenhaus, app TO frauenhaus_backend;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA frauenhaus, app TO frauenhaus_backend;
+
+-- Audit-Historie append-only: Envers schreibt nur INSERTs und liest für den
+-- Verlauf; UPDATE/DELETE wird entzogen, damit selbst mit gefälschtem
+-- Benutzerkontext keine Historie gelöscht werden kann (identisch zur
+-- Flyway-Migration V6, die Bestands-Datenbanken nachzieht).
+REVOKE UPDATE, DELETE ON
+    frauenhaus.mitglied_aud, frauenhaus.spende_aud, frauenhaus.bussgeld_aud,
+    frauenhaus.verein_aud, frauenhaus.gericht_aud, app.revinfo
+FROM frauenhaus_backend;
 
 -- Row Level Security: Freigabe nur mit gesetztem, gültigem Benutzerkontext.
 -- current_setting(..., true) liefert NULL statt Fehler, wenn nichts gesetzt ist.

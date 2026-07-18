@@ -26,15 +26,35 @@ Traefik …) vor `backend:8080`; der Prototyp selbst spricht HTTP.
 
 Beim allerersten Start (leeres DB-Volume) laufen die Init-Skripte:
 
-1. `V1__baseline_schema.sql` – Zielschema (`frauenhaus.*`, `app.app_user`, Envers-Audit)
+1. `src/main/resources/db/migration/V1__baseline_schema.sql` – Zielschema
+   (`frauenhaus.*`, `app.app_user`, Envers-Audit)
 2. `db/init/02_altdaten_vorbereitung.sql` – Import-Rolle für das Alt-Backup
 3. `../data.sql` – das Backup des Altsystems (rebasedata-Dump, `public._frauenhaus_*`)
 4. `db/init/04_datenuebernahme.sql` – Transformation ins Zielschema (Typkonvertierung,
-   Leerwert-Bereinigung, Sequenzen) und Löschen aller Alt-Tabellen
+   Leerwert-Bereinigung, Sequenzen) und Löschen aller Alt-Tabellen. Spenden ohne
+   Datum/Träger werden dabei NICHT verworfen (Aufbewahrungsfristen), sondern mit
+   gekennzeichneten Platzhaltern übernommen (Datum 1900-01-01, Träger `unbekannt`,
+   Vermerk in der Bemerkung)
 5. `db/init/05_sicherheit.sh` – App-Rolle `frauenhaus_backend` + Row Level Security
+   + append-only-Rechte auf der Audit-Historie
 
 Die Übernahme protokolliert die Zeilenzahlen ins DB-Log (`docker compose logs db`).
 Neu aufsetzen: `docker compose down -v && docker compose up -d --build`.
+
+## Schema-Migrationen (Flyway)
+
+Flyway verwaltet das Schema ab jetzt versioniert (`src/main/resources/db/migration`):
+
+- **Leere Datenbank** (z.B. lokale Entwicklung ohne Altdaten): Flyway legt beim
+  App-Start das komplette Schema an (`V1`); im Profil `dev` kommen zusätzlich
+  realistische Testdaten dazu (`db/testdata/V5`).
+- **Bestands-Datenbanken** (Schema + Altdaten aus den docker-initdb-Skripten):
+  werden beim ersten Start automatisch bei Version 5 baselined – `V1`/`V5`
+  gelten als angewendet, neue Migrationen (ab `V6`) laufen normal. Testdaten
+  werden auf Altdaten-Beständen bewusst nie eingespielt.
+- Migrationen laufen mit eigenen Zugangsdaten (`FLYWAY_DB_USER`/`FLYWAY_DB_PASSWORD`,
+  Default: `DB_USER`/`DB_PASSWORD`), weil die eingeschränkte App-Rolle bewusst
+  kein DDL darf; im Compose-Stack ist das der Schema-Eigentümer `frauenhaus_app`.
 
 ## Datensicherheit (DSGVO)
 
@@ -47,9 +67,21 @@ Stichwort-/Vereinszuordnungen, Dokument-Anhänge, Änderungshistorie) ist
 Verbindung den authentifizierten Benutzerkontext trägt. Den setzt
 `RowLevelSecurityDataSource` bei jeder Connection-Ausleihe aus dem angemeldeten
 Spring-Security-Benutzer (Session-Variablen `app.benutzer`/`app.benutzer_rolle`).
-Wer sich mit den Backend-Zugangsdaten direkt per psql verbindet, sieht **keine
-einzige Zeile** – und kann auch keine einfügen. `app.app_user` bleibt bewusst
-ohne RLS (wird bei der Anmeldung gelesen, bevor ein Benutzerkontext existiert).
+`app.app_user` bleibt bewusst ohne RLS (wird bei der Anmeldung gelesen, bevor
+ein Benutzerkontext existiert).
+
+**Grenzen von RLS in diesem Aufbau** (Erkenntnis aus dem Gruppen-Review): Die
+Session-Variablen kann jede Verbindung selbst per `set_config` setzen – wer die
+Backend-Zugangsdaten besitzt, kann sich den Kontext (inkl. Rolle `ADMIN`) also
+selbst geben. RLS schützt hier vor *kontextlosem* Zugriff (ein versehentlich
+direkt angebundenes psql oder ein naiver Client sieht ohne `set_config` nichts),
+ist aber **keine harte Barriere gegen geleakte Zugangsdaten**. Die eigentlichen
+Schutzschichten dagegen sind: DB ohne veröffentlichten Port (nur im
+Compose-Netz), Zugangsdaten nur über Umgebungsvariablen – und seit dem
+Gruppen-Review eine **append-only Audit-Historie**: `frauenhaus_backend` hat
+auf `*_aud`/`app.revinfo` kein UPDATE/DELETE mehr (Flyway-Migration `V6` bzw.
+`05_sicherheit.sh`), Manipulationen lassen sich also nicht mehr spurlos
+verstecken.
 
 Beim allerersten Anwendungsstart wird der Benutzer `admin` angelegt
 (Passwort aus `APP_ADMIN_PASSWORD`, sonst geloggter Zufallswert).

@@ -10,7 +10,10 @@
 --   * leere Strings -> NULL
 --   * 'YYYY-MM-DD HH24:MI:SS'-Strings -> date
 --   * Bußgelder/Spenden ohne Betrag -> 0.00
---   * Spenden ohne Datum oder Träger werden übersprungen (Pflichtfelder, s. NOTICE)
+--   * Spenden ohne Datum erhalten das Platzhalterdatum 1900-01-01, Spenden ohne
+--     (zuordenbaren) Träger den Ersatz-Träger 'unbekannt'; beides wird in der
+--     Bemerkung gekennzeichnet (Gruppen-Review: wegen Aufbewahrungsfristen darf
+--     KEIN Spendeneintrag bei der Übernahme verworfen werden, s. NOTICE)
 --   * Spendenart wird case-insensitiv der Lookup-Tabelle zugeordnet ('spende' -> 'Spende');
 --     Spenden ohne zuordenbare Spendenart erhalten die Ersatz-Spendenart 'unbekannt'
 --   * bussgeld.bezahlt (neue Spalte) wird aus dem Status abgeleitet ('bezahlt'/'abgeschlossen')
@@ -136,15 +139,21 @@ SELECT eingang,
        coalesce(betrag, 0)
 FROM public._frauenhaus_eingang;
 
+-- Ersatz-Träger für Alt-Spenden ohne (zuordenbaren) Träger – Spenden dürfen bei
+-- der Übernahme nicht verworfen werden (Aufbewahrungsfristen, Gruppen-Review).
+INSERT INTO frauenhaus.verein (verein, bezeichnung)
+VALUES ('unbekannt', 'unbekannt (Platzhalter aus der Datenübernahme)')
+ON CONFLICT (verein) DO NOTHING;
+
 DO $$
 DECLARE
-    uebersprungen integer;
+    mit_platzhalter integer;
 BEGIN
-    SELECT count(*) INTO uebersprungen
+    SELECT count(*) INTO mit_platzhalter
     FROM public._frauenhaus_spende
     WHERE coalesce(datum, '') = '' OR coalesce(verein, '') = '';
-    IF uebersprungen > 0 THEN
-        RAISE NOTICE 'Datenübernahme: % Alt-Spenden ohne Datum oder Träger übersprungen', uebersprungen;
+    IF mit_platzhalter > 0 THEN
+        RAISE NOTICE 'Datenübernahme: % Alt-Spenden ohne Datum oder Träger mit gekennzeichneten Platzhaltern übernommen (Datum 1900-01-01 bzw. Träger ''unbekannt'')', mit_platzhalter;
     END IF;
 END $$;
 
@@ -152,13 +161,20 @@ INSERT INTO frauenhaus.spende (spende, mitglied, spendenart, verein, datum, betr
 SELECT s.spende,
        s.mitglied,
        coalesce(a.spendenart, 'unbekannt'),
-       s.verein,
-       left(s.datum, 10)::date,
+       coalesce(v.verein, 'unbekannt'),
+       coalesce(nullif(left(s.datum, 10), '')::date, DATE '1900-01-01'),
        coalesce(nullif(s.betrag, '')::numeric, 0),
-       nullif(s.bemerkung, '')
+       nullif(concat_ws(' | ',
+           nullif(s.bemerkung, ''),
+           CASE WHEN coalesce(s.datum, '') = ''
+                THEN 'Datenübernahme: Datum fehlte im Altsystem (Platzhalter 01.01.1900)' END,
+           CASE WHEN v.verein IS NULL
+                THEN 'Datenübernahme: Träger fehlte im Altsystem oder war nicht zuordenbar'
+                     || CASE WHEN coalesce(s.verein, '') <> '' THEN ' (Altwert: ''' || s.verein || ''')' ELSE '' END
+           END), '')
 FROM public._frauenhaus_spende s
 LEFT JOIN frauenhaus.spendenart a ON lower(a.spendenart) = lower(s.spendenart)
-WHERE coalesce(s.datum, '') <> '' AND coalesce(s.verein, '') <> '';
+LEFT JOIN frauenhaus.verein v ON v.verein = s.verein;
 
 -- Identity-Sequenzen hinter die übernommenen IDs setzen -------------------
 

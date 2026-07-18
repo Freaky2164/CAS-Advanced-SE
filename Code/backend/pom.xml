@@ -83,6 +83,16 @@
             <version>42.7.13</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Schema-Migrationen (Baseline V1, Härtungen; Testdaten V5 nur im dev-Profil).
+             Seit Boot 4 liegt die Flyway-AutoConfiguration im eigenen Modul spring-boot-flyway -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
         <!-- Reports: Excel (xlsx) und Word (docx) -->
         <dependency>
             <groupId>org.apache.poi</groupId>

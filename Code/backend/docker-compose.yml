@@ -30,7 +30,9 @@ services:
       - pgdata:/var/lib/postgresql
       - ./ops/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
       - backup:/var/lib/pgbackrest
-      - ./V1__baseline_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      # Baseline-Schema liegt jetzt bei den Flyway-Migrationen (Classpath) und wird
+      # hier zusätzlich als initdb-Skript eingebunden (frische DB + Altdaten-Import)
+      - ./src/main/resources/db/migration/V1__baseline_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./db/init/02_altdaten_vorbereitung.sql:/docker-entrypoint-initdb.d/02_altdaten_vorbereitung.sql:ro
       - ../data.sql:/docker-entrypoint-initdb.d/03_altdaten.sql:ro
       - ./db/init/04_datenuebernahme.sql:/docker-entrypoint-initdb.d/04_datenuebernahme.sql:ro
@@ -54,6 +56,10 @@ services:
       # Daten nur mit gesetztem Benutzerkontext (Row Level Security, 05_sicherheit.sh)
       DB_USER: frauenhaus_backend
       DB_PASSWORD: ${DB_APP_PASSWORD:-frauenhaus}
+      # Flyway-Migrationen brauchen DDL-/GRANT-Rechte und laufen daher als
+      # Schema-Eigentümer; die App selbst bleibt die eingeschränkte RLS-Rolle.
+      FLYWAY_DB_USER: frauenhaus_app
+      FLYWAY_DB_PASSWORD: 'frauenhaus'
       APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
       # SMTP für den Verteiler-Versand (optional; ohne echten Mailserver
       # funktioniert alles außer /api/reports/verteiler/versenden)

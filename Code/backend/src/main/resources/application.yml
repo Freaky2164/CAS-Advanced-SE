@@ -10,8 +10,21 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate   # Schema kommt ausschließlich aus den DB-Init-Skripten (docker-compose)
+      ddl-auto: validate   # Schema kommt aus Flyway (leere DB) bzw. den DB-Init-Skripten (docker-compose)
     open-in-view: false
+
+  flyway:
+    # Migrationen laufen mit eigenen, privilegierten Zugangsdaten (DDL/GRANT nötig);
+    # die Anwendung selbst verbindet weiter als eingeschränkte RLS-Rolle.
+    user: ${FLYWAY_DB_USER:${DB_USER:frauenhaus_app}}
+    password: ${FLYWAY_DB_PASSWORD:${DB_PASSWORD:}}
+    schemas: frauenhaus,app
+    # Bestands-Datenbanken (Schema + Altdaten aus den docker-initdb-Skripten, ohne
+    # Flyway-Historie) werden bei Version 5 baselined: V1 (Schema) und V5 (Testdaten)
+    # gelten dort als angewendet, spätere Migrationen (ab V6) laufen normal.
+    baseline-on-migrate: true
+    baseline-version: 5
+    baseline-description: Bestand aus den docker-initdb-Skripten
 
   # SMTP für den Verteiler-Versand; ohne spring.mail.host legt Spring keinen
   # JavaMailSender an und die Anwendung startet nicht (VerteilerService).
