@@ -46,7 +46,7 @@ public class AnredeService {
         try {
             anreden.deleteById(name);
             anreden.flush();
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException _) {
             throw new ResponseStatusException(CONFLICT, "Anrede '" + name + "' wird noch von Mitgliedern verwendet");
         }
     }

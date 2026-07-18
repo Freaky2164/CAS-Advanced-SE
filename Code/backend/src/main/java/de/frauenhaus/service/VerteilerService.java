@@ -119,10 +119,11 @@ public class VerteilerService {
      *
      * Serienbrief-Generierung: ein fertig adressiertes Anschreiben je Empfänger im Verteiler
      * (alt: CCommandBriefFrauenhaus/CCommandBriefFoerderverein + FHBrief.dot/FVBrief.dot).
-     * Briefkopf, Anschrift und Briefanrede werden vorausgefüllt; der eigentliche Brieftext
-     * wird – wie zuvor auch – anschließend in Word ergänzt.
+     * Briefkopf, Anschrift und Briefanrede werden vorausgefüllt; {@code text} wird als
+     * Brieftext eingesetzt (Zeilenumbrüche bleiben erhalten). Ohne Text bleibt – wie im
+     * Altsystem – Platz, um den Brief anschließend in Word zu ergänzen.
      */
-    public byte[] serienbrief(Collection<String> stichworte, String verein) {
+    public byte[] serienbrief(Collection<String> stichworte, String verein, String text) {
         boolean istFoerderverein = "Förderverein".equalsIgnoreCase(verein);
 
         XWPFDocument doc = wordTemplate.neuesDokument();
@@ -157,8 +158,20 @@ public class VerteilerService {
                     : m.getBriefanrede();
             wordTemplate.absatz(doc, briefanrede + ",");
             wordTemplate.leerzeile(doc);
-            wordTemplate.leerzeile(doc);
-            wordTemplate.leerzeile(doc);
+            if (text == null || text.isBlank()) {
+                // Platzhalter wie im Altsystem: Brieftext wird nachträglich in Word ergänzt
+                wordTemplate.leerzeile(doc);
+                wordTemplate.leerzeile(doc);
+            } else {
+                for (String zeile : text.split("\n", -1)) {
+                    if (zeile.isBlank()) {
+                        wordTemplate.leerzeile(doc);
+                    } else {
+                        wordTemplate.absatz(doc, zeile.stripTrailing());
+                    }
+                }
+                wordTemplate.leerzeile(doc);
+            }
 
             wordTemplate.absatz(doc, "Mit freundlichen Grüßen");
         }

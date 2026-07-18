@@ -46,7 +46,7 @@ public class BussgeldstatusService {
         try {
             stati.deleteById(name);
             stati.flush();
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException _) {
             throw new ResponseStatusException(CONFLICT, "Status '" + name + "' wird noch von Bußgeldern verwendet");
         }
     }

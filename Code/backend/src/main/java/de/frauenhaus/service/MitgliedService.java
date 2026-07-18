@@ -125,7 +125,7 @@ public class MitgliedService {
             dokumente.loescheFuerEntity(Dokument.EntityTyp.MITGLIED, Long.toString(id));
             mitglieder.deleteById(id);
             mitglieder.flush();
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException _) {
             throw new ResponseStatusException(CONFLICT, "Mitglied " + id + " wird noch von Spenden verwendet");
         }
     }

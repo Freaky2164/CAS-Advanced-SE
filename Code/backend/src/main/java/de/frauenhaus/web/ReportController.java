@@ -142,11 +142,14 @@ public class ReportController {
     /**
      * @author Nils
      *
-     * Liefert die generierten Serienbriefe (ein Anschreiben je Empfänger) als docx.
+     * Liefert die generierten Serienbriefe (ein Anschreiben je Empfänger) als docx;
+     * {@code text} ist der optionale Brieftext (ohne ihn bleibt Platz zum Ergänzen in Word).
      */
     @GetMapping("/serienbrief")
-    public ResponseEntity<byte[]> serienbrief(@RequestParam List<String> stichworte, @RequestParam String verein) {
-        return download(verteilerService.serienbrief(stichworte, verein), "serienbrief.docx", DOCX);
+    public ResponseEntity<byte[]> serienbrief(@RequestParam List<String> stichworte,
+                                              @RequestParam String verein,
+                                              @RequestParam(required = false) String text) {
+        return download(verteilerService.serienbrief(stichworte, verein, text), "serienbrief.docx", DOCX);
     }
 
     /**

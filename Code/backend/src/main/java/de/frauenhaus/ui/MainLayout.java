@@ -9,6 +9,7 @@ import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
@@ -101,7 +102,7 @@ public class MainLayout extends AppLayout {
         abmelden.setAriaLabel("Abmelden");
 
         HorizontalLayout zeile = new HorizontalLayout(avatar, name, abmelden);
-        zeile.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        zeile.setAlignItems(FlexComponent.Alignment.CENTER);
         zeile.setWidthFull();
         zeile.expand(name);
         zeile.getStyle().set("padding", "0.75rem 1rem");

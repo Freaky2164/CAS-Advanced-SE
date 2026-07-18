@@ -127,6 +127,11 @@ public class ReportsView extends VerticalLayout {
         stichworte.setWidth("26em");
         ComboBox<String> verein = new ComboBox<>("Träger (für Anschreiben)");
         verein.setItems(vereinsNamen());
+        TextArea text = new TextArea("Brieftext");
+        text.setPlaceholder("Wird in jedes Anschreiben zwischen Briefanrede und Grußformel eingesetzt; "
+                + "leer lassen, um den Text später in Word zu ergänzen.");
+        text.setWidthFull();
+        text.setMinHeight("8em");
         var adressen = UiUtil.downloadLink("Adressliste (Excel)", () -> {
             List<String> liste = UiUtil.kommaListe(stichworte.getValue());
             if (liste.isEmpty()) {
@@ -140,10 +145,12 @@ public class ReportsView extends VerticalLayout {
                 throw new ResponseStatusException(BAD_REQUEST, "Bitte Stichworte und Träger angeben");
             }
             return new UiUtil.Datei("serienbrief.docx", UiUtil.DOCX,
-                    verteilerService.serienbrief(liste, verein.getValue()));
+                    verteilerService.serienbrief(liste, verein.getValue(), text.getValue()));
         });
-        return abschnitt("Serienbriefe (nach Verteiler-Stichworten)",
+        Card abschnitt = abschnitt("Serienbriefe (nach Verteiler-Stichworten)",
                 zeile(stichworte, verein, adressen, briefe));
+        abschnitt.add(text);
+        return abschnitt;
     }
 
     private Card stichwortsuche() {

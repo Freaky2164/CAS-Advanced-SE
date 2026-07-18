@@ -176,7 +176,7 @@ public class MitgliederView extends VerticalLayout {
      */
     private final class MitgliedDialog extends Dialog {
 
-        private final MitgliedResponse vorhanden;
+        private final transient MitgliedResponse vorhanden;
 
         private final ComboBox<String> anrede = new ComboBox<>("Anrede");
         private final TextField vorname = new TextField("Vorname");

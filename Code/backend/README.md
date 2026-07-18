@@ -97,7 +97,7 @@ Das Vorlagen-Verzeichnis ist über `APP_VORLAGEN_PFAD` konfigurierbar
     GET  /api/reports/verteiler-emails?stichworte=a&stichworte=b
     POST /api/reports/verteiler/versenden                    → Sammel-E-Mail per BCC (SMTP nötig)
     GET  /api/reports/serienbrief-adressen?stichworte=...
-    GET  /api/reports/serienbrief?stichworte=...&verein=Frauenhaus
+    GET  /api/reports/serienbrief?stichworte=...&verein=Frauenhaus&text=...   (text optional)
     GET  /api/reports/stichwortsuche?stichworte=...          (auch als .xlsx)
     POST /api/stichworte/zusammenstellen  {"neu": "...", "alte": ["...", "..."]}
     POST /api/stichworte/zusammenfassen   {"neu": "...", "alte": ["..."]}
