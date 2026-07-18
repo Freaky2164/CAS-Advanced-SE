@@ -61,8 +61,10 @@ services:
       FLYWAY_DB_USER: frauenhaus_app
       FLYWAY_DB_PASSWORD: 'frauenhaus'
       APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
-      # SMTP für den Verteiler-Versand (optional; ohne echten Mailserver
-      # funktioniert alles außer /api/reports/verteiler/versenden)
+      # SMTP für den Verteiler-Versand. Im Dev-Stack zeigt die Override-Datei
+      # standardmäßig auf den Mailpit-Container (Demo-Inbox localhost:8025);
+      # in Produktion hier den echten Mailserver konfigurieren – ohne ihn
+      # funktioniert alles außer dem Verteiler-Versand.
       MAIL_HOST: ${MAIL_HOST:-localhost}
       MAIL_PORT: ${MAIL_PORT:-25}
       MAIL_USER: ${MAIL_USER:-}

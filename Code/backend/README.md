@@ -146,6 +146,11 @@ Benutzerverwaltung (nur ADMIN) unter `/api/admin/users`.
 - Serienbriefe: die `FHSerienBrief.dot`/`SpendenQuittung*.dot`-Vorlagen sind
   Word-Seriendruckdokumente (Datenquelle: xlsx von `/api/reports/serienbrief-adressen`).
 - Verteiler-Versand braucht einen erreichbaren SMTP-Server (`MAIL_HOST`, `MAIL_PORT`,
-  `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_ABSENDER`) – ohne ihn funktioniert alles außer
-  `/api/reports/verteiler/versenden`.
+  `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_ABSENDER`). Im Dev-Stack ist dafür **Mailpit**
+  als Fang-SMTP enthalten (docker-compose.override.yml): alle „versendeten" Mails
+  landen in der Demo-Inbox unter http://localhost:8025, nichts verlässt den Rechner.
+  Ein lokal laufendes Backend erreicht ihn über `MAIL_HOST=localhost MAIL_PORT=1025`.
+  In Produktion den echten Mailserver setzen; für Anbieter mit STARTTLS/Auth-Pflicht
+  (z.B. Gmail) müssten in application.yml noch die entsprechenden
+  `spring.mail.properties` ergänzt werden.
 - Backup: pgBackRest-Konzept (ops/) wieder vervollständigen, Restore-Tests.
