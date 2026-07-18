@@ -7,6 +7,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -47,6 +48,7 @@ public class BenutzerView extends VerticalLayout {
         grid.addColumn(u -> u.role().name()).setHeader("Rolle").setAutoWidth(true);
         grid.addColumn(u -> u.enabled() ? "aktiv" : "deaktiviert").setHeader("Status").setAutoWidth(true);
         grid.addColumn(u -> UiUtil.zeitpunkt(u.createdAt())).setHeader("Angelegt am");
+        grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
 
         setSizeFull();
         add(new HorizontalLayout(neu, bearbeiten, passwort), grid);

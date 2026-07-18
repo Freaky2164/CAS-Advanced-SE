@@ -2,19 +2,18 @@ package de.frauenhaus.ui;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.spring.security.AuthenticationContext;
-import com.vaadin.flow.theme.lumo.LumoUtility;
-import jakarta.annotation.security.PermitAll;
 import de.frauenhaus.ui.benutzer.BenutzerView;
 import de.frauenhaus.ui.bussgelder.BussgelderView;
 import de.frauenhaus.ui.mitglieder.MitgliederView;
@@ -22,6 +21,7 @@ import de.frauenhaus.ui.reports.ReportsView;
 import de.frauenhaus.ui.spenden.SpendenView;
 import de.frauenhaus.ui.stichworte.StichworteView;
 import de.frauenhaus.ui.verwaltung.VerwaltungView;
+import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
@@ -48,20 +48,30 @@ public class MainLayout extends AppLayout {
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menü umschalten");
 
-        Header header = new Header(toggle);
-        header.addClassNames(LumoUtility.Display.FLEX, LumoUtility.AlignItems.CENTER, LumoUtility.Width.FULL);
-        addToNavbar(true, header);
+        H1 titel = new H1("Frauenhaus Verwaltung");
+        titel.getStyle()
+                .set("font-size", "1.15rem")
+                .set("font-weight", "600")
+                .set("margin", "0");
+
+        addToNavbar(true, toggle, titel);
     }
 
     private void addDrawerContent() {
-        H1 titel = new H1("Frauenhaus Verwaltung");
-        titel.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.MEDIUM);
+        Span logo = new Span(VaadinIcon.HOME_O.create(), new Span(" Frauenhaus"));
+        logo.getStyle()
+                .set("font-size", "1.1rem")
+                .set("font-weight", "700")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("gap", "0.5rem")
+                .set("padding", "1rem");
 
-        VerticalLayout inhalt = new VerticalLayout(titel, navigation());
+        VerticalLayout inhalt = new VerticalLayout(logo, navigation());
         inhalt.setPadding(false);
         inhalt.setSpacing(false);
 
-        addToDrawer(inhalt, abmeldeFusszeile());
+        addToDrawer(inhalt, benutzerFusszeile());
     }
 
     private SideNav navigation() {
@@ -78,18 +88,25 @@ public class MainLayout extends AppLayout {
         return nav;
     }
 
-    private Footer abmeldeFusszeile() {
+    private Footer benutzerFusszeile() {
         String benutzer = authContext.getPrincipalName().orElse("?");
-        Span angemeldet = new Span("Angemeldet als " + benutzer);
-        angemeldet.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.TextColor.SECONDARY);
 
-        Button abmelden = new Button("Abmelden", VaadinIcon.SIGN_OUT.create(), e -> authContext.logout());
-        abmelden.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        Avatar avatar = new Avatar(benutzer);
+        Span name = new Span(benutzer);
+        name.getStyle().set("font-weight", "600");
 
-        VerticalLayout layout = new VerticalLayout(angemeldet, abmelden);
-        layout.setPadding(true);
-        layout.setSpacing(false);
-        return new Footer(layout);
+        Button abmelden = new Button(VaadinIcon.SIGN_OUT.create(), e -> authContext.logout());
+        abmelden.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        abmelden.setTooltipText("Abmelden");
+        abmelden.setAriaLabel("Abmelden");
+
+        HorizontalLayout zeile = new HorizontalLayout(avatar, name, abmelden);
+        zeile.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        zeile.setWidthFull();
+        zeile.expand(name);
+        zeile.getStyle().set("padding", "0.75rem 1rem");
+
+        return new Footer(zeile);
     }
 
     private boolean istAdmin() {

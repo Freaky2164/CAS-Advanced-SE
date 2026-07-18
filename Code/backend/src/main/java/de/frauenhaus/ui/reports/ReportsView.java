@@ -2,12 +2,14 @@ package de.frauenhaus.ui.reports;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.card.Card;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -75,7 +77,7 @@ public class ReportsView extends VerticalLayout {
         return feld;
     }
 
-    private VerticalLayout bussgeldUebersicht() {
+    private Card bussgeldUebersicht() {
         DatePicker von = datumsfeld("Von", LocalDate.now().withDayOfYear(1));
         DatePicker bis = datumsfeld("Bis", LocalDate.now());
         var download = UiUtil.downloadLink("Als Excel herunterladen", () -> {
@@ -89,7 +91,7 @@ public class ReportsView extends VerticalLayout {
                 zeile(von, bis, download));
     }
 
-    private VerticalLayout bussgeldDetail() {
+    private Card bussgeldDetail() {
         DatePicker von = datumsfeld("Von", LocalDate.now().withDayOfYear(1));
         DatePicker bis = datumsfeld("Bis", LocalDate.now());
         ComboBox<String> verein = new ComboBox<>("Träger");
@@ -105,7 +107,7 @@ public class ReportsView extends VerticalLayout {
                 zeile(von, bis, verein, download));
     }
 
-    private VerticalLayout spendenUebersicht() {
+    private Card spendenUebersicht() {
         IntegerField jahr = new IntegerField("Jahr");
         jahr.setValue(LocalDate.now().getYear());
         jahr.setStepButtonsVisible(true);
@@ -120,7 +122,7 @@ public class ReportsView extends VerticalLayout {
                 zeile(jahr, download));
     }
 
-    private VerticalLayout serienbriefe() {
+    private Card serienbriefe() {
         TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
         stichworte.setWidth("26em");
         ComboBox<String> verein = new ComboBox<>("Träger (für Anschreiben)");
@@ -144,7 +146,7 @@ public class ReportsView extends VerticalLayout {
                 zeile(stichworte, verein, adressen, briefe));
     }
 
-    private VerticalLayout stichwortsuche() {
+    private Card stichwortsuche() {
         TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
         stichworte.setWidth("26em");
         Checkbox foerderverein = new Checkbox("Nur Förderverein");
@@ -156,6 +158,7 @@ public class ReportsView extends VerticalLayout {
         ergebnis.addColumn(MitgliedResponse::ort).setHeader("Ort").setAutoWidth(true);
         ergebnis.addColumn(MitgliedResponse::email).setHeader("E-Mail").setAutoWidth(true);
         ergebnis.addColumn(m -> String.join(", ", m.stichworte())).setHeader("Stichworte");
+        ergebnis.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         ergebnis.setAllRowsVisible(true);
         ergebnis.setVisible(false);
 
@@ -186,13 +189,13 @@ public class ReportsView extends VerticalLayout {
                     stichwortsucheService.suchenAlsExcel(liste, foerderverein.getValue(), frauenhaus.getValue()));
         });
 
-        VerticalLayout abschnitt = abschnitt("Stichwortsuche (Mitglieder nach Verteiler-Stichworten)",
+        Card abschnitt = abschnitt("Stichwortsuche (Mitglieder nach Verteiler-Stichworten)",
                 zeile(stichworte, foerderverein, frauenhaus, suchen, download));
         abschnitt.add(ergebnis);
         return abschnitt;
     }
 
-    private VerticalLayout verteiler() {
+    private Card verteiler() {
         TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
         stichworte.setWidth("26em");
         TextArea empfaenger = new TextArea("Empfänger");
@@ -248,16 +251,23 @@ public class ReportsView extends VerticalLayout {
         });
         versenden.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        VerticalLayout abschnitt = abschnitt("E-Mail-Verteiler",
+        Card abschnitt = abschnitt("E-Mail-Verteiler",
                 zeile(stichworte, anzeigen));
         abschnitt.add(empfaenger, zeile(traeger, betreff), text, versenden);
         return abschnitt;
     }
 
-    private static VerticalLayout abschnitt(String titel, HorizontalLayout inhalt) {
-        VerticalLayout layout = new VerticalLayout(new H3(titel), inhalt);
-        layout.setPadding(false);
-        return layout;
+    /**
+     * @author Nils
+     *
+     * Karte mit Titel für einen Report-Abschnitt.
+     */
+    private static Card abschnitt(String titel, HorizontalLayout inhalt) {
+        Card card = new Card();
+        card.setTitle(new Span(titel));
+        card.add(inhalt);
+        card.setWidthFull();
+        return card;
     }
 
     private static HorizontalLayout zeile(com.vaadin.flow.component.Component... komponenten) {
