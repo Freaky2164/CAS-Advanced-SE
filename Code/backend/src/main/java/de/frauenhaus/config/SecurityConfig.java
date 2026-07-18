@@ -70,7 +70,12 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     SecurityFilterChain uiFilterChain(HttpSecurity http) throws Exception {
-        http.with(VaadinSecurityConfigurer.vaadin(), configurer -> configurer.loginView(LoginView.class));
+        http
+                // Boot-Fehlerseite freigeben: sendError() aus der API-Kette dispatcht nach
+                // /error, das in DIESER Kette landet – ohne permitAll würde aus dem
+                // beabsichtigten 401 der API eine 302-Umleitung auf die Login-Seite.
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/error").permitAll())
+                .with(VaadinSecurityConfigurer.vaadin(), configurer -> configurer.loginView(LoginView.class));
         return http.build();
     }
 
