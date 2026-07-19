@@ -1,0 +1,39 @@
+services:
+  sonarqube:
+    image: sonarqube:26.7.0.124771-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_FORCEAUTHENTICATION=false
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  sonarqube-init:
+    image: curlimages/curl:latest
+    depends_on:
+      sonarqube:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        curl -s -f -X POST -u admin:admin "http://sonarqube:9000/api/settings/set?key=sonar.forceAuthentication&value=false"
+        curl -s -f -X POST -u admin:admin "http://sonarqube:9000/api/permissions/add_group?groupName=Anyone&permission=scan"
+        curl -s -f -X POST -u admin:admin "http://sonarqube:9000/api/permissions/add_group?groupName=Anyone&permission=provisioning"
+        echo "SonarQube initialized: force-auth disabled, permissions granted."
+
+volumes:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
