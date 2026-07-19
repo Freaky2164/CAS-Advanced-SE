@@ -9,8 +9,8 @@
 Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem REST-Backend implementiert.
 Für die Anwendungsschicht muss eine Technologie gewählt werden, die folgende Anforderungen erfüllt:
 
-| Anforderung | Beschreibung |
-|-------------|-------------|
+| Anforderung                      | Beschreibung                                                                                                 |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------|
 | **Office-Dokumentengenerierung** | Excel-Reports (Mitgliederlisten, Spendenübersichten) und Word-Briefe (.docx Serienbriefe, Spendenquittungen) |
 | **PostgreSQL-Anbindung** | Relationale Open-Source-Datenbank, keine Lizenzkosten, keine Größenlimitierungen |
 | **Sicherheit** | JWT-Authentifizierung, RBAC, Passwort-Hashing, HTTPS |
@@ -139,10 +139,9 @@ Java 21 (LTS, September 2023) bietet gegenüber Java 17 signifikante Verbesserun
 Das Legacy-System ist in Java geschrieben. Das Team kann:
 - Bestehende Geschäftslogik (Berechnungen, Validierungen) verstehen und portieren
 - Java-Syntax und -Semantik ohne Einarbeitungszeit nutzen
-- Von Java 1.4 auf Java 21 aufbauen (gleiche Sprache, modernisierte Features)
+- Von Java 1.5 auf Java 25 aufbauen (gleiche Sprache, modernisierte Features)
 
-Ein Wechsel zu C# oder Python würde eine komplette Spracheinarbeitung erfordern –
-unverhältnismäßig für ein zeitlich begrenztes Hochschulprojekt.
+Ein Wechsel zu C# oder Python würde einen kompletten Rewrite erfordern und wurde von uns als unrealistisch für den zeitlichen Kontext erachtet.
 
 ### 5. Convention over Configuration
 

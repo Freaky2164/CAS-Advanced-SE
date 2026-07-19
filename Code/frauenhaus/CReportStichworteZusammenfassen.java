@@ -13,7 +13,6 @@ public class CReportStichworteZusammenfassen extends CCommand implements CReport
     private static final Logger LOGGER = Logger.getLogger(CReportStichworteZusammenfassen.class.getName());
     private CProperties p;
 
-
     public Object execute(Object parameters) {
 
         p = new CProperties();

@@ -106,7 +106,7 @@ public class CReportStichwortSuche extends CCommand implements CReport {
             return;
         }
         try {
-            Runtime.getRuntime().exec(excel + "\\excel.exe " + reports + "\\StichwortSuche.xls");
+            new ProcessBuilder(excel + "\\excel.exe " + reports + "\\StichwortSuche.xls").start();
         } catch (IOException e1) {
             LOGGER.log(Level.SEVERE, "Failed to open StichwortSuche in Excel", e1);
         }

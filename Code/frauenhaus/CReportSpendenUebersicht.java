@@ -29,6 +29,18 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
         this.excel = CPropertyManager.getInstance().getProperty("excel");
     }
 
+    public Object execute(Object parameters) {
+
+        p = new CProperties();
+        p.put("this", this);
+        CProperties pA = new CProperties();
+        p.put(Integer.toString(1), pA);
+        pA.put("label", "Jahr");
+        pA.put("equals", "1");
+        new CReportFrame(p);
+
+        return null;
+    }
     private static int writeSummaryRow(HSSFSheet sheet, int line, String label, double value,
                                        HSSFCellStyle titleStyle, HSSFCellStyle moneyStyle) {
         HSSFRow row = sheet.createRow(line++);
@@ -101,18 +113,7 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
         writeSummaryRow(sheet, line, "Gesamt:", summeGesamt, styles.gelbTitelStyle, styles.gelbGeldStyle);
     }
 
-    public Object execute(Object parameters) {
 
-        p = new CProperties();
-        p.put("this", this);
-        CProperties pA = new CProperties();
-        p.put(Integer.toString(1), pA);
-        pA.put("label", "Jahr");
-        pA.put("equals", "1");
-        new CReportFrame(p);
-
-        return null;
-    }
 
     public void go() {
         String jahr = getJahrFilter();
@@ -121,11 +122,11 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
             try (POIFSFileSystem fsin = new POIFSFileSystem(new FileInputStream(vorlagen + "/SpendenUebersicht.xls"))) {
                 wb = new HSSFWorkbook(fsin);
             }
-            String sqlString = "SELECT s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum, s.betrag " +
-                    "FROM frauenhaus.mitglied m, frauenhaus.spende s, frauenhaus.spendenart a " +
-                    "WHERE s.mitglied = m.mitglied AND s.spendenart = a.spendenart " +
-                    jahr + " ORDER BY s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum ";
-            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString);
+            StringBuilder sqlString = new StringBuilder("SELECT s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum, s.betrag ").append(
+                    "FROM frauenhaus.mitglied m, frauenhaus.spende s, frauenhaus.spendenart a ").append(
+                    "WHERE s.mitglied = m.mitglied AND s.spendenart = a.spendenart ").append(
+                    jahr).append(" ORDER BY s.verein, a.spendentyp, s.spendenart, m.name, m.vorname, s.datum ");
+            ResultSet rset = CDataManager.getInstance().getStatement().executeQuery(sqlString.toString());
             HSSFSheet sheet = wb.getSheetAt(0);
             SpendenStyles styles = new SpendenStyles(sheet);
             writeResultToSheet(rset, sheet, styles);
@@ -146,7 +147,7 @@ public class CReportSpendenUebersicht extends CCommand implements CReport {
             return;
         }
         try {
-            Runtime.getRuntime().exec(excel + "\\excel.exe " + reports + "\\SpendenUebersicht.xls");
+            new ProcessBuilder(excel + "\\excel.exe " + reports + "\\SpendenUebersicht.xls").start();
         } catch (IOException e1) {
             LOGGER.log(Level.SEVERE, "Failed to open SpendenUebersicht in Excel", e1);
         }

@@ -12,7 +12,7 @@ public class CInfoDataObject {
         super();
         this.p = p;
         manager = CDataManager.getInstance().createCInfoDataManagingDatabase(this);
-        manager.prepareSQLString(p);
+        manager.prepareSQLString();
     }
 
     public CDataObject getCDataObjectForUpdate(CProperties keys) {

@@ -54,9 +54,9 @@ public abstract class CManagingDatabase {
 
     protected String getMainFrame() {
         String str = null;
-        String sqlString = "SELECT u.main_frame FROM compucrash.user_def u "
-                + "WHERE LOWER(u.user_name) = LOWER(?)";
-        try (PreparedStatement pstmt = conn.prepareStatement(sqlString, ResultSet.TYPE_SCROLL_INSENSITIVE,
+        StringBuilder sqlString = new StringBuilder().append("SELECT u.main_frame FROM compucrash.user_def u ")
+                .append("WHERE LOWER(u.user_name) = LOWER(?)");
+        try (PreparedStatement pstmt = conn.prepareStatement(sqlString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE,
                 ResultSet.CONCUR_READ_ONLY)) {
             pstmt.setString(1, CPropertyManager.getUser());
             try (ResultSet rset = pstmt.executeQuery()) {
@@ -222,12 +222,12 @@ public abstract class CManagingDatabase {
     public abstract Object getInit(String init);
 
     public ResultSet getMainPanels() {
-        String sqlString = "SELECT panel, main_pos FROM compucrash.user_object_relation "
-                + "WHERE main_pos > 0 AND LOWER(user_name) = LOWER(?) UNION "
-                + "SELECT panel, main_pos FROM compucrash.cust_button_main_rel "
-                + "WHERE main_pos > 0 AND LOWER(user_name) = LOWER(?) "
-                + "ORDER BY main_pos ";
-        return getPreparedResultSet(sqlString, CPropertyManager.getUser(), CPropertyManager.getUser());
+        StringBuilder sqlString = new StringBuilder().append("SELECT panel, main_pos FROM compucrash.user_object_relation ")
+                .append("WHERE main_pos > 0 AND LOWER(user_name) = LOWER(?) UNION ")
+                .append("SELECT panel, main_pos FROM compucrash.cust_button_main_rel ")
+                .append("WHERE main_pos > 0 AND LOWER(user_name) = LOWER(?) ")
+                .append("ORDER BY main_pos ");
+        return getPreparedResultSet(sqlString.toString(), CPropertyManager.getUser(), CPropertyManager.getUser());
     }
 
     public ResultSet getCustMainButtons() {

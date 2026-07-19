@@ -1,11 +1,9 @@
 package compucrash;
 
-import com.adobe.acrobat.Viewer;
-import com.adobe.acrobat.ViewerCommand;
-
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Method;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -20,7 +18,8 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
     protected CButton bNew;
     protected CButton bDelete;
     protected CButton bPrint;
-    private transient Viewer viewer;
+    private transient Object viewer;
+    private transient Component viewerComponent;
     private transient InputStream stream = null;
     private transient Blob blob = null;
 
@@ -30,12 +29,9 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         add(label);
         add(px);
         px.setLayout(new BorderLayout());
-        try {
-            viewer = new Viewer();
-            viewer.activate();
-            px.add(viewer.getFrame(), BorderLayout.NORTH);
-        } catch (Exception e1) {
-            LOGGER.log(Level.SEVERE, "Failed to activate PDF viewer", e1);
+        viewerComponent = initViewerComponent();
+        if (viewerComponent != null) {
+            px.add(viewerComponent, BorderLayout.NORTH);
         }
 
         setBorder(BorderFactory.createTitledBorder(
@@ -46,10 +42,12 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         if (p.get("tooltip") != null) {
             setToolTipText((String) p.get("tooltip"));
         }
-        viewer.setPreferredSize(new Dimension(Integer.parseInt((String) p.get("data_scale")) * 15, 45));
-        if (Integer.parseInt((String) p.get("data_height")) != 0) {
-            viewer.setPreferredSize(new Dimension(Integer.parseInt((String) p.get("data_scale")) * 15,
-                    Integer.parseInt((String) p.get("data_height")) * 21));
+        if (viewerComponent != null) {
+            viewerComponent.setPreferredSize(new Dimension(Integer.parseInt((String) p.get("data_scale")) * 15, 45));
+            if (Integer.parseInt((String) p.get("data_height")) != 0) {
+                viewerComponent.setPreferredSize(new Dimension(Integer.parseInt((String) p.get("data_scale")) * 15,
+                        Integer.parseInt((String) p.get("data_height")) * 21));
+            }
         }
         bNew = CButtonFactory.getButton("new");
         bNew.addActionListener(e -> onNew());
@@ -71,12 +69,12 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
 
     @Override
     public void setEditedColor() {
-        // TODO document why this method is empty
+        /* Nicht implementiert */
     }
 
     @Override
     public void resetEditedColor() {
-        // TODO document why this method is empty
+        /* Nicht implementiert */
     }
 
     protected void onPrint() {
@@ -127,7 +125,7 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         stream = null;
         try {
             FileInputStream fin = new FileInputStream("../images/nada_nix.pdf");
-            viewer.setDocumentInputStream(fin);
+            setViewerDocumentInputStream(fin);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to reset document viewer", e);
         }
@@ -145,9 +143,9 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
         if (fin != null && state == JFileChooser.APPROVE_OPTION) {
             try {
                 stream = new FileInputStream(fin);
-                viewer.setDocumentInputStream(new FileInputStream(fin));
-                viewer.execMenuItem(ViewerCommand.FitWidth_K);
-                viewer.execMenuItem(ViewerCommand.OneColumn_K);
+                setViewerDocumentInputStream(new FileInputStream(fin));
+                executeViewerMenuItem("FitWidth_K");
+                executeViewerMenuItem("OneColumn_K");
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Failed to open document", e);
             }
@@ -187,9 +185,9 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
                 try {
                     blob = blob1;
                     stream = blob.getBinaryStream();
-                    viewer.setDocumentInputStream(blob.getBinaryStream());
-                    viewer.execMenuItem(ViewerCommand.FitWidth_K);
-                    viewer.execMenuItem(ViewerCommand.OneColumn_K);
+                    setViewerDocumentInputStream(blob.getBinaryStream());
+                    executeViewerMenuItem("FitWidth_K");
+                    executeViewerMenuItem("OneColumn_K");
                 } catch (SQLException e) {
                     LOGGER.log(Level.SEVERE, "Failed to read blob stream", e);
                 } catch (Exception e) {
@@ -199,11 +197,63 @@ public class CDisplayFieldDocumentBean extends CDisplayFieldBean {
             case null, default -> {
                 try {
                     FileInputStream fin = new FileInputStream("../images/nada_nix.pdf");
-                    viewer.setDocumentInputStream(fin);
+                    setViewerDocumentInputStream(fin);
                 } catch (Exception e) {
                     LOGGER.log(Level.WARNING, "Failed to load default document", e);
                 }
             }
+        }
+    }
+
+    private Component initViewerComponent() {
+        try {
+            Class<?> viewerClass = Class.forName("com.adobe.acrobat.Viewer");
+            viewer = viewerClass.getDeclaredConstructor().newInstance();
+            Method getFrame = viewerClass.getMethod("getFrame");
+            Object frame = getFrame.invoke(viewer);
+            if (frame instanceof Component component) {
+                return component;
+            }
+            LOGGER.log(Level.WARNING, "PDF viewer frame is not a Swing component");
+        } catch (ReflectiveOperationException e) {
+            LOGGER.log(Level.WARNING, "PDF viewer is not available", e);
+        }
+        return null;
+    }
+
+    private void setViewerDocumentInputStream(InputStream inputStream) {
+        if (viewer == null) {
+            return;
+        }
+        try {
+            for (Method method : viewer.getClass().getMethods()) {
+                if (method.getName().equals("setDocumentInputStream") && method.getParameterCount() == 1) {
+                    method.invoke(viewer, inputStream);
+                    return;
+                }
+            }
+            LOGGER.log(Level.WARNING, "PDF viewer method setDocumentInputStream not found");
+        } catch (ReflectiveOperationException e) {
+            LOGGER.log(Level.WARNING, "Failed to set document in PDF viewer", e);
+        }
+    }
+
+    private void executeViewerMenuItem(String commandField) {
+        if (viewer == null) {
+            return;
+        }
+        try {
+            Class<?> commandClass = Class.forName("com.adobe.acrobat.ViewerCommand");
+            Object commandValue = commandClass.getField(commandField).get(null);
+            for (Method method : viewer.getClass().getMethods()) {
+                if (method.getName().equals("execMenuItem") && method.getParameterCount() == 1) {
+                    method.invoke(viewer, commandValue);
+                    return;
+                }
+            }
+            LOGGER.log(Level.WARNING, "PDF viewer method execMenuItem not found");
+        } catch (ReflectiveOperationException e) {
+            LOGGER.log(Level.WARNING, "Failed to execute PDF viewer command", e);
         }
     }
 }

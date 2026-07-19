@@ -24,7 +24,6 @@ public class Test extends JFrame {
         setSize(400, 300);
         setVisible(true);
     }
-
     static void main() {
         new Test();
     }
