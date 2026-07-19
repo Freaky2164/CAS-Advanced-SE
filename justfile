@@ -13,13 +13,35 @@ test:
     cd Code/backend && ./mvnw test
     cd Code/frontend && npm test
 
-# Run CK metrics (requires ck tool: brew install ck)
+# Run CK metrics via Maven plugin
 metrics-ck:
-    ck Code/backend/src/main/java --output metrics-ck.csv
+    mkdir -p Code/backend/metrics-ck
+    cd Code/backend && ./mvnw exec:java@ck
 
-# Run SonarQube analysis (requires sonar-scanner or Maven plugin)
+# Start SonarQube locally (Docker Compose)
+sonar-up:
+    docker compose -f Code/backend/docker-compose.sonarqube.yml up -d
+    echo "SonarQube starting at http://localhost:9000"
+    echo "Default credentials: admin/admin (change on first login)"
+    echo "Wait 2-3 minutes for startup"
+
+# Stop SonarQube
+sonar-down:
+    docker compose -f Code/backend/docker-compose.sonarqube.yml down
+
+# Run SonarQube analysis (auto-generates token on first run)
 metrics-sonar:
-    cd Code/backend && ./mvnw sonar:sonar -Dsonar.host.url=http://localhost:9000
+    #!/usr/bin/env bash
+    set -euo pipefail
+    TOKEN_FILE=".sonar-token/sonar-token"
+    if [ ! -f "$TOKEN_FILE" ]; then
+      echo "Generating SonarQube analysis token..."
+      mkdir -p .sonar-token
+      TOKEN=$(curl -s -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-token-$(date +%s)&type=GLOBAL_ANALYSIS_TOKEN" | jq -r .token)
+      echo -n "$TOKEN" > "$TOKEN_FILE"
+      echo "Token saved to $TOKEN_FILE"
+    fi
+    cd Code/backend && ./mvnw sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$(cat ../../.sonar-token/sonar-token)
 
 # Run all checks
 check: format lint test
