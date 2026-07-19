@@ -32,10 +32,10 @@ Backups) verbleibt physisch in den örtlichen Räumlichkeiten.
 ```
 [Vereinsbüro – physisch geschützter Raum]
 ┌──────────────────────────────────────────────┐
-│  Windows Server            │
-│  ├── Spring Boot Backend (WinSW-Dienst)     │
-│  ├── MS SQL Server                          │
-│  └── Verschlüsselte Backups (lokal + USB)   │
+│  Windows Server                              │
+│  ├── Spring Boot Backend (WinSW-Dienst)      │
+│  ├── PostgreSQL                              │
+│  └── Verschlüsselte Backups (lokal + USB)    │
 └──────────────────────────────────────────────┘
          ▲ LAN (kein Internet-Zugang nötig)
          │

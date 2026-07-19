@@ -1,4 +1,4 @@
-# ADR-002: Technologie-Stack Backend – Spring Boot (Java 21)
+# ADR-002: Technologie-Stack Backend – Spring Boot (Java 25)
 
 ## Status
 
@@ -6,14 +6,14 @@
 
 ## Kontext
 
-Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem REST-Backend implementiert.
+Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem Backend implementiert.
 Für die Anwendungsschicht muss eine Technologie gewählt werden, die folgende Anforderungen erfüllt:
 
 | Anforderung | Beschreibung |
 |-------------|-------------|
 | **Office-Dokumentengenerierung** | Excel-Reports (Mitgliederlisten, Spendenübersichten) und Word-Briefe (.docx Serienbriefe, Spendenquittungen) |
 | **PostgreSQL-Anbindung** | Relationale Open-Source-Datenbank, keine Lizenzkosten, keine Größenlimitierungen |
-| **Sicherheit** | JWT-Authentifizierung, RBAC, Passwort-Hashing, HTTPS |
+| **Sicherheit** | RBAC, Passwort-Hashing, HTTPS |
 | **Windows-Dienst** | Betrieb als automatisch startender Windows Service ohne manuelle Interaktion |
 | **Wartbarkeit** | Automatische DB-Migrationen, zentrales Logging, Health Checks |
 | **Teamkompetenz** | Das Legacy-System ist in Java geschrieben – Java-Grundkenntnisse vorhanden |
@@ -21,7 +21,7 @@ Für die Anwendungsschicht muss eine Technologie gewählt werden, die folgende A
 
 ## Entscheidung
 
-Wir entscheiden uns für **Spring Boot 3.4.x mit Java 21 LTS** (OpenJDK / Eclipse Temurin)
+Wir entscheiden uns für **Spring Boot 3.4.x mit Java 25 LTS** (OpenJDK / Eclipse Temurin)
 als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst via WinSW.
 
 ## Betrachtete Alternativen
@@ -68,7 +68,7 @@ keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. 
 die robuste Windows-Dienst-Integration. Für eine langlebige Vereinsanwendung ist die
 dynamische Typisierung ein Wartbarkeitsrisiko.
 
-### Alternative C: Spring Boot 3.x / Java 21 (gewählt) ✅
+### Alternative C: Spring Boot 3.x / Java 25 (gewählt) ✅
 
 | Aspekt | Bewertung |
 |--------|-----------|
@@ -76,12 +76,12 @@ dynamische Typisierung ein Wartbarkeitsrisiko.
 | PostgreSQL | ✅ PostgreSQL JDBC Driver (org.postgresql), erstklassige Spring Data JPA Integration |
 | Windows-Integration | ✅ WinSW als Windows Service, stabil seit Jahren im Einsatz |
 | Sicherheit | ✅ Spring Security 6 (JWT, BCrypt, RBAC, CSRF, CORS), produktionserprobt |
-| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads (Java 21) |
+| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads |
 | Ökosystem | ✅ Maven Central, größtes Java-Ökosystem, Spring Initializr |
 | Teamkompetenz | ✅ Java-Grundkenntnisse aus Legacy-System vorhanden |
 | Migration | ✅ Geschäftslogik aus altem Java-Code teilweise übernehmbar |
 | Typsicherheit | ✅ Statisch typisiert – Compile-Time-Fehler, sicheres Refactoring |
-| Langlebigkeit | ✅ Java 21 LTS (Support bis 2031+), Spring Boot kommerzielle Support-Optionen |
+| Langlebigkeit | ✅ Java 25 LTS (Support bis 2030+), Spring Boot kommerzielle Support-Optionen |
 | DB-Migrationen | ✅ Flyway nativ integriert |
 | Monitoring | ✅ Spring Boot Actuator (Health, Metrics, Info) out-of-the-box |
 | Testing | ✅ JUnit 5 + Mockito + @SpringBootTest – schichtweise testbar |
@@ -122,9 +122,9 @@ Spring Data JPA eliminiert SQL-Injection **strukturell** durch Prepared Statemen
 Der PostgreSQL JDBC Driver ist ausgereift und wird aktiv gepflegt. Die JPA-Abstraktionsschicht
 sorgt dafür, dass die Geschäftslogik datenbankunabhängig bleibt.
 
-### 3. Java 21 LTS – Modernste Sprachfeatures
+### 3. Java 25 LTS – Modernste Sprachfeatures
 
-Java 21 (LTS, September 2023) bietet gegenüber Java 17 signifikante Verbesserungen:
+Java 25 (LTS, September 2025) bietet gegenüber Java 17 signifikante Verbesserungen:
 
 | Feature | Nutzen für das Projekt |
 |---------|----------------------|
@@ -132,14 +132,14 @@ Java 21 (LTS, September 2023) bietet gegenüber Java 17 signifikante Verbesserun
 | **Pattern Matching (JEP 441)** | Elegantere switch-Ausdrücke für Validierungslogik |
 | **Record Patterns (JEP 440)** | Kompaktere DTOs und Value Objects |
 | **Sequenced Collections (JEP 431)** | Bessere Collection-APIs für Listendarstellung |
-| **LTS bis 2031+** | Längerer Support-Zeitraum als Java 17 (bis 2029) |
+| **LTS bis 2030+** | Längerer Support-Zeitraum als Java 17 (bis 2029) |
 
 ### 4. Vorhandene Teamkompetenz
 
 Das Legacy-System ist in Java geschrieben. Das Team kann:
 - Bestehende Geschäftslogik (Berechnungen, Validierungen) verstehen und portieren
 - Java-Syntax und -Semantik ohne Einarbeitungszeit nutzen
-- Von Java 1.4 auf Java 21 aufbauen (gleiche Sprache, modernisierte Features)
+- Von Java 1.4 auf Java 25 aufbauen (gleiche Sprache, modernisierte Features)
 
 Ein Wechsel zu C# oder Python würde eine komplette Spracheinarbeitung erfordern –
 unverhältnismäßig für ein zeitlich begrenztes Hochschulprojekt.
@@ -154,9 +154,9 @@ Spring Boot minimiert Konfigurationsaufwand durch Auto-Configuration:
 
 ### 6. Langfristige Stabilität
 
-| Kriterium | Java 21 / Spring Boot |
+| Kriterium | Java 25 / Spring Boot |
 |-----------|----------------------|
-| LTS-Support | Java 21: bis mind. September 2031 (Temurin) |
+| LTS-Support | Java 25: bis mind. September 2030 (Temurin) |
 | Framework-Reife | Spring Framework: seit 2003, Spring Boot: seit 2014 |
 | Abwärtskompatibilität | Java ist bekannt für strenge Rückwärtskompatibilität |
 | Community | >10 Mio. Java-Entwickler weltweit (TIOBE #1–3 seit 25 Jahren) |
@@ -173,7 +173,7 @@ Windows-Dienste zu betreiben:
 
 ## Entscheidungsmatrix (gewichtete Bewertung)
 
-| Kriterium (Gewicht) | Spring Boot/Java 21 | ASP.NET Core/C# | Django/Python |
+| Kriterium (Gewicht) | Spring Boot/Java 25 | ASP.NET Core/C# | Django/Python |
 |---------------------|:-------------------:|:----------------:|:-------------:|
 | Office-Dokumente (25%) | ★★★★★ | ★★★★☆ | ★★☆☆☆ |
 | Teamkompetenz (20%) | ★★★★★ | ★★☆☆☆ | ★★★☆☆ |
@@ -193,7 +193,7 @@ Windows-Dienste zu betreiben:
 - Fat-JAR-Deployment vereinfacht Updates auf ein Minimum (JAR austauschen, Dienst neustarten)
 - Flyway-Integration automatisiert Datenbankmigrationen
 - Actuator-Endpoints ermöglichen Monitoring ohne zusätzliche Tools
-- Virtual Threads (Java 21) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
+- Virtual Threads (Java 25) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
 - PostgreSQL eliminiert Lizenzkosten und Größenlimitierungen des bisherigen SQL Server Express
 
 ### Negativ
@@ -207,5 +207,4 @@ Windows-Dienste zu betreiben:
 ### Neutral
 - Frontend-Technologie (Angular) muss separat entschieden werden (unabhängig vom Backend-Stack)
 - Build-System ist Maven (Standard für Spring Boot Projekte)
-- Java 21 als Basis, späteres Upgrade auf Java 25 LTS problemlos möglich
 - PostgreSQL läuft als separater Windows-Dienst auf demselben Server

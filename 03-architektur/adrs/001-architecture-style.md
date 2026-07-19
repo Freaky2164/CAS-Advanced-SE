@@ -23,7 +23,7 @@ Wir entscheiden uns für eine **3-Schichten-Architektur** (Präsentation → Anw
 mit folgender Aufteilung:
 
 1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
-2. **Anwendungsschicht**: Zentrales REST-Backend als Windows-Dienst auf dem Server
+2. **Anwendungsschicht**: Zentrales Backend als Windows-Dienst auf dem Server
 3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben Server
 
 ```
@@ -83,9 +83,7 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + Datenbank) ist für einen Verein ohne IT-Personal betreibbar. Die operative Komplexität des aktuellen IST-Systems wird mit der neuen Lösung nicht überstiegen.
 
-4. **Zukunftsfähigkeit**: Die REST-API ermöglicht später zusätzliche Clients (Mobile App, Automatisierungsskripte) ohne Backend-Änderung.
-
-5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
+4. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
 
 ## Konsequenzen
 
@@ -102,4 +100,3 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 ### Neutral
 - Erfordert Entscheidung über konkreten Technologie-Stack (siehe ADR-002)
-- Frontend- und Backend-Entwicklung können nach API-Definition parallelisiert werden
