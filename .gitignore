@@ -33,3 +33,10 @@ Code/frauenhaus/vorlagen
 **/*.xls
 **/*.xlsx
 .junie
+node_modules/
+target/
+.idea/
+.DS_Store
+*.iml
+dist/
+.angular/

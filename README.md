@@ -91,3 +91,42 @@ Projektarbeit dienen als Grundlage für die anzufertigende Seminararbeit.
 
 - **Konzept:** Erstellen eines neues Testkonzepts für die Software.
 - **Umsetzung:** Integration und Ausführung von geeigneten Tests sowie Dokumentation der Ergebnisse.
+
+---
+
+## Entwicklung & Code-Qualität
+
+### Voraussetzungen
+
+- `just` (1.56.0)
+- `pre-commit` (4.6.0)
+- Java 25
+- Node.js
+
+### Einrichtung
+
+```bash
+pre-commit install
+```
+
+### Befehle
+
+| Befehl | Beschreibung |
+| --- | --- |
+| `just format` | Formatiert Backend (Spotless) und Frontend (Prettier). |
+| `just lint` | Prüft Formatierung und führt Frontend-Linting aus. |
+| `just test` | Führt alle Tests für Backend und Frontend aus. |
+| `just metrics-ck` | Ermittelt objektorientierte Metriken mit dem `ck`-Tool. |
+| `just metrics-sonar` | Führt die SonarQube-Analyse über das Maven-Plugin aus. |
+| `just check` | Führt `format`, `lint` und `test` nacheinander aus. |
+
+### CK-Metriken
+
+Das Kommandozeilen-Tool `ck` (Chidamber & Kemerer) berechnet klassische objektorientierte Metriken für den Java-Quellcode:
+
+- **LCOM** (Lack of Cohesion of Methods): Misst, wie stark die Methoden einer Klasse zusammengehören. Niedrigere Werte bedeuten bessere Kohäsion.
+- **CBO** (Coupling Between Objects): Anzahl der Klassen, mit denen eine Klasse gekoppelt ist. Weniger Kopplung erleichtert Wartung und Tests.
+- **RFC** (Response For Class): Anzahl der möglicherweise aufgerufenen Methoden bei der Verwendung einer Klasse. Niedrigere Werte reduzieren Komplexität.
+- **WMC** (Weighted Methods per Class): Summe der zyklomatischen Komplexitäten aller Methoden einer Klasse.
+- **DIT** (Depth of Inheritance Tree): Vererbungstiefe.
+- **NOC** (Number of Children): Anzahl direkter Subklassen.
