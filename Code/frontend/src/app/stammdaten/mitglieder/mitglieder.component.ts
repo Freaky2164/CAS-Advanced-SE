@@ -2,7 +2,15 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
-import { Anrede, ApiService, Mitglied, MitgliedRequest, VerlaufEintrag, Verein, fehlertext } from '../../api.service';
+import {
+  Anrede,
+  ApiService,
+  Mitglied,
+  MitgliedRequest,
+  VerlaufEintrag,
+  Verein,
+  fehlertext,
+} from '../../api.service';
 import { DokumentePanelComponent } from '../../dokumente-panel/dokumente-panel.component';
 import { VerlaufPanelComponent } from '../../verlauf-panel/verlauf-panel.component';
 
@@ -80,13 +88,13 @@ export class MitgliederComponent implements OnInit, OnDestroy {
         this.laden(0);
       });
     this.api.anreden().subscribe({
-      next: a => {
+      next: (a) => {
         this.anreden = a;
         this.cdr.markForCheck();
       },
     });
     this.api.vereine().subscribe({
-      next: v => {
+      next: (v) => {
         this.vereine = v;
         this.cdr.markForCheck();
       },
@@ -103,14 +111,14 @@ export class MitgliederComponent implements OnInit, OnDestroy {
   laden(seite = this.seite): void {
     this.fehler = '';
     this.api.mitglieder(seite, 20, this.suche).subscribe({
-      next: s => {
+      next: (s) => {
         this.mitglieder = s.content;
         this.seite = s.number;
         this.totalPages = s.totalPages;
         this.totalElements = s.totalElements;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -131,13 +139,29 @@ export class MitgliederComponent implements OnInit, OnDestroy {
   bearbeiten(m: Mitglied): void {
     this.bearbeitetId = m.id;
     this.formular = {
-      anrede: m.anrede, vorname: m.vorname, name: m.name, name2: m.name2, name3: m.name3,
-      briefanrede: m.briefanrede, strasse: m.strasse, plz: m.plz, ort: m.ort, email: m.email,
-      tel1: m.tel1, tel2: m.tel2, fax: m.fax, foerderverein: m.foerderverein, frauenhaus: m.frauenhaus,
-      bemerkung: m.bemerkung, stichworte: [...m.stichworte], vereine: [...m.vereine],
+      anrede: m.anrede,
+      vorname: m.vorname,
+      name: m.name,
+      name2: m.name2,
+      name3: m.name3,
+      briefanrede: m.briefanrede,
+      strasse: m.strasse,
+      plz: m.plz,
+      ort: m.ort,
+      email: m.email,
+      tel1: m.tel1,
+      tel2: m.tel2,
+      fax: m.fax,
+      foerderverein: m.foerderverein,
+      frauenhaus: m.frauenhaus,
+      bemerkung: m.bemerkung,
+      stichworte: [...m.stichworte],
+      vereine: [...m.vereine],
     };
     this.stichworteText = m.stichworte.join(', ');
-    this.vereineAuswahl = Object.fromEntries(this.vereine.map(v => [v.name, m.vereine.includes(v.name)]));
+    this.vereineAuswahl = Object.fromEntries(
+      this.vereine.map((v) => [v.name, m.vereine.includes(v.name)]),
+    );
   }
 
   abbrechen(): void {
@@ -147,16 +171,23 @@ export class MitgliederComponent implements OnInit, OnDestroy {
   speichern(): void {
     const anfrage: MitgliedRequest = {
       ...this.formular,
-      stichworte: this.stichworteText.split(',').map(s => s.trim()).filter(s => s.length > 0),
-      vereine: Object.entries(this.vereineAuswahl).filter(([, gewaehlt]) => gewaehlt).map(([name]) => name),
+      stichworte: this.stichworteText
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+      vereine: Object.entries(this.vereineAuswahl)
+        .filter(([, gewaehlt]) => gewaehlt)
+        .map(([name]) => name),
     };
-    const aufruf = this.bearbeitetId ? this.api.mitgliedAendern(this.bearbeitetId, anfrage) : this.api.mitgliedAnlegen(anfrage);
+    const aufruf = this.bearbeitetId
+      ? this.api.mitgliedAendern(this.bearbeitetId, anfrage)
+      : this.api.mitgliedAnlegen(anfrage);
     aufruf.subscribe({
       next: () => {
         this.bearbeitetId = null;
         this.laden();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -166,7 +197,7 @@ export class MitgliederComponent implements OnInit, OnDestroy {
   duplizieren(id: number): void {
     this.api.mitgliedDuplizieren(id).subscribe({
       next: () => this.laden(),
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -177,7 +208,7 @@ export class MitgliederComponent implements OnInit, OnDestroy {
     if (!confirm(`Mitglied „${m.vorname ?? ''} ${m.name}“ wirklich löschen?`)) return;
     this.api.mitgliedLoeschen(m.id).subscribe({
       next: () => this.laden(),
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -195,12 +226,12 @@ export class MitgliederComponent implements OnInit, OnDestroy {
     this.verlaufFehler = '';
     this.verlaufLaedt = true;
     this.api.mitgliedVerlauf(m.id).subscribe({
-      next: v => {
+      next: (v) => {
         this.verlaufEintraege = v;
         this.verlaufLaedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.verlaufFehler = fehlertext(err);
         this.verlaufLaedt = false;
         this.cdr.markForCheck();

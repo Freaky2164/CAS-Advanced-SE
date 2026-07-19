@@ -32,7 +32,11 @@ export class StichworteComponent {
   }
 
   zusammenfassen(): void {
-    if (!confirm(`Die Stichworte „${this.alteListe().join('“, „')}“ werden dabei gelöscht. Fortfahren?`)) {
+    if (
+      !confirm(
+        `Die Stichworte „${this.alteListe().join('“, „')}“ werden dabei gelöscht. Fortfahren?`,
+      )
+    ) {
       return;
     }
     this.ausfuehren('zusammenfassen');
@@ -41,8 +45,8 @@ export class StichworteComponent {
   alteListe(): string[] {
     return this.alte
       .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }
 
   private ausfuehren(aktion: 'zusammenstellen' | 'zusammenfassen'): void {
@@ -54,12 +58,12 @@ export class StichworteComponent {
         ? this.api.zusammenstellen(this.neu.trim(), this.alteListe())
         : this.api.zusammenfassen(this.neu.trim(), this.alteListe());
     aufruf.subscribe({
-      next: ergebnis => {
+      next: (ergebnis) => {
         this.laedt = false;
         this.meldung = `Fertig: ${ergebnis.zugeordnet} Mitglieder dem Stichwort „${this.neu.trim()}“ neu zugeordnet.`;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.laedt = false;
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();

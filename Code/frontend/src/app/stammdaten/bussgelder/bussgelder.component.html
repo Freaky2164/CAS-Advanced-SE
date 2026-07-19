@@ -10,7 +10,12 @@
 <div class="seiten suchleiste">
   <div class="feld suchfeld">
     <label for="bussgelder-suche">Suche</label>
-    <input id="bussgelder-suche" [(ngModel)]="suche" (ngModelChange)="sucheGeaendert()" name="bussgelderSuche" />
+    <input
+      id="bussgelder-suche"
+      [(ngModel)]="suche"
+      (ngModelChange)="sucheGeaendert()"
+      name="bussgelderSuche"
+    />
   </div>
 </div>
 
@@ -46,16 +51,47 @@
         </select>
       </div>
       <div class="feld"><label>Name</label><input [(ngModel)]="formular.name" name="name" /></div>
-      <div class="feld"><label>Vorname</label><input [(ngModel)]="formular.vorname" name="vorname" /></div>
-      <div class="feld"><label>Aktenzeichen</label><input [(ngModel)]="formular.aktenzeichen" name="aktenzeichen" /></div>
-      <div class="feld"><label>Datum *</label><input type="date" [(ngModel)]="formular.datum" name="datum" required /></div>
-      <div class="feld"><label>Zieldatum</label><input type="date" [(ngModel)]="formular.zieldatum" name="zieldatum" /></div>
-      <div class="feld"><label>Betrag (€) *</label><input type="number" step="0.01" min="0" [(ngModel)]="formular.betrag" name="betrag" required /></div>
-      <div class="feld"><label><input type="checkbox" [(ngModel)]="formular.bezahlt" name="bezahlt" /> Bezahlt</label></div>
-      <div class="feld"><label>Bemerkung</label><input [(ngModel)]="formular.bemerkung" name="bemerkung" /></div>
+      <div class="feld">
+        <label>Vorname</label><input [(ngModel)]="formular.vorname" name="vorname" />
+      </div>
+      <div class="feld">
+        <label>Aktenzeichen</label><input [(ngModel)]="formular.aktenzeichen" name="aktenzeichen" />
+      </div>
+      <div class="feld">
+        <label>Datum *</label
+        ><input type="date" [(ngModel)]="formular.datum" name="datum" required />
+      </div>
+      <div class="feld">
+        <label>Zieldatum</label
+        ><input type="date" [(ngModel)]="formular.zieldatum" name="zieldatum" />
+      </div>
+      <div class="feld">
+        <label>Betrag (€) *</label
+        ><input
+          type="number"
+          step="0.01"
+          min="0"
+          [(ngModel)]="formular.betrag"
+          name="betrag"
+          required
+        />
+      </div>
+      <div class="feld">
+        <label
+          ><input type="checkbox" [(ngModel)]="formular.bezahlt" name="bezahlt" /> Bezahlt</label
+        >
+      </div>
+      <div class="feld">
+        <label>Bemerkung</label><input [(ngModel)]="formular.bemerkung" name="bemerkung" />
+      </div>
     </div>
     <div class="formular-aktionen">
-      <button (click)="speichern()" [disabled]="!formular.gerichtId || !formular.verein || !formular.datum">Speichern</button>
+      <button
+        (click)="speichern()"
+        [disabled]="!formular.gerichtId || !formular.verein || !formular.datum"
+      >
+        Speichern
+      </button>
       <button class="sekundaer" (click)="abbrechen()">Abbrechen</button>
     </div>
   </section>
@@ -64,8 +100,14 @@
 <table class="liste">
   <thead>
     <tr>
-      <th>Datum</th><th>Name</th><th>Gericht</th><th>Aktenzeichen</th><th>Betrag</th><th>Status</th>
-      <th>Eingänge</th><th class="aktionen">Aktionen</th>
+      <th>Datum</th>
+      <th>Name</th>
+      <th>Gericht</th>
+      <th>Aktenzeichen</th>
+      <th>Betrag</th>
+      <th>Status</th>
+      <th>Eingänge</th>
+      <th class="aktionen">Aktionen</th>
     </tr>
   </thead>
   <tbody>
@@ -87,7 +129,14 @@
           @if (eingangOffenFuer === b.id) {
             <div class="eingang-formular">
               <input type="date" [(ngModel)]="neuerEingang.datum" name="ed-{{ b.id }}" />
-              <input type="number" step="0.01" min="0" [(ngModel)]="neuerEingang.betrag" name="eb-{{ b.id }}" placeholder="Betrag" />
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                [(ngModel)]="neuerEingang.betrag"
+                name="eb-{{ b.id }}"
+                placeholder="Betrag"
+              />
               <button (click)="eingangHinzufuegen(b)" [disabled]="!neuerEingang.datum">OK</button>
               <button class="sekundaer" (click)="eingangAbbrechen()">Abbr.</button>
             </div>
@@ -97,8 +146,12 @@
         </td>
         <td class="aktionen">
           <button (click)="bearbeiten(b)">Bearbeiten</button>
-          <button class="sekundaer" (click)="verlaufAnzeigen(b)">{{ verlaufId === b.id ? 'Verlauf schließen' : 'Verlauf' }}</button>
-          <button class="sekundaer" (click)="dokumenteAnzeigen(b)">{{ dokumenteId === b.id ? 'Dokumente schließen' : 'Dokumente' }}</button>
+          <button class="sekundaer" (click)="verlaufAnzeigen(b)">
+            {{ verlaufId === b.id ? 'Verlauf schließen' : 'Verlauf' }}
+          </button>
+          <button class="sekundaer" (click)="dokumenteAnzeigen(b)">
+            {{ dokumenteId === b.id ? 'Dokumente schließen' : 'Dokumente' }}
+          </button>
           <button class="gefahr" (click)="loeschen(b)">Löschen</button>
         </td>
       </tr>
@@ -111,15 +164,13 @@
     [titel]="verlaufTitel"
     [eintraege]="verlaufEintraege"
     [laedt]="verlaufLaedt"
-    [fehler]="verlaufFehler">
+    [fehler]="verlaufFehler"
+  >
   </app-verlauf-panel>
 }
 
 @if (dokumenteId !== null) {
-  <app-dokumente-panel
-    [titel]="dokumenteTitel"
-    [entityTyp]="'BUSSGELD'"
-    [entityId]="dokumenteId">
+  <app-dokumente-panel [titel]="dokumenteTitel" [entityTyp]="'BUSSGELD'" [entityId]="dokumenteId">
   </app-dokumente-panel>
 }
 

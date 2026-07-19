@@ -3,11 +3,26 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 
-import { ApiService, Spende, SpendeRequest, Spendenart, VerlaufEintrag, Verein, fehlertext } from '../../api.service';
+import {
+  ApiService,
+  Spende,
+  SpendeRequest,
+  Spendenart,
+  VerlaufEintrag,
+  Verein,
+  fehlertext,
+} from '../../api.service';
 import { DokumentePanelComponent } from '../../dokumente-panel/dokumente-panel.component';
 import { VerlaufPanelComponent } from '../../verlauf-panel/verlauf-panel.component';
 
-const LEER: SpendeRequest = { mitgliedId: 0, spendenart: '', verein: '', datum: '', betrag: 0, bemerkung: null };
+const LEER: SpendeRequest = {
+  mitgliedId: 0,
+  spendenart: '',
+  verein: '',
+  datum: '',
+  betrag: 0,
+  bemerkung: null,
+};
 
 /**
  * @author Nils
@@ -59,13 +74,13 @@ export class SpendenComponent implements OnInit, OnDestroy {
         this.laden(0);
       });
     this.api.spendenarten().subscribe({
-      next: s => {
+      next: (s) => {
         this.spendenarten = s;
         this.cdr.markForCheck();
       },
     });
     this.api.vereine().subscribe({
-      next: v => {
+      next: (v) => {
         this.vereine = v;
         this.cdr.markForCheck();
       },
@@ -82,14 +97,14 @@ export class SpendenComponent implements OnInit, OnDestroy {
   laden(seite = this.seite): void {
     this.fehler = '';
     this.api.spenden(seite, 20, this.suche).subscribe({
-      next: s => {
+      next: (s) => {
         this.spenden = s.content;
         this.seite = s.number;
         this.totalPages = s.totalPages;
         this.totalElements = s.totalElements;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -108,8 +123,12 @@ export class SpendenComponent implements OnInit, OnDestroy {
   bearbeiten(s: Spende): void {
     this.bearbeitetId = s.id;
     this.formular = {
-      mitgliedId: s.mitgliedId, spendenart: s.spendenart, verein: s.verein,
-      datum: s.datum, betrag: s.betrag, bemerkung: s.bemerkung,
+      mitgliedId: s.mitgliedId,
+      spendenart: s.spendenart,
+      verein: s.verein,
+      datum: s.datum,
+      betrag: s.betrag,
+      bemerkung: s.bemerkung,
     };
   }
 
@@ -118,13 +137,15 @@ export class SpendenComponent implements OnInit, OnDestroy {
   }
 
   speichern(): void {
-    const aufruf = this.bearbeitetId ? this.api.spendeAendern(this.bearbeitetId, this.formular) : this.api.spendeAnlegen(this.formular);
+    const aufruf = this.bearbeitetId
+      ? this.api.spendeAendern(this.bearbeitetId, this.formular)
+      : this.api.spendeAnlegen(this.formular);
     aufruf.subscribe({
       next: () => {
         this.bearbeitetId = null;
         this.laden();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -135,7 +156,7 @@ export class SpendenComponent implements OnInit, OnDestroy {
     if (!confirm(`Spende von „${s.mitgliedName}“ über ${s.betrag} € wirklich löschen?`)) return;
     this.api.spendeLoeschen(s.id).subscribe({
       next: () => this.laden(),
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -153,12 +174,12 @@ export class SpendenComponent implements OnInit, OnDestroy {
     this.verlaufFehler = '';
     this.verlaufLaedt = true;
     this.api.spendeVerlauf(s.id).subscribe({
-      next: v => {
+      next: (v) => {
         this.verlaufEintraege = v;
         this.verlaufLaedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.verlaufFehler = fehlertext(err);
         this.verlaufLaedt = false;
         this.cdr.markForCheck();

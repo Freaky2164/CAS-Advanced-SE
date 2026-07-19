@@ -10,24 +10,25 @@ import org.springframework.web.server.ResponseStatusException;
 
 /**
  * @author Nils
- *
- * Einheitliche REST-Fehler für Upload-Grenzen, damit das Frontend klare Hinweise
- * auf zu große Dokumente erhält.
+ *     <p>Einheitliche REST-Fehler für Upload-Grenzen, damit das Frontend klare Hinweise auf zu
+ *     große Dokumente erhält.
  */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ProblemDetail> responseStatus(ResponseStatusException ex) {
-        String detail = ex.getReason() != null ? ex.getReason() : ex.getMessage();
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), detail);
-        return ResponseEntity.status(ex.getStatusCode()).body(problem);
-    }
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<ProblemDetail> responseStatus(ResponseStatusException ex) {
+    String detail = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+    ProblemDetail problem = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), detail);
+    return ResponseEntity.status(ex.getStatusCode()).body(problem);
+  }
 
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ProblemDetail> maxUploadSizeExceeded(MaxUploadSizeExceededException ignored) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
-                "Datei ist zu groß – maximal 10 MB");
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(problem);
-    }
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<ProblemDetail> maxUploadSizeExceeded(
+      MaxUploadSizeExceededException ignored) {
+    ProblemDetail problem =
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.PAYLOAD_TOO_LARGE, "Datei ist zu groß – maximal 10 MB");
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(problem);
+  }
 }

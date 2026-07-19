@@ -4,54 +4,54 @@ import de.frauenhaus.domain.Spendenart;
 import de.frauenhaus.service.SpendenartService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
  * @author Nils
- *
- * REST-Endpunkte zur Pflege der Spendenarten (Stammdaten-CRUD).
+ *     <p>REST-Endpunkte zur Pflege der Spendenarten (Stammdaten-CRUD).
  */
 @RestController
 @RequestMapping("/api/spendenarten")
 public class SpendenartController {
 
-    public record SpendenartRequest(@NotBlank String name, @NotBlank String spendentyp) { }
-    public record SpendentypRequest(@NotBlank String spendentyp) { }
+  public record SpendenartRequest(@NotBlank String name, @NotBlank String spendentyp) {}
 
-    private final SpendenartService spendenartService;
+  public record SpendentypRequest(@NotBlank String spendentyp) {}
 
-    public SpendenartController(SpendenartService spendenartService) {
-        this.spendenartService = spendenartService;
-    }
+  private final SpendenartService spendenartService;
 
-    @GetMapping
-    public List<Spendenart> alle() {
-        return spendenartService.alle();
-    }
+  public SpendenartController(SpendenartService spendenartService) {
+    this.spendenartService = spendenartService;
+  }
 
-    @GetMapping("/{name}")
-    public Spendenart finden(@PathVariable String name) {
-        return spendenartService.finden(name);
-    }
+  @GetMapping
+  public List<Spendenart> alle() {
+    return spendenartService.alle();
+  }
 
-    @PostMapping
-    public ResponseEntity<Spendenart> anlegen(@Valid @RequestBody SpendenartRequest request) {
-        Spendenart angelegt = spendenartService.anlegen(request.name(), request.spendentyp());
-        return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
-    }
+  @GetMapping("/{name}")
+  public Spendenart finden(@PathVariable String name) {
+    return spendenartService.finden(name);
+  }
 
-    @PutMapping("/{name}")
-    public Spendenart spendentypAendern(@PathVariable String name, @Valid @RequestBody SpendentypRequest request) {
-        return spendenartService.spendentypAendern(name, request.spendentyp());
-    }
+  @PostMapping
+  public ResponseEntity<Spendenart> anlegen(@Valid @RequestBody SpendenartRequest request) {
+    Spendenart angelegt = spendenartService.anlegen(request.name(), request.spendentyp());
+    return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
+  }
 
-    @DeleteMapping("/{name}")
-    public ResponseEntity<Void> loeschen(@PathVariable String name) {
-        spendenartService.loeschen(name);
-        return ResponseEntity.noContent().build();
-    }
+  @PutMapping("/{name}")
+  public Spendenart spendentypAendern(
+      @PathVariable String name, @Valid @RequestBody SpendentypRequest request) {
+    return spendenartService.spendentypAendern(name, request.spendentyp());
+  }
+
+  @DeleteMapping("/{name}")
+  public ResponseEntity<Void> loeschen(@PathVariable String name) {
+    spendenartService.loeschen(name);
+    return ResponseEntity.noContent().build();
+  }
 }

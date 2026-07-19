@@ -2,8 +2,17 @@
   <h2>{{ titel }}</h2>
 
   <div class="upload-reihe">
-    <input #dateiInput type="file" (change)="dateiGewaehlt(dateiInput)" data-testid="dokumente-datei" />
-    <button (click)="hochladen(dateiInput)" [disabled]="!datei || hochladenLaeuft" data-testid="dokumente-hochladen">
+    <input
+      #dateiInput
+      type="file"
+      (change)="dateiGewaehlt(dateiInput)"
+      data-testid="dokumente-datei"
+    />
+    <button
+      (click)="hochladen(dateiInput)"
+      [disabled]="!datei || hochladenLaeuft"
+      data-testid="dokumente-hochladen"
+    >
       {{ hochladenLaeuft ? 'Lädt…' : 'Hochladen' }}
     </button>
     @if (datei) {
@@ -23,7 +32,12 @@
     <table class="liste dokumente-liste">
       <thead>
         <tr>
-          <th>Datei</th><th>Größe</th><th>Typ</th><th>Hochgeladen</th><th>Von</th><th class="aktionen">Aktionen</th>
+          <th>Datei</th>
+          <th>Größe</th>
+          <th>Typ</th>
+          <th>Hochgeladen</th>
+          <th>Von</th>
+          <th class="aktionen">Aktionen</th>
         </tr>
       </thead>
       <tbody>

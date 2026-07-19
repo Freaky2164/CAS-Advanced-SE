@@ -9,8 +9,7 @@ import org.hibernate.envers.Audited;
 
 /**
  * @author Nils
- *
- * Träger: 'Frauenhaus' oder 'Förderverein' (alt: Spaltenwert verein).
+ *     <p>Träger: 'Frauenhaus' oder 'Förderverein' (alt: Spaltenwert verein).
  */
 @Entity
 @Table(name = "verein", schema = "frauenhaus")
@@ -18,25 +17,32 @@ import org.hibernate.envers.Audited;
 @AuditTable(value = "verein_aud", schema = "frauenhaus")
 public class Verein {
 
-    @Id
-    @Column(name = "verein")
-    private String name;
+  @Id
+  @Column(name = "verein")
+  private String name;
 
-    private String bezeichnung;
+  private String bezeichnung;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
-    protected Verein() { }
+  /**
+   * @author Nils
+   *     <p>Für JPA.
+   */
+  protected Verein() {}
 
-    public Verein(String name, String bezeichnung) {
-        this.name = name;
-        this.bezeichnung = bezeichnung;
-    }
+  public Verein(String name, String bezeichnung) {
+    this.name = name;
+    this.bezeichnung = bezeichnung;
+  }
 
-    public String getName() { return name; }
-    public String getBezeichnung() { return bezeichnung; }
-    public void setBezeichnung(String bezeichnung) { this.bezeichnung = bezeichnung; }
+  public String getName() {
+    return name;
+  }
+
+  public String getBezeichnung() {
+    return bezeichnung;
+  }
+
+  public void setBezeichnung(String bezeichnung) {
+    this.bezeichnung = bezeichnung;
+  }
 }

@@ -5,8 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * @author Nils
- *
- * Datenzugriff für {@link Spendentyp}. Reine CRUD-Operationen, keine zusätzlichen Abfragen.
+ *     <p>Datenzugriff für {@link Spendentyp}. Reine CRUD-Operationen, keine zusätzlichen Abfragen.
  */
-public interface SpendentypRepository extends JpaRepository<Spendentyp, String> {
-}
+public interface SpendentypRepository extends JpaRepository<Spendentyp, String> {}

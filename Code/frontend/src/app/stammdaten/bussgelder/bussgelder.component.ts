@@ -16,8 +16,17 @@ import { DokumentePanelComponent } from '../../dokumente-panel/dokumente-panel.c
 import { VerlaufPanelComponent } from '../../verlauf-panel/verlauf-panel.component';
 
 const LEER: BussgeldRequest = {
-  gerichtId: 0, verein: '', status: null, name: null, vorname: null, aktenzeichen: null,
-  datum: '', zieldatum: null, betrag: 0, bezahlt: false, bemerkung: null,
+  gerichtId: 0,
+  verein: '',
+  status: null,
+  name: null,
+  vorname: null,
+  aktenzeichen: null,
+  datum: '',
+  zieldatum: null,
+  betrag: 0,
+  bezahlt: false,
+  bemerkung: null,
 };
 
 /**
@@ -54,7 +63,11 @@ export class BussgelderComponent implements OnInit, OnDestroy {
   dokumenteTitel = '';
 
   eingangOffenFuer: number | null = null;
-  neuerEingang: { datum: string; betrag: number; bemerkung: string | null } = { datum: '', betrag: 0, bemerkung: null };
+  neuerEingang: { datum: string; betrag: number; bemerkung: string | null } = {
+    datum: '',
+    betrag: 0,
+    bemerkung: null,
+  };
 
   fehler = '';
   private readonly suchEingaben = new Subject<string>();
@@ -74,19 +87,19 @@ export class BussgelderComponent implements OnInit, OnDestroy {
         this.laden(0);
       });
     this.api.gerichte().subscribe({
-      next: g => {
+      next: (g) => {
         this.gerichte = g;
         this.cdr.markForCheck();
       },
     });
     this.api.vereine().subscribe({
-      next: v => {
+      next: (v) => {
         this.vereine = v;
         this.cdr.markForCheck();
       },
     });
     this.api.bussgeldstati().subscribe({
-      next: s => {
+      next: (s) => {
         this.stati = s;
         this.cdr.markForCheck();
       },
@@ -103,14 +116,14 @@ export class BussgelderComponent implements OnInit, OnDestroy {
   laden(seite = this.seite): void {
     this.fehler = '';
     this.api.bussgelder(seite, 20, this.suche).subscribe({
-      next: s => {
+      next: (s) => {
         this.bussgelder = s.content;
         this.seite = s.number;
         this.totalPages = s.totalPages;
         this.totalElements = s.totalElements;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -129,9 +142,17 @@ export class BussgelderComponent implements OnInit, OnDestroy {
   bearbeiten(b: Bussgeld): void {
     this.bearbeitetId = b.id;
     this.formular = {
-      gerichtId: b.gerichtId, verein: b.verein, status: b.status, name: b.name, vorname: b.vorname,
-      aktenzeichen: b.aktenzeichen, datum: b.datum, zieldatum: b.zieldatum, betrag: b.betrag,
-      bezahlt: b.bezahlt, bemerkung: b.bemerkung,
+      gerichtId: b.gerichtId,
+      verein: b.verein,
+      status: b.status,
+      name: b.name,
+      vorname: b.vorname,
+      aktenzeichen: b.aktenzeichen,
+      datum: b.datum,
+      zieldatum: b.zieldatum,
+      betrag: b.betrag,
+      bezahlt: b.bezahlt,
+      bemerkung: b.bemerkung,
     };
   }
 
@@ -148,7 +169,7 @@ export class BussgelderComponent implements OnInit, OnDestroy {
         this.bearbeitetId = null;
         this.laden();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -159,7 +180,7 @@ export class BussgelderComponent implements OnInit, OnDestroy {
     if (!confirm(`Bußgeldverfahren „${b.aktenzeichen ?? b.id}“ wirklich löschen?`)) return;
     this.api.bussgeldLoeschen(b.id).subscribe({
       next: () => this.laden(),
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -177,12 +198,12 @@ export class BussgelderComponent implements OnInit, OnDestroy {
 
   eingangHinzufuegen(b: Bussgeld): void {
     this.api.eingangHinzufuegen(b.id, this.neuerEingang).subscribe({
-      next: aktualisiert => {
+      next: (aktualisiert) => {
         Object.assign(b, aktualisiert);
         this.eingangOffenFuer = null;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -192,11 +213,11 @@ export class BussgelderComponent implements OnInit, OnDestroy {
   eingangEntfernen(b: Bussgeld, eingangId: number): void {
     if (!confirm('Zahlungseingang wirklich löschen?')) return;
     this.api.eingangEntfernen(b.id, eingangId).subscribe({
-      next: aktualisiert => {
+      next: (aktualisiert) => {
         Object.assign(b, aktualisiert);
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -214,12 +235,12 @@ export class BussgelderComponent implements OnInit, OnDestroy {
     this.verlaufFehler = '';
     this.verlaufLaedt = true;
     this.api.bussgeldVerlauf(b.id).subscribe({
-      next: v => {
+      next: (v) => {
         this.verlaufEintraege = v;
         this.verlaufLaedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.verlaufFehler = fehlertext(err);
         this.verlaufLaedt = false;
         this.cdr.markForCheck();

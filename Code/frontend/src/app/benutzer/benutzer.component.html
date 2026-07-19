@@ -29,11 +29,21 @@
             </select>
           </td>
           <td>
-            <input type="checkbox" [(ngModel)]="u.enabled" name="aktiv-{{ u.id }}" [disabled]="istEigenerBenutzer(u)" />
+            <input
+              type="checkbox"
+              [(ngModel)]="u.enabled"
+              name="aktiv-{{ u.id }}"
+              [disabled]="istEigenerBenutzer(u)"
+            />
           </td>
           <td>{{ u.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
           <td>
-            <input type="password" [(ngModel)]="passwortEingabe[u.id]" name="pw-{{ u.id }}" placeholder="mind. 8 Zeichen" />
+            <input
+              type="password"
+              [(ngModel)]="passwortEingabe[u.id]"
+              name="pw-{{ u.id }}"
+              placeholder="mind. 8 Zeichen"
+            />
           </td>
           <td class="aktionen">
             <button (click)="aendern(u)" [disabled]="istEigenerBenutzer(u)">Speichern</button>
@@ -47,8 +57,13 @@
 
   <h3>Neuen Benutzer anlegen</h3>
   <div class="formular">
-    <div class="feld"><label>Benutzername</label><input [(ngModel)]="neuerBenutzername" name="neuBenutzername" /></div>
-    <div class="feld"><label>Passwort</label><input type="password" [(ngModel)]="neuesPasswort" name="neuPasswort" /></div>
+    <div class="feld">
+      <label>Benutzername</label><input [(ngModel)]="neuerBenutzername" name="neuBenutzername" />
+    </div>
+    <div class="feld">
+      <label>Passwort</label
+      ><input type="password" [(ngModel)]="neuesPasswort" name="neuPasswort" />
+    </div>
     <div class="feld">
       <label>Rolle</label>
       <select [(ngModel)]="neueRolle" name="neuRolle">
@@ -57,5 +72,7 @@
       </select>
     </div>
   </div>
-  <button (click)="anlegen()" [disabled]="!neuerBenutzername.trim() || neuesPasswort.length < 8">Benutzer anlegen</button>
+  <button (click)="anlegen()" [disabled]="!neuerBenutzername.trim() || neuesPasswort.length < 8">
+    Benutzer anlegen
+  </button>
 </section>

@@ -18,10 +18,17 @@
   </div>
 
   <div class="aktionen">
-    <button (click)="zusammenstellen()" [disabled]="laedt || !neu.trim() || alteListe().length === 0">
+    <button
+      (click)="zusammenstellen()"
+      [disabled]="laedt || !neu.trim() || alteListe().length === 0"
+    >
       Zusammenstellen
     </button>
-    <button class="gefahr" (click)="zusammenfassen()" [disabled]="laedt || !neu.trim() || alteListe().length === 0">
+    <button
+      class="gefahr"
+      (click)="zusammenfassen()"
+      [disabled]="laedt || !neu.trim() || alteListe().length === 0"
+    >
       Zusammenfassen (löscht alte)
     </button>
   </div>

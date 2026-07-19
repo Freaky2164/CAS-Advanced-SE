@@ -21,19 +21,16 @@ module.exports = function (config) {
       },
     },
     jasmineHtmlReporter: {
-      suppressAll: true // removes the duplicated traces
+      suppressAll: true, // removes the duplicated traces
     },
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/frontend'),
       subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' }
-      ]
+      reporters: [{ type: 'html' }, { type: 'text-summary' }],
     },
     reporters: ['progress', 'kjhtml'],
     // Auf diesem Rechner ist kein Chrome installiert; mit --browsers=Chrome übersteuerbar.
     browsers: ['FirefoxHeadless'],
-    restartOnFileChange: true
+    restartOnFileChange: true,
   });
 };

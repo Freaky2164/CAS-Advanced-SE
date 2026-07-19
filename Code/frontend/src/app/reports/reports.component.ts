@@ -53,12 +53,18 @@ export class ReportsComponent {
   ) {}
 
   bussgeldUebersicht(): void {
-    this.starte(this.api.download('/api/reports/bussgeld-uebersicht', { von: this.von, bis: this.bis }));
+    this.starte(
+      this.api.download('/api/reports/bussgeld-uebersicht', { von: this.von, bis: this.bis }),
+    );
   }
 
   bussgeldDetail(): void {
     this.starte(
-      this.api.download('/api/reports/bussgeld-detail', { von: this.von, bis: this.bis, verein: this.verein }),
+      this.api.download('/api/reports/bussgeld-detail', {
+        von: this.von,
+        bis: this.bis,
+        verein: this.verein,
+      }),
     );
   }
 
@@ -79,7 +85,9 @@ export class ReportsComponent {
   }
 
   serienbriefAdressen(): void {
-    this.starte(this.api.download('/api/reports/serienbrief-adressen', { stichworte: this.stichwortListe() }));
+    this.starte(
+      this.api.download('/api/reports/serienbrief-adressen', { stichworte: this.stichwortListe() }),
+    );
   }
 
   serienbrief(): void {
@@ -97,11 +105,11 @@ export class ReportsComponent {
     this.emailVersandFehler = '';
     this.emailVersandMeldung = '';
     this.api.verteilerEmails(this.stichwortListe()).subscribe({
-      next: emails => {
+      next: (emails) => {
         this.emails = emails;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -113,60 +121,66 @@ export class ReportsComponent {
     this.emailVersandFehler = '';
     this.emailVersandMeldung = '';
     this.emailVersandLaeuft = true;
-    this.api.verteilerVersenden({
-      stichworte: this.stichwortListe(),
-      traeger: this.serienbriefVerein,
-      betreff: this.emailBetreff.trim(),
-      text: this.emailText.trim(),
-    }).subscribe({
-      next: ergebnis => {
-        this.emailVersandLaeuft = false;
-        this.emailVersandMeldung = `E-Mail an ${ergebnis.empfaengerAnzahl} Empfänger gesendet.`;
-        this.cdr.markForCheck();
-      },
-      error: err => {
-        this.emailVersandLaeuft = false;
-        this.emailVersandFehler = fehlertext(err);
-        this.cdr.markForCheck();
-      },
-    });
+    this.api
+      .verteilerVersenden({
+        stichworte: this.stichwortListe(),
+        traeger: this.serienbriefVerein,
+        betreff: this.emailBetreff.trim(),
+        text: this.emailText.trim(),
+      })
+      .subscribe({
+        next: (ergebnis) => {
+          this.emailVersandLaeuft = false;
+          this.emailVersandMeldung = `E-Mail an ${ergebnis.empfaengerAnzahl} Empfänger gesendet.`;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.emailVersandLaeuft = false;
+          this.emailVersandFehler = fehlertext(err);
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   kannVerteilerSenden(): boolean {
-    return !this.emailVersandLaeuft
-      && (this.emails?.length ?? 0) > 0
-      && this.stichwortListe().length > 0
-      && this.emailBetreff.trim().length > 0
-      && this.emailText.trim().length > 0;
+    return (
+      !this.emailVersandLaeuft &&
+      (this.emails?.length ?? 0) > 0 &&
+      this.stichwortListe().length > 0 &&
+      this.emailBetreff.trim().length > 0 &&
+      this.emailText.trim().length > 0
+    );
   }
 
   stichwortListe(): string[] {
     return this.stichworte
       .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }
 
   sucheStichwortListe(): string[] {
     return this.sucheStichworte
       .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
   }
 
   stichwortsucheAnzeigen(): void {
     this.fehler = '';
     this.sucheErgebnis = null;
-    this.api.stichwortsuche(this.sucheStichwortListe(), this.sucheFoerderverein, this.sucheFrauenhaus).subscribe({
-      next: ergebnis => {
-        this.sucheErgebnis = ergebnis;
-        this.cdr.markForCheck();
-      },
-      error: err => {
-        this.fehler = fehlertext(err);
-        this.cdr.markForCheck();
-      },
-    });
+    this.api
+      .stichwortsuche(this.sucheStichwortListe(), this.sucheFoerderverein, this.sucheFrauenhaus)
+      .subscribe({
+        next: (ergebnis) => {
+          this.sucheErgebnis = ergebnis;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.fehler = fehlertext(err);
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   stichwortsucheHerunterladen(): void {
@@ -182,7 +196,7 @@ export class ReportsComponent {
   private starte(download: Observable<void>): void {
     this.fehler = '';
     download.subscribe({
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },

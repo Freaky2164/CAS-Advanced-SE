@@ -93,17 +93,22 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
     this.vereineLaden();
     this.gerichteLaden();
     this.api.spendenarten().subscribe({
-      next: s => this.setzen(() => (this.spendenarten = s)),
-      error: err => this.fehlerAnzeigen(err),
+      next: (s) => this.setzen(() => (this.spendenarten = s)),
+      error: (err) => this.fehlerAnzeigen(err),
     });
-    this.api.anreden().subscribe({ next: a => this.setzen(() => (this.anreden = a)), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .anreden()
+      .subscribe({
+        next: (a) => this.setzen(() => (this.anreden = a)),
+        error: (err) => this.fehlerAnzeigen(err),
+      });
     this.api.spendentypen().subscribe({
-      next: s => this.setzen(() => (this.spendentypen = s)),
-      error: err => this.fehlerAnzeigen(err),
+      next: (s) => this.setzen(() => (this.spendentypen = s)),
+      error: (err) => this.fehlerAnzeigen(err),
     });
     this.api.bussgeldstati().subscribe({
-      next: s => this.setzen(() => (this.bussgeldstati = s)),
-      error: err => this.fehlerAnzeigen(err),
+      next: (s) => this.setzen(() => (this.bussgeldstati = s)),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
@@ -119,15 +124,15 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
 
   private vereineLaden(): void {
     this.api.vereine(this.vereinSuche).subscribe({
-      next: v => this.setzen(() => (this.vereine = v)),
-      error: err => this.fehlerAnzeigen(err),
+      next: (v) => this.setzen(() => (this.vereine = v)),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   private gerichteLaden(): void {
     this.api.gerichte(this.gerichtSuche).subscribe({
-      next: g => this.setzen(() => (this.gerichte = g)),
-      error: err => this.fehlerAnzeigen(err),
+      next: (g) => this.setzen(() => (this.gerichte = g)),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
@@ -146,17 +151,21 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neuerVerein = { name: '', bezeichnung: '' };
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   vereinBezeichnungAendern(v: Verein): void {
-    this.api.vereinAendern(v.name, v.bezeichnung).subscribe({ error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .vereinAendern(v.name, v.bezeichnung)
+      .subscribe({ error: (err) => this.fehlerAnzeigen(err) });
   }
 
   vereinLoeschen(name: string): void {
     if (!confirm(`Verein „${name}“ wirklich löschen?`)) return;
-    this.api.vereinLoeschen(name).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .vereinLoeschen(name)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 
   vereinVerlaufAnzeigen(v: Verein): void {
@@ -170,12 +179,12 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
     this.vereinVerlaufFehler = '';
     this.vereinVerlaufLaedt = true;
     this.api.vereinVerlauf(v.name).subscribe({
-      next: eintraege => {
+      next: (eintraege) => {
         this.vereinVerlaufEintraege = eintraege;
         this.vereinVerlaufLaedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.vereinVerlaufFehler = fehlertext(err);
         this.vereinVerlaufLaedt = false;
         this.cdr.markForCheck();
@@ -199,17 +208,19 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neuesGericht = { bezeichnung: '', strasse: '', plz: '', ort: '' };
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   gerichtAendern(g: Gericht): void {
-    this.api.gerichtAendern(g.id, g).subscribe({ error: err => this.fehlerAnzeigen(err) });
+    this.api.gerichtAendern(g.id, g).subscribe({ error: (err) => this.fehlerAnzeigen(err) });
   }
 
   gerichtLoeschen(id: number): void {
     if (!confirm('Gericht wirklich löschen?')) return;
-    this.api.gerichtLoeschen(id).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .gerichtLoeschen(id)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 
   gerichtVerlaufAnzeigen(g: Gericht): void {
@@ -223,12 +234,12 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
     this.gerichtVerlaufFehler = '';
     this.gerichtVerlaufLaedt = true;
     this.api.gerichtVerlauf(g.id).subscribe({
-      next: eintraege => {
+      next: (eintraege) => {
         this.gerichtVerlaufEintraege = eintraege;
         this.gerichtVerlaufLaedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.gerichtVerlaufFehler = fehlertext(err);
         this.gerichtVerlaufLaedt = false;
         this.cdr.markForCheck();
@@ -252,17 +263,21 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neueSpendenart = { name: '', spendentyp: '' };
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   spendenartAendern(sa: Spendenart): void {
-    this.api.spendenartAendern(sa.name, sa.spendentyp).subscribe({ error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .spendenartAendern(sa.name, sa.spendentyp)
+      .subscribe({ error: (err) => this.fehlerAnzeigen(err) });
   }
 
   spendenartLoeschen(name: string): void {
     if (!confirm(`Spendenart „${name}“ wirklich löschen?`)) return;
-    this.api.spendenartLoeschen(name).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .spendenartLoeschen(name)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 
   // --- Anreden ---
@@ -273,12 +288,14 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neueAnrede = '';
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   anredeLoeschen(name: string): void {
-    this.api.anredeLoeschen(name).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .anredeLoeschen(name)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 
   // --- Spendentypen ---
@@ -289,12 +306,14 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neuerSpendentyp = '';
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   spendentypLoeschen(name: string): void {
-    this.api.spendentypLoeschen(name).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .spendentypLoeschen(name)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 
   // --- Bußgeldstatus ---
@@ -305,11 +324,13 @@ export class VerwaltungComponent implements OnInit, OnDestroy {
         this.neuerBussgeldstatus = '';
         this.neuLaden();
       },
-      error: err => this.fehlerAnzeigen(err),
+      error: (err) => this.fehlerAnzeigen(err),
     });
   }
 
   bussgeldstatusLoeschen(name: string): void {
-    this.api.bussgeldstatusLoeschen(name).subscribe({ next: () => this.neuLaden(), error: err => this.fehlerAnzeigen(err) });
+    this.api
+      .bussgeldstatusLoeschen(name)
+      .subscribe({ next: () => this.neuLaden(), error: (err) => this.fehlerAnzeigen(err) });
   }
 }

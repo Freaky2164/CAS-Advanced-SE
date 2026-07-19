@@ -21,7 +21,9 @@
 
   <section class="card">
     <h2>Bußgelder – Detail</h2>
-    <p class="hinweis">Bußgelder mit Zahlungseingängen im Zeitraum (xlsx). Nutzt die Daten „Von/Bis“ links.</p>
+    <p class="hinweis">
+      Bußgelder mit Zahlungseingängen im Zeitraum (xlsx). Nutzt die Daten „Von/Bis“ links.
+    </p>
     <div class="feld">
       <label for="verein">Träger</label>
       <select id="verein" name="verein" [(ngModel)]="verein">
@@ -55,7 +57,9 @@
 
   <section class="card">
     <h2>Spendenquittung</h2>
-    <p class="hinweis">Quittungsdaten inkl. Betrag in Worten; Dauerspenden werden übers Jahr summiert.</p>
+    <p class="hinweis">
+      Quittungsdaten inkl. Betrag in Worten; Dauerspenden werden übers Jahr summiert.
+    </p>
     <div class="feld">
       <label for="spendeId">Spenden-ID</label>
       <input id="spendeId" type="number" name="spendeId" [(ngModel)]="spendeId" min="1" />
@@ -70,10 +74,17 @@
 
   <section class="card">
     <h2>Verteiler</h2>
-    <p class="hinweis">Stichworte kommagetrennt angeben, z.&nbsp;B. „Weihnachtsbrief, Newsletter“.</p>
+    <p class="hinweis">
+      Stichworte kommagetrennt angeben, z.&nbsp;B. „Weihnachtsbrief, Newsletter“.
+    </p>
     <div class="feld">
       <label for="stichworte">Stichworte</label>
-      <input id="stichworte" name="stichworte" [(ngModel)]="stichworte" placeholder="Stichwort1, Stichwort2" />
+      <input
+        id="stichworte"
+        name="stichworte"
+        [(ngModel)]="stichworte"
+        placeholder="Stichwort1, Stichwort2"
+      />
     </div>
     <div class="feld">
       <label for="serienbriefVerein">Träger (für Serienbriefe)</label>
@@ -84,7 +95,9 @@
       </select>
     </div>
     <div class="aktionen">
-      <button (click)="emailsAnzeigen()" [disabled]="stichwortListe().length === 0">E-Mails anzeigen</button>
+      <button (click)="emailsAnzeigen()" [disabled]="stichwortListe().length === 0">
+        E-Mails anzeigen
+      </button>
       <button (click)="serienbriefAdressen()" [disabled]="stichwortListe().length === 0">
         Serienbrief-Adressen (xlsx)
       </button>
@@ -102,7 +115,9 @@
           }
         </ul>
         <div class="verteiler-versand">
-          <p class="hinweis">Die E-Mail wird einmal versendet; alle Empfänger stehen dabei ausschließlich im BCC.</p>
+          <p class="hinweis">
+            Die E-Mail wird einmal versendet; alle Empfänger stehen dabei ausschließlich im BCC.
+          </p>
           <div class="feld">
             <label for="emailBetreff">Betreff</label>
             <input id="emailBetreff" name="emailBetreff" [(ngModel)]="emailBetreff" />
@@ -130,8 +145,8 @@
   <section class="card">
     <h2>Mitgliedersuche nach Stichworten</h2>
     <p class="hinweis">
-      SpenderInnen mit einem oder mehreren Stichworten (alt: CReportStichwortSuche).
-      Stichworte kommagetrennt angeben.
+      SpenderInnen mit einem oder mehreren Stichworten (alt: CReportStichwortSuche). Stichworte
+      kommagetrennt angeben.
     </p>
     <div class="feld">
       <label for="sucheStichworte">Stichworte</label>
@@ -143,14 +158,25 @@
       />
     </div>
     <div class="feld">
-      <label><input type="checkbox" name="sucheFoerderverein" [(ngModel)]="sucheFoerderverein" /> Förderverein</label>
+      <label
+        ><input type="checkbox" name="sucheFoerderverein" [(ngModel)]="sucheFoerderverein" />
+        Förderverein</label
+      >
     </div>
     <div class="feld">
-      <label><input type="checkbox" name="sucheFrauenhaus" [(ngModel)]="sucheFrauenhaus" /> Frauenhaus</label>
+      <label
+        ><input type="checkbox" name="sucheFrauenhaus" [(ngModel)]="sucheFrauenhaus" />
+        Frauenhaus</label
+      >
     </div>
     <div class="aktionen">
-      <button (click)="stichwortsucheAnzeigen()" [disabled]="sucheStichwortListe().length === 0">Anzeigen</button>
-      <button (click)="stichwortsucheHerunterladen()" [disabled]="sucheStichwortListe().length === 0">
+      <button (click)="stichwortsucheAnzeigen()" [disabled]="sucheStichwortListe().length === 0">
+        Anzeigen
+      </button>
+      <button
+        (click)="stichwortsucheHerunterladen()"
+        [disabled]="sucheStichwortListe().length === 0"
+      >
         Als Excel herunterladen
       </button>
     </div>

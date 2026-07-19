@@ -15,12 +15,30 @@ export interface Seite<T> {
   size: number;
 }
 
-export interface Anrede { name: string; }
-export interface Spendentyp { name: string; }
-export interface Bussgeldstatus { name: string; }
-export interface Verein { name: string; bezeichnung: string; }
-export interface Gericht { id: number; bezeichnung: string; strasse: string | null; plz: string | null; ort: string | null; }
-export interface Spendenart { name: string; spendentyp: string; }
+export interface Anrede {
+  name: string;
+}
+export interface Spendentyp {
+  name: string;
+}
+export interface Bussgeldstatus {
+  name: string;
+}
+export interface Verein {
+  name: string;
+  bezeichnung: string;
+}
+export interface Gericht {
+  id: number;
+  bezeichnung: string;
+  strasse: string | null;
+  plz: string | null;
+  ort: string | null;
+}
+export interface Spendenart {
+  name: string;
+  spendentyp: string;
+}
 export interface VerlaufAenderung {
   feld: string;
   alt: string | number | boolean | null;
@@ -80,7 +98,12 @@ export interface Spende {
 }
 export type SpendeRequest = Omit<Spende, 'id' | 'mitgliedName'>;
 
-export interface Eingang { id: number; datum: string; betrag: number; bemerkung: string | null; }
+export interface Eingang {
+  id: number;
+  datum: string;
+  betrag: number;
+  bemerkung: string | null;
+}
 export interface Bussgeld {
   id: number;
   gerichtId: number;
@@ -129,47 +152,85 @@ export class ApiService {
   constructor(private readonly http: HttpClient) {}
 
   // --- Anreden / Spendentypen / Bußgeldstatus (einfache Lookups) ---
-  anreden(): Observable<Anrede[]> { return this.http.get<Anrede[]>('/api/anreden'); }
-  anredeAnlegen(name: string): Observable<Anrede> { return this.http.post<Anrede>('/api/anreden', { name }); }
-  anredeLoeschen(name: string): Observable<void> { return this.http.delete<void>(`/api/anreden/${encodeURIComponent(name)}`); }
+  anreden(): Observable<Anrede[]> {
+    return this.http.get<Anrede[]>('/api/anreden');
+  }
+  anredeAnlegen(name: string): Observable<Anrede> {
+    return this.http.post<Anrede>('/api/anreden', { name });
+  }
+  anredeLoeschen(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/anreden/${encodeURIComponent(name)}`);
+  }
 
-  spendentypen(): Observable<Spendentyp[]> { return this.http.get<Spendentyp[]>('/api/spendentypen'); }
-  spendentypAnlegen(name: string): Observable<Spendentyp> { return this.http.post<Spendentyp>('/api/spendentypen', { name }); }
-  spendentypLoeschen(name: string): Observable<void> { return this.http.delete<void>(`/api/spendentypen/${encodeURIComponent(name)}`); }
+  spendentypen(): Observable<Spendentyp[]> {
+    return this.http.get<Spendentyp[]>('/api/spendentypen');
+  }
+  spendentypAnlegen(name: string): Observable<Spendentyp> {
+    return this.http.post<Spendentyp>('/api/spendentypen', { name });
+  }
+  spendentypLoeschen(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/spendentypen/${encodeURIComponent(name)}`);
+  }
 
-  bussgeldstati(): Observable<Bussgeldstatus[]> { return this.http.get<Bussgeldstatus[]>('/api/bussgeldstatus'); }
-  bussgeldstatusAnlegen(name: string): Observable<Bussgeldstatus> { return this.http.post<Bussgeldstatus>('/api/bussgeldstatus', { name }); }
-  bussgeldstatusLoeschen(name: string): Observable<void> { return this.http.delete<void>(`/api/bussgeldstatus/${encodeURIComponent(name)}`); }
+  bussgeldstati(): Observable<Bussgeldstatus[]> {
+    return this.http.get<Bussgeldstatus[]>('/api/bussgeldstatus');
+  }
+  bussgeldstatusAnlegen(name: string): Observable<Bussgeldstatus> {
+    return this.http.post<Bussgeldstatus>('/api/bussgeldstatus', { name });
+  }
+  bussgeldstatusLoeschen(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/bussgeldstatus/${encodeURIComponent(name)}`);
+  }
 
   // --- Vereine ---
   vereine(suche?: string | null): Observable<Verein[]> {
     return this.http.get<Verein[]>('/api/vereine', { params: this.paramsMitSuche({}, suche) });
   }
-  vereinAnlegen(verein: Verein): Observable<Verein> { return this.http.post<Verein>('/api/vereine', verein); }
+  vereinAnlegen(verein: Verein): Observable<Verein> {
+    return this.http.post<Verein>('/api/vereine', verein);
+  }
   vereinAendern(name: string, bezeichnung: string): Observable<Verein> {
     return this.http.put<Verein>(`/api/vereine/${encodeURIComponent(name)}`, { bezeichnung });
   }
   vereinVerlauf(name: string): Observable<VerlaufEintrag[]> {
     return this.http.get<VerlaufEintrag[]>(`/api/vereine/${encodeURIComponent(name)}/verlauf`);
   }
-  vereinLoeschen(name: string): Observable<void> { return this.http.delete<void>(`/api/vereine/${encodeURIComponent(name)}`); }
+  vereinLoeschen(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/vereine/${encodeURIComponent(name)}`);
+  }
 
   // --- Gerichte ---
   gerichte(suche?: string | null): Observable<Gericht[]> {
     return this.http.get<Gericht[]>('/api/gerichte', { params: this.paramsMitSuche({}, suche) });
   }
-  gerichtAnlegen(g: Omit<Gericht, 'id'>): Observable<Gericht> { return this.http.post<Gericht>('/api/gerichte', g); }
-  gerichtAendern(id: number, g: Omit<Gericht, 'id'>): Observable<Gericht> { return this.http.put<Gericht>(`/api/gerichte/${id}`, g); }
-  gerichtVerlauf(id: number): Observable<VerlaufEintrag[]> { return this.http.get<VerlaufEintrag[]>(`/api/gerichte/${id}/verlauf`); }
-  gerichtLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/gerichte/${id}`); }
+  gerichtAnlegen(g: Omit<Gericht, 'id'>): Observable<Gericht> {
+    return this.http.post<Gericht>('/api/gerichte', g);
+  }
+  gerichtAendern(id: number, g: Omit<Gericht, 'id'>): Observable<Gericht> {
+    return this.http.put<Gericht>(`/api/gerichte/${id}`, g);
+  }
+  gerichtVerlauf(id: number): Observable<VerlaufEintrag[]> {
+    return this.http.get<VerlaufEintrag[]>(`/api/gerichte/${id}/verlauf`);
+  }
+  gerichtLoeschen(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/gerichte/${id}`);
+  }
 
   // --- Spendenarten ---
-  spendenarten(): Observable<Spendenart[]> { return this.http.get<Spendenart[]>('/api/spendenarten'); }
-  spendenartAnlegen(sa: Spendenart): Observable<Spendenart> { return this.http.post<Spendenart>('/api/spendenarten', sa); }
-  spendenartAendern(name: string, spendentyp: string): Observable<Spendenart> {
-    return this.http.put<Spendenart>(`/api/spendenarten/${encodeURIComponent(name)}`, { spendentyp });
+  spendenarten(): Observable<Spendenart[]> {
+    return this.http.get<Spendenart[]>('/api/spendenarten');
   }
-  spendenartLoeschen(name: string): Observable<void> { return this.http.delete<void>(`/api/spendenarten/${encodeURIComponent(name)}`); }
+  spendenartAnlegen(sa: Spendenart): Observable<Spendenart> {
+    return this.http.post<Spendenart>('/api/spendenarten', sa);
+  }
+  spendenartAendern(name: string, spendentyp: string): Observable<Spendenart> {
+    return this.http.put<Spendenart>(`/api/spendenarten/${encodeURIComponent(name)}`, {
+      spendentyp,
+    });
+  }
+  spendenartLoeschen(name: string): Observable<void> {
+    return this.http.delete<void>(`/api/spendenarten/${encodeURIComponent(name)}`);
+  }
 
   // --- Mitglieder ---
   mitglieder(seite: number, groesse = 20, suche?: string | null): Observable<Seite<Mitglied>> {
@@ -177,12 +238,24 @@ export class ApiService {
       params: this.paramsMitSuche({ page: seite, size: groesse, sort: 'name,vorname' }, suche),
     });
   }
-  mitglied(id: number): Observable<Mitglied> { return this.http.get<Mitglied>(`/api/mitglieder/${id}`); }
-  mitgliedVerlauf(id: number): Observable<VerlaufEintrag[]> { return this.http.get<VerlaufEintrag[]>(`/api/mitglieder/${id}/verlauf`); }
-  mitgliedAnlegen(m: MitgliedRequest): Observable<Mitglied> { return this.http.post<Mitglied>('/api/mitglieder', m); }
-  mitgliedAendern(id: number, m: MitgliedRequest): Observable<Mitglied> { return this.http.put<Mitglied>(`/api/mitglieder/${id}`, m); }
-  mitgliedDuplizieren(id: number): Observable<Mitglied> { return this.http.post<Mitglied>(`/api/mitglieder/${id}/duplizieren`, {}); }
-  mitgliedLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/mitglieder/${id}`); }
+  mitglied(id: number): Observable<Mitglied> {
+    return this.http.get<Mitglied>(`/api/mitglieder/${id}`);
+  }
+  mitgliedVerlauf(id: number): Observable<VerlaufEintrag[]> {
+    return this.http.get<VerlaufEintrag[]>(`/api/mitglieder/${id}/verlauf`);
+  }
+  mitgliedAnlegen(m: MitgliedRequest): Observable<Mitglied> {
+    return this.http.post<Mitglied>('/api/mitglieder', m);
+  }
+  mitgliedAendern(id: number, m: MitgliedRequest): Observable<Mitglied> {
+    return this.http.put<Mitglied>(`/api/mitglieder/${id}`, m);
+  }
+  mitgliedDuplizieren(id: number): Observable<Mitglied> {
+    return this.http.post<Mitglied>(`/api/mitglieder/${id}/duplizieren`, {});
+  }
+  mitgliedLoeschen(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/mitglieder/${id}`);
+  }
 
   // --- Spenden ---
   spenden(seite: number, groesse = 20, suche?: string | null): Observable<Seite<Spende>> {
@@ -190,10 +263,18 @@ export class ApiService {
       params: this.paramsMitSuche({ page: seite, size: groesse, sort: 'datum,desc' }, suche),
     });
   }
-  spendeVerlauf(id: number): Observable<VerlaufEintrag[]> { return this.http.get<VerlaufEintrag[]>(`/api/spenden/${id}/verlauf`); }
-  spendeAnlegen(s: SpendeRequest): Observable<Spende> { return this.http.post<Spende>('/api/spenden', s); }
-  spendeAendern(id: number, s: SpendeRequest): Observable<Spende> { return this.http.put<Spende>(`/api/spenden/${id}`, s); }
-  spendeLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/spenden/${id}`); }
+  spendeVerlauf(id: number): Observable<VerlaufEintrag[]> {
+    return this.http.get<VerlaufEintrag[]>(`/api/spenden/${id}/verlauf`);
+  }
+  spendeAnlegen(s: SpendeRequest): Observable<Spende> {
+    return this.http.post<Spende>('/api/spenden', s);
+  }
+  spendeAendern(id: number, s: SpendeRequest): Observable<Spende> {
+    return this.http.put<Spende>(`/api/spenden/${id}`, s);
+  }
+  spendeLoeschen(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/spenden/${id}`);
+  }
 
   // --- Bußgelder ---
   bussgelder(seite: number, groesse = 20, suche?: string | null): Observable<Seite<Bussgeld>> {
@@ -201,10 +282,18 @@ export class ApiService {
       params: this.paramsMitSuche({ page: seite, size: groesse, sort: 'datum,desc' }, suche),
     });
   }
-  bussgeldVerlauf(id: number): Observable<VerlaufEintrag[]> { return this.http.get<VerlaufEintrag[]>(`/api/bussgelder/${id}/verlauf`); }
-  bussgeldAnlegen(b: BussgeldRequest): Observable<Bussgeld> { return this.http.post<Bussgeld>('/api/bussgelder', b); }
-  bussgeldAendern(id: number, b: BussgeldRequest): Observable<Bussgeld> { return this.http.put<Bussgeld>(`/api/bussgelder/${id}`, b); }
-  bussgeldLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/bussgelder/${id}`); }
+  bussgeldVerlauf(id: number): Observable<VerlaufEintrag[]> {
+    return this.http.get<VerlaufEintrag[]>(`/api/bussgelder/${id}/verlauf`);
+  }
+  bussgeldAnlegen(b: BussgeldRequest): Observable<Bussgeld> {
+    return this.http.post<Bussgeld>('/api/bussgelder', b);
+  }
+  bussgeldAendern(id: number, b: BussgeldRequest): Observable<Bussgeld> {
+    return this.http.put<Bussgeld>(`/api/bussgelder/${id}`, b);
+  }
+  bussgeldLoeschen(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/bussgelder/${id}`);
+  }
   eingangHinzufuegen(bussgeldId: number, e: EingangRequest): Observable<Bussgeld> {
     return this.http.post<Bussgeld>(`/api/bussgelder/${bussgeldId}/eingaenge`, e);
   }
@@ -213,16 +302,32 @@ export class ApiService {
   }
 
   // --- Dokument-Anhänge ---
-  dokumente(entityTyp: DokumentEntityTyp, entityId: string | number): Observable<DokumentMetadaten[]> {
-    return this.http.get<DokumentMetadaten[]>(`/api/dokumente/${entityTyp}/${encodeURIComponent(String(entityId))}`);
+  dokumente(
+    entityTyp: DokumentEntityTyp,
+    entityId: string | number,
+  ): Observable<DokumentMetadaten[]> {
+    return this.http.get<DokumentMetadaten[]>(
+      `/api/dokumente/${entityTyp}/${encodeURIComponent(String(entityId))}`,
+    );
   }
-  dokumentHochladen(entityTyp: DokumentEntityTyp, entityId: string | number, file: File): Observable<DokumentMetadaten> {
+  dokumentHochladen(
+    entityTyp: DokumentEntityTyp,
+    entityId: string | number,
+    file: File,
+  ): Observable<DokumentMetadaten> {
     const formData = new FormData();
     formData.append('datei', file);
-    return this.http.post<DokumentMetadaten>(`/api/dokumente/${entityTyp}/${encodeURIComponent(String(entityId))}`, formData);
+    return this.http.post<DokumentMetadaten>(
+      `/api/dokumente/${entityTyp}/${encodeURIComponent(String(entityId))}`,
+      formData,
+    );
   }
-  dokumentHerunterladen(id: number): Observable<void> { return this.download(`/api/dokumente/${id}/download`, {}); }
-  dokumentLoeschen(id: number): Observable<void> { return this.http.delete<void>(`/api/dokumente/${id}`); }
+  dokumentHerunterladen(id: number): Observable<void> {
+    return this.download(`/api/dokumente/${id}/download`, {});
+  }
+  dokumentLoeschen(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/dokumente/${id}`);
+  }
 
   /**
    * @author Nils
@@ -248,9 +353,17 @@ export class ApiService {
    *
    * Mitgliedersuche über ein oder mehrere Stichworte, optional auf Förderverein/Frauenhaus eingeschränkt.
    */
-  stichwortsuche(stichworte: string[], foerderverein: boolean, frauenhaus: boolean): Observable<Mitglied[]> {
+  stichwortsuche(
+    stichworte: string[],
+    foerderverein: boolean,
+    frauenhaus: boolean,
+  ): Observable<Mitglied[]> {
     const params = new HttpParams({
-      fromObject: { stichworte, foerderverein: String(foerderverein), frauenhaus: String(frauenhaus) },
+      fromObject: {
+        stichworte,
+        foerderverein: String(foerderverein),
+        frauenhaus: String(frauenhaus),
+      },
     });
     return this.http.get<Mitglied[]>('/api/reports/stichwortsuche', { params });
   }
@@ -274,7 +387,9 @@ export class ApiService {
   }
 
   // --- Benutzerverwaltung (nur Rolle ADMIN) ---
-  benutzer(): Observable<AppUser[]> { return this.http.get<AppUser[]>('/api/admin/users'); }
+  benutzer(): Observable<AppUser[]> {
+    return this.http.get<AppUser[]>('/api/admin/users');
+  }
   benutzerAnlegen(username: string, passwort: string, role: AppUserRole): Observable<AppUser> {
     return this.http.post<AppUser>('/api/admin/users', { username, passwort, role });
   }
@@ -297,12 +412,17 @@ export class ApiService {
         responseType: 'blob',
         observe: 'response',
       })
-      .pipe(map(res => speichern(res)));
+      .pipe(map((res) => speichern(res)));
   }
 
-  private paramsMitSuche(params: Record<string, string | number>, suche?: string | null): HttpParams {
+  private paramsMitSuche(
+    params: Record<string, string | number>,
+    suche?: string | null,
+  ): HttpParams {
     let httpParams = new HttpParams({
-      fromObject: Object.fromEntries(Object.entries(params).map(([key, value]) => [key, String(value)])),
+      fromObject: Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [key, String(value)]),
+      ),
     });
     const suchbegriff = suche?.trim();
     if (suchbegriff) {
@@ -318,13 +438,14 @@ export class ApiService {
  * Fehlermeldung für die Anzeige im UI.
  */
 export function fehlertext(err: HttpErrorResponse): string {
-  const detail = typeof err.error === 'string'
-    ? err.error
-    : typeof err.error?.detail === 'string'
-      ? err.error.detail
-      : typeof err.error?.message === 'string'
-        ? err.error.message
-        : '';
+  const detail =
+    typeof err.error === 'string'
+      ? err.error
+      : typeof err.error?.detail === 'string'
+        ? err.error.detail
+        : typeof err.error?.message === 'string'
+          ? err.error.message
+          : '';
   if (err.status === 0) return 'Backend nicht erreichbar.';
   if (err.status === 401) return 'Anmeldung abgelaufen – bitte neu anmelden.';
   if (err.status === 404) return 'Nicht gefunden – bitte ID prüfen.';

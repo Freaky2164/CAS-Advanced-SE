@@ -7,12 +7,21 @@
   <div class="seiten suchleiste">
     <div class="feld suchfeld">
       <label for="vereine-suche">Suche</label>
-      <input id="vereine-suche" [(ngModel)]="vereinSuche" (ngModelChange)="vereinSucheGeaendert()" name="vereinSuche" />
+      <input
+        id="vereine-suche"
+        [(ngModel)]="vereinSuche"
+        (ngModelChange)="vereinSucheGeaendert()"
+        name="vereinSuche"
+      />
     </div>
   </div>
   <table class="liste">
     <thead>
-      <tr><th>Kürzel</th><th>Bezeichnung</th><th class="aktionen">Aktionen</th></tr>
+      <tr>
+        <th>Kürzel</th>
+        <th>Bezeichnung</th>
+        <th class="aktionen">Aktionen</th>
+      </tr>
     </thead>
     <tbody>
       @for (v of vereine; track v.name) {
@@ -21,8 +30,12 @@
           <td><input [(ngModel)]="v.bezeichnung" name="bez-{{ v.name }}" /></td>
           <td class="aktionen">
             <button (click)="vereinBezeichnungAendern(v)">Speichern</button>
-            <button class="sekundaer" (click)="vereinVerlaufAnzeigen(v)">{{ vereinVerlaufName === v.name ? 'Verlauf schließen' : 'Verlauf' }}</button>
-            <button class="sekundaer" (click)="vereinDokumenteAnzeigen(v)">{{ vereinDokumenteName === v.name ? 'Dokumente schließen' : 'Dokumente' }}</button>
+            <button class="sekundaer" (click)="vereinVerlaufAnzeigen(v)">
+              {{ vereinVerlaufName === v.name ? 'Verlauf schließen' : 'Verlauf' }}
+            </button>
+            <button class="sekundaer" (click)="vereinDokumenteAnzeigen(v)">
+              {{ vereinDokumenteName === v.name ? 'Dokumente schließen' : 'Dokumente' }}
+            </button>
             <button class="gefahr" (click)="vereinLoeschen(v.name)">Löschen</button>
           </td>
         </tr>
@@ -34,21 +47,32 @@
       [titel]="vereinVerlaufTitel"
       [eintraege]="vereinVerlaufEintraege"
       [laedt]="vereinVerlaufLaedt"
-      [fehler]="vereinVerlaufFehler">
+      [fehler]="vereinVerlaufFehler"
+    >
     </app-verlauf-panel>
   }
   @if (vereinDokumenteName !== null) {
     <app-dokumente-panel
       [titel]="vereinDokumenteTitel"
       [entityTyp]="'VEREIN'"
-      [entityId]="vereinDokumenteName">
+      [entityId]="vereinDokumenteName"
+    >
     </app-dokumente-panel>
   }
   <div class="formular">
-    <div class="feld"><label>Kürzel</label><input [(ngModel)]="neuerVerein.name" name="neuVereinName" /></div>
-    <div class="feld"><label>Bezeichnung</label><input [(ngModel)]="neuerVerein.bezeichnung" name="neuVereinBez" /></div>
+    <div class="feld">
+      <label>Kürzel</label><input [(ngModel)]="neuerVerein.name" name="neuVereinName" />
+    </div>
+    <div class="feld">
+      <label>Bezeichnung</label><input [(ngModel)]="neuerVerein.bezeichnung" name="neuVereinBez" />
+    </div>
   </div>
-  <button (click)="vereinAnlegen()" [disabled]="!neuerVerein.name.trim() || !neuerVerein.bezeichnung.trim()">Verein anlegen</button>
+  <button
+    (click)="vereinAnlegen()"
+    [disabled]="!neuerVerein.name.trim() || !neuerVerein.bezeichnung.trim()"
+  >
+    Verein anlegen
+  </button>
 </section>
 
 <section class="card">
@@ -56,12 +80,23 @@
   <div class="seiten suchleiste">
     <div class="feld suchfeld">
       <label for="gerichte-suche">Suche</label>
-      <input id="gerichte-suche" [(ngModel)]="gerichtSuche" (ngModelChange)="gerichtSucheGeaendert()" name="gerichtSuche" />
+      <input
+        id="gerichte-suche"
+        [(ngModel)]="gerichtSuche"
+        (ngModelChange)="gerichtSucheGeaendert()"
+        name="gerichtSuche"
+      />
     </div>
   </div>
   <table class="liste">
     <thead>
-      <tr><th>Bezeichnung</th><th>Straße</th><th>PLZ</th><th>Ort</th><th class="aktionen">Aktionen</th></tr>
+      <tr>
+        <th>Bezeichnung</th>
+        <th>Straße</th>
+        <th>PLZ</th>
+        <th>Ort</th>
+        <th class="aktionen">Aktionen</th>
+      </tr>
     </thead>
     <tbody>
       @for (g of gerichte; track g.id) {
@@ -72,8 +107,12 @@
           <td><input [(ngModel)]="g.ort" name="go-{{ g.id }}" /></td>
           <td class="aktionen">
             <button (click)="gerichtAendern(g)">Speichern</button>
-            <button class="sekundaer" (click)="gerichtVerlaufAnzeigen(g)">{{ gerichtVerlaufId === g.id ? 'Verlauf schließen' : 'Verlauf' }}</button>
-            <button class="sekundaer" (click)="gerichtDokumenteAnzeigen(g)">{{ gerichtDokumenteId === g.id ? 'Dokumente schließen' : 'Dokumente' }}</button>
+            <button class="sekundaer" (click)="gerichtVerlaufAnzeigen(g)">
+              {{ gerichtVerlaufId === g.id ? 'Verlauf schließen' : 'Verlauf' }}
+            </button>
+            <button class="sekundaer" (click)="gerichtDokumenteAnzeigen(g)">
+              {{ gerichtDokumenteId === g.id ? 'Dokumente schließen' : 'Dokumente' }}
+            </button>
             <button class="gefahr" (click)="gerichtLoeschen(g.id)">Löschen</button>
           </td>
         </tr>
@@ -85,30 +124,47 @@
       [titel]="gerichtVerlaufTitel"
       [eintraege]="gerichtVerlaufEintraege"
       [laedt]="gerichtVerlaufLaedt"
-      [fehler]="gerichtVerlaufFehler">
+      [fehler]="gerichtVerlaufFehler"
+    >
     </app-verlauf-panel>
   }
   @if (gerichtDokumenteId !== null) {
     <app-dokumente-panel
       [titel]="gerichtDokumenteTitel"
       [entityTyp]="'GERICHT'"
-      [entityId]="gerichtDokumenteId">
+      [entityId]="gerichtDokumenteId"
+    >
     </app-dokumente-panel>
   }
   <div class="formular">
-    <div class="feld"><label>Bezeichnung</label><input [(ngModel)]="neuesGericht.bezeichnung" name="neuGerichtBez" /></div>
-    <div class="feld"><label>Straße</label><input [(ngModel)]="neuesGericht.strasse" name="neuGerichtStr" /></div>
-    <div class="feld"><label>PLZ</label><input [(ngModel)]="neuesGericht.plz" name="neuGerichtPlz" /></div>
-    <div class="feld"><label>Ort</label><input [(ngModel)]="neuesGericht.ort" name="neuGerichtOrt" /></div>
+    <div class="feld">
+      <label>Bezeichnung</label
+      ><input [(ngModel)]="neuesGericht.bezeichnung" name="neuGerichtBez" />
+    </div>
+    <div class="feld">
+      <label>Straße</label><input [(ngModel)]="neuesGericht.strasse" name="neuGerichtStr" />
+    </div>
+    <div class="feld">
+      <label>PLZ</label><input [(ngModel)]="neuesGericht.plz" name="neuGerichtPlz" />
+    </div>
+    <div class="feld">
+      <label>Ort</label><input [(ngModel)]="neuesGericht.ort" name="neuGerichtOrt" />
+    </div>
   </div>
-  <button (click)="gerichtAnlegen()" [disabled]="!neuesGericht.bezeichnung.trim()">Gericht anlegen</button>
+  <button (click)="gerichtAnlegen()" [disabled]="!neuesGericht.bezeichnung.trim()">
+    Gericht anlegen
+  </button>
 </section>
 
 <section class="card">
   <h2>Spendenarten</h2>
   <table class="liste">
     <thead>
-      <tr><th>Name</th><th>Spendentyp</th><th class="aktionen">Aktionen</th></tr>
+      <tr>
+        <th>Name</th>
+        <th>Spendentyp</th>
+        <th class="aktionen">Aktionen</th>
+      </tr>
     </thead>
     <tbody>
       @for (sa of spendenarten; track sa.name) {
@@ -130,7 +186,9 @@
     </tbody>
   </table>
   <div class="formular">
-    <div class="feld"><label>Name</label><input [(ngModel)]="neueSpendenart.name" name="neuSaName" /></div>
+    <div class="feld">
+      <label>Name</label><input [(ngModel)]="neueSpendenart.name" name="neuSaName" />
+    </div>
     <div class="feld">
       <label>Spendentyp</label>
       <select [(ngModel)]="neueSpendenart.spendentyp" name="neuSaTyp">
@@ -141,7 +199,10 @@
       </select>
     </div>
   </div>
-  <button (click)="spendenartAnlegen()" [disabled]="!neueSpendenart.name.trim() || !neueSpendenart.spendentyp">
+  <button
+    (click)="spendenartAnlegen()"
+    [disabled]="!neueSpendenart.name.trim() || !neueSpendenart.spendentyp"
+  >
     Spendenart anlegen
   </button>
 </section>
@@ -154,7 +215,9 @@
         <li>{{ a.name }} <button class="gefahr" (click)="anredeLoeschen(a.name)">×</button></li>
       }
     </ul>
-    <div class="feld"><input [(ngModel)]="neueAnrede" name="neueAnrede" placeholder="z. B. Frau" /></div>
+    <div class="feld">
+      <input [(ngModel)]="neueAnrede" name="neueAnrede" placeholder="z. B. Frau" />
+    </div>
     <button (click)="anredeAnlegen()" [disabled]="!neueAnrede.trim()">Anlegen</button>
   </section>
 
@@ -165,7 +228,9 @@
         <li>{{ t.name }} <button class="gefahr" (click)="spendentypLoeschen(t.name)">×</button></li>
       }
     </ul>
-    <div class="feld"><input [(ngModel)]="neuerSpendentyp" name="neuerSpendentyp" placeholder="z. B. Sachspende" /></div>
+    <div class="feld">
+      <input [(ngModel)]="neuerSpendentyp" name="neuerSpendentyp" placeholder="z. B. Sachspende" />
+    </div>
     <button (click)="spendentypAnlegen()" [disabled]="!neuerSpendentyp.trim()">Anlegen</button>
   </section>
 
@@ -173,10 +238,16 @@
     <h2>Bußgeldstatus</h2>
     <ul class="lookup-liste">
       @for (s of bussgeldstati; track s.name) {
-        <li>{{ s.name }} <button class="gefahr" (click)="bussgeldstatusLoeschen(s.name)">×</button></li>
+        <li>
+          {{ s.name }} <button class="gefahr" (click)="bussgeldstatusLoeschen(s.name)">×</button>
+        </li>
       }
     </ul>
-    <div class="feld"><input [(ngModel)]="neuerBussgeldstatus" name="neuerStatus" placeholder="z. B. offen" /></div>
-    <button (click)="bussgeldstatusAnlegen()" [disabled]="!neuerBussgeldstatus.trim()">Anlegen</button>
+    <div class="feld">
+      <input [(ngModel)]="neuerBussgeldstatus" name="neuerStatus" placeholder="z. B. offen" />
+    </div>
+    <button (click)="bussgeldstatusAnlegen()" [disabled]="!neuerBussgeldstatus.trim()">
+      Anlegen
+    </button>
   </section>
 </div>

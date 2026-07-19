@@ -26,8 +26,8 @@
             <ul class="verlauf-aenderungen">
               @for (aenderung of eintrag.aenderungen; track aenderung.feld + '-' + $index) {
                 <li>
-                  <strong>{{ aenderung.feld }}</strong>:
-                  {{ wertText(aenderung.alt) }} → {{ wertText(aenderung.neu) }}
+                  <strong>{{ aenderung.feld }}</strong
+                  >: {{ wertText(aenderung.alt) }} → {{ wertText(aenderung.neu) }}
                 </li>
               }
             </ul>

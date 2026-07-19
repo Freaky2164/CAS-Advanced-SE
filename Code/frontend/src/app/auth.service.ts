@@ -41,7 +41,7 @@ export class AuthService {
     sessionStorage.setItem(HEADER_KEY, basicHeader(username, passwort));
     return this.http.get<Me>('/api/me').pipe(
       tap({
-        next: me => {
+        next: (me) => {
           sessionStorage.setItem(USER_KEY, JSON.stringify(me));
           this.user.set(me);
         },

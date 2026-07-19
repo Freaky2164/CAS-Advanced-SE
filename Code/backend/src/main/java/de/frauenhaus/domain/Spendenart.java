@@ -7,33 +7,40 @@ import jakarta.persistence.Table;
 
 /**
  * @author Nils
- *
- * Spendenart mit Typ, z.B. 'Geldspende dauer', 'Mitgliedsbeitrag' (alt: frauenhaus.spendenart).
+ *     <p>Spendenart mit Typ, z.B. 'Geldspende dauer', 'Mitgliedsbeitrag' (alt:
+ *     frauenhaus.spendenart).
  */
 @Entity
 @Table(name = "spendenart", schema = "frauenhaus")
 public class Spendenart {
 
-    @Id
-    @Column(name = "spendenart")
-    private String name;
+  @Id
+  @Column(name = "spendenart")
+  private String name;
 
-    @Column(nullable = false)
-    private String spendentyp;
+  @Column(nullable = false)
+  private String spendentyp;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
-    protected Spendenart() { }
+  /**
+   * @author Nils
+   *     <p>Für JPA.
+   */
+  protected Spendenart() {}
 
-    public Spendenart(String name, String spendentyp) {
-        this.name = name;
-        this.spendentyp = spendentyp;
-    }
+  public Spendenart(String name, String spendentyp) {
+    this.name = name;
+    this.spendentyp = spendentyp;
+  }
 
-    public String getName() { return name; }
-    public String getSpendentyp() { return spendentyp; }
-    public void setSpendentyp(String spendentyp) { this.spendentyp = spendentyp; }
+  public String getName() {
+    return name;
+  }
+
+  public String getSpendentyp() {
+    return spendentyp;
+  }
+
+  public void setSpendentyp(String spendentyp) {
+    this.spendentyp = spendentyp;
+  }
 }

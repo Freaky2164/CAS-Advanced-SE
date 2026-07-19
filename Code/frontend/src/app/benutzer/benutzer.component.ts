@@ -42,11 +42,11 @@ export class BenutzerComponent implements OnInit {
   neuLaden(): void {
     this.fehler = '';
     this.api.benutzer().subscribe({
-      next: b => {
+      next: (b) => {
         this.benutzer = b;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -60,20 +60,22 @@ export class BenutzerComponent implements OnInit {
   anlegen(): void {
     this.fehler = '';
     this.erfolg = '';
-    this.api.benutzerAnlegen(this.neuerBenutzername.trim(), this.neuesPasswort, this.neueRolle).subscribe({
-      next: () => {
-        this.neuerBenutzername = '';
-        this.neuesPasswort = '';
-        this.neueRolle = 'SACHBEARBEITUNG';
-        this.erfolg = 'Benutzer angelegt.';
-        this.neuLaden();
-        this.cdr.markForCheck();
-      },
-      error: err => {
-        this.fehler = fehlertext(err);
-        this.cdr.markForCheck();
-      },
-    });
+    this.api
+      .benutzerAnlegen(this.neuerBenutzername.trim(), this.neuesPasswort, this.neueRolle)
+      .subscribe({
+        next: () => {
+          this.neuerBenutzername = '';
+          this.neuesPasswort = '';
+          this.neueRolle = 'SACHBEARBEITUNG';
+          this.erfolg = 'Benutzer angelegt.';
+          this.neuLaden();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.fehler = fehlertext(err);
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   aendern(u: AppUser): void {
@@ -84,7 +86,7 @@ export class BenutzerComponent implements OnInit {
         this.erfolg = `Benutzer „${u.username}“ aktualisiert.`;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -105,11 +107,10 @@ export class BenutzerComponent implements OnInit {
         this.erfolg = `Passwort für „${u.username}“ zurückgesetzt.`;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
     });
   }
 }
-

@@ -7,29 +7,29 @@ import jakarta.persistence.Table;
 
 /**
  * @author Nils
- *
- * Anrede-Lookup für {@link Mitglied} (alt: frauenhaus.anrede). Bisher nur als
- * DB-Fremdschlüssel-Constraint vorhanden, jetzt als eigenständige Stammdaten-Entität
- * für die Pflege der zulässigen Anreden (Grundlage für Stammdaten-CRUD).
+ *     <p>Anrede-Lookup für {@link Mitglied} (alt: frauenhaus.anrede). Bisher nur als
+ *     DB-Fremdschlüssel-Constraint vorhanden, jetzt als eigenständige Stammdaten-Entität für die
+ *     Pflege der zulässigen Anreden (Grundlage für Stammdaten-CRUD).
  */
 @Entity
 @Table(name = "anrede", schema = "frauenhaus")
 public class Anrede {
 
-    @Id
-    @Column(name = "anrede")
-    private String name;
+  @Id
+  @Column(name = "anrede")
+  private String name;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
-    protected Anrede() { }
+  /**
+   * @author Nils
+   *     <p>Für JPA.
+   */
+  protected Anrede() {}
 
-    public Anrede(String name) {
-        this.name = name;
-    }
+  public Anrede(String name) {
+    this.name = name;
+  }
 
-    public String getName() { return name; }
+  public String getName() {
+    return name;
+  }
 }

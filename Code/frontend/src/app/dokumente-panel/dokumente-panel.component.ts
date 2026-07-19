@@ -31,7 +31,12 @@ export class DokumentePanelComponent implements OnChanges {
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ((changes['entityTyp'] || changes['entityId']) && this.entityTyp && this.entityId !== null && this.entityId !== undefined) {
+    if (
+      (changes['entityTyp'] || changes['entityId']) &&
+      this.entityTyp &&
+      this.entityId !== null &&
+      this.entityId !== undefined
+    ) {
       this.laden();
     }
   }
@@ -48,14 +53,14 @@ export class DokumentePanelComponent implements OnChanges {
     this.fehler = '';
     const datei = this.datei;
     this.api.dokumentHochladen(this.entityTyp, this.entityId, datei).subscribe({
-      next: dokument => {
+      next: (dokument) => {
         this.dokumente = [dokument, ...this.dokumente];
         this.datei = null;
         input.value = '';
         this.hochladenLaeuft = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.hochladenLaeuft = false;
         this.cdr.markForCheck();
@@ -65,7 +70,7 @@ export class DokumentePanelComponent implements OnChanges {
 
   herunterladen(dokument: DokumentMetadaten): void {
     this.api.dokumentHerunterladen(dokument.id).subscribe({
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -76,10 +81,10 @@ export class DokumentePanelComponent implements OnChanges {
     if (!confirm(`Dokument „${dokument.dateiname}“ wirklich löschen?`)) return;
     this.api.dokumentLoeschen(dokument.id).subscribe({
       next: () => {
-        this.dokumente = this.dokumente.filter(d => d.id !== dokument.id);
+        this.dokumente = this.dokumente.filter((d) => d.id !== dokument.id);
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.cdr.markForCheck();
       },
@@ -97,12 +102,12 @@ export class DokumentePanelComponent implements OnChanges {
     this.laedt = true;
     this.dokumente = [];
     this.api.dokumente(this.entityTyp, this.entityId).subscribe({
-      next: dokumente => {
+      next: (dokumente) => {
         this.dokumente = dokumente;
         this.laedt = false;
         this.cdr.markForCheck();
       },
-      error: err => {
+      error: (err) => {
         this.fehler = fehlertext(err);
         this.laedt = false;
         this.cdr.markForCheck();
