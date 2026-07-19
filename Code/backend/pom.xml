@@ -130,6 +130,38 @@
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>5.7.0.6970</version>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>ck</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.github.mauricioaniche.ck.Runner</mainClass>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <arguments>
+                                <argument>${project.basedir}/src/main/java</argument>
+                                <argument>false</argument>
+                                <argument>0</argument>
+                                <argument>false</argument>
+                                <argument>${project.basedir}/metrics-ck/</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.mauricioaniche</groupId>
+                        <artifactId>ck</artifactId>
+                        <version>0.7.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 </project>

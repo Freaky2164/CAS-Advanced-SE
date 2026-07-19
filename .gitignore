@@ -40,3 +40,6 @@ target/
 *.iml
 dist/
 .angular/
+Code/backend/metrics-ck/
+.sonar-token/
+
