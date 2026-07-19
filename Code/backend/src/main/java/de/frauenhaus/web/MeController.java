@@ -10,17 +10,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Nils
- *
  * Liefert den aktuell angemeldeten Benutzer.
+ *
+ * @author Paul
  */
 @RestController
 @RequestMapping("/api")
 public class MeController {
 
     /**
-     * @author Nils
-     *
      * Benutzername und Rollen des angemeldeten Benutzers.
      */
     @GetMapping("/me")

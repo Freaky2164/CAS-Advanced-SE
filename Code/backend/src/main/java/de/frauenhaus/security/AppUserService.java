@@ -13,25 +13,22 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
- * @author Nils
+ * Benutzerverwaltung für Administratoren: Anlegen, Rolle ändern,
+ * Aktivieren/Deaktivieren und Passwort-Reset. Harte Löschungen sind nicht
+ * vorgesehen, damit Änderungshistorien auf einen bestehenden Benutzer
+ * verweisen können.
  *
- * Benutzerverwaltung für Administratoren (ersetzt die fehlende Pflege aus
- * compucrash.user_def / CLoginFrame – im Altsystem gab es dafür keine UI,
- * Benutzer wurden direkt in der DB gepflegt). Anlegen, Rolle ändern,
- * Aktivieren/Deaktivieren und Passwort-Reset; harte Löschungen sind bewusst
- * nicht vorgesehen, damit spätere Änderungshistorien (Envers) auf einen
- * bestehenden Benutzer verweisen können.
+ * @author Nils
  */
 @Service
 @Transactional
 public class AppUserService {
 
     /**
-     * @author Nils
-     *
      * Öffentlich sichtbare Benutzerdaten ohne Passwort-Hash.
      */
     public record AppUserResponse(Long id, String username, AppUser.Role role, boolean enabled, OffsetDateTime createdAt) {
+        /** Bildet einen {@link AppUser} auf die Antwortdarstellung ab. */
         static AppUserResponse of(AppUser u) {
             return new AppUserResponse(u.getId(), u.getUsername(), u.getRole(), u.isEnabled(), u.getCreatedAt());
         }
@@ -40,20 +37,34 @@ public class AppUserService {
     private final AppUserRepository users;
     private final PasswordEncoder encoder;
 
+    /**
+     * Erzeugt den Service mit Repository und Passwort-Encoder.
+     *
+     * @param users das Benutzer-Repository
+     * @param encoder der Passwort-Encoder
+     */
     public AppUserService(AppUserRepository users, PasswordEncoder encoder) {
         this.users = users;
         this.encoder = encoder;
     }
 
+    /**
+     * Liefert alle Benutzer sortiert nach Benutzername.
+     *
+     * @return die Benutzer ohne Passwort-Hashes
+     */
     @Transactional(readOnly = true)
     public List<AppUserResponse> alle() {
         return users.findAll(Sort.by("username")).stream().map(AppUserResponse::of).toList();
     }
 
     /**
-     * @author Nils
-     *
      * Legt einen neuen Benutzer mit BCrypt-gehashtem Passwort an.
+     *
+     * @param username der eindeutige Benutzername
+     * @param passwort das Passwort im Klartext
+     * @param role die Rolle des Benutzers
+     * @return der angelegte Benutzer
      */
     public AppUserResponse anlegen(String username, String passwort, AppUser.Role role) {
         if (users.findByUsername(username).isPresent()) {
@@ -64,11 +75,13 @@ public class AppUserService {
     }
 
     /**
-     * @author Nils
+     * Ändert Rolle und Aktiv-Status eines Benutzers. Verhindert, dass der
+     * letzte aktive Administrator degradiert oder deaktiviert wird.
      *
-     * Ändert Rolle und Aktiv-Status. Verhindert, dass der letzte aktive Administrator
-     * degradiert oder deaktiviert wird (sonst kann sich niemand mehr anmelden, der
-     * weitere Admins verwalten könnte).
+     * @param id die ID des Benutzers
+     * @param role die neue Rolle
+     * @param enabled der neue Aktiv-Status
+     * @return der geänderte Benutzer
      */
     public AppUserResponse aendern(Long id, AppUser.Role role, boolean enabled) {
         AppUser u = finden(id);
@@ -84,9 +97,11 @@ public class AppUserService {
     }
 
     /**
-     * @author Nils
+     * Setzt das Passwort eines Benutzers zurück.
      *
-     * Setzt das Passwort eines Benutzers zurück (Admin-Funktion, kein Einmal-Link-Flow nötig).
+     * @param id die ID des Benutzers
+     * @param neuesPasswort das neue Passwort im Klartext
+     * @return der geänderte Benutzer
      */
     public AppUserResponse passwortZuruecksetzen(Long id, String neuesPasswort) {
         AppUser u = finden(id);
@@ -94,11 +109,17 @@ public class AppUserService {
         return AppUserResponse.of(u);
     }
 
+    /**
+     * Lädt einen Benutzer oder wirft 404, wenn er nicht existiert.
+     */
     private AppUser finden(Long id) {
         return users.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Benutzer " + id + " nicht gefunden"));
     }
 
+    /**
+     * Zählt die aktiven Administratoren.
+     */
     private long aktiveAdmins() {
         return users.findAll().stream()
                 .filter(u -> u.getRole() == AppUser.Role.ADMIN && u.isEnabled())

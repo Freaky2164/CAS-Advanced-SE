@@ -24,28 +24,48 @@ import java.util.Objects;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
- * @author Nils
+ * Liefert die Änderungshistorie auditierter Stammdaten-Datensätze aus
+ * Hibernate Envers als DTOs mit Feld-Diffs.
  *
- * Liefert die Änderungshistorie auditierter Stammdaten-Datensätze aus Hibernate
- * Envers als einfache REST-taugliche DTOs mit Feld-Diffs.
+ * @author Ole
  */
 @Service
 @Transactional(readOnly = true)
 public class AuditService {
 
+    /**
+     * Änderung eines einzelnen Feldes mit altem und neuem Wert.
+     */
     public record FeldAenderung(String feld, Object alt, Object neu) { }
 
+    /**
+     * Eintrag der Änderungshistorie: eine Revision mit Bearbeiter, Zeitpunkt,
+     * Änderungstyp und den Feld-Änderungen.
+     */
     public record VerlaufEintrag(Long revision, Instant zeitpunkt, String benutzername, String typ,
                                  List<FeldAenderung> aenderungen) { }
 
     private final EntityManager entityManager;
     private final PersistenceUnitUtil persistenceUnitUtil;
 
+    /**
+     * Erzeugt den Service mit EntityManager und PersistenceUnitUtil.
+     *
+     * @param entityManager der EntityManager für Envers-Abfragen
+     * @param entityManagerFactory die Factory zum Auflösen von Entity-IDs
+     */
     public AuditService(EntityManager entityManager, EntityManagerFactory entityManagerFactory) {
         this.entityManager = entityManager;
         this.persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
     }
 
+    /**
+     * Liefert die Änderungshistorie eines Datensatzes chronologisch aufsteigend.
+     *
+     * @param entityClass die auditierte Entity-Klasse
+     * @param id die ID des Datensatzes
+     * @return die Verlaufseinträge mit Feld-Diffs
+     */
     public List<VerlaufEintrag> verlauf(Class<?> entityClass, Object id) {
         AuditReader auditReader = AuditReaderFactory.get(entityManager);
         @SuppressWarnings("unchecked")
@@ -84,6 +104,9 @@ public class AuditService {
         return eintraege;
     }
 
+    /**
+     * Vergleicht zwei Versionen eines Datensatzes feldweise.
+     */
     private List<FeldAenderung> vergleiche(Class<?> entityClass, Object alt, Object neu) {
         List<FeldAenderung> aenderungen = new ArrayList<>();
         for (Field field : relevanteFelder(entityClass)) {
@@ -96,6 +119,11 @@ public class AuditService {
         return aenderungen;
     }
 
+    /**
+     * Ermittelt die für den Vergleich relevanten Felder: keine statischen,
+     * transienten oder synthetischen Felder, keine IDs und keine
+     * Collection-Relationen.
+     */
     private List<Field> relevanteFelder(Class<?> entityClass) {
         List<Field> felder = new ArrayList<>();
         ReflectionUtils.doWithFields(entityClass, feld -> {
@@ -109,6 +137,9 @@ public class AuditService {
         return felder;
     }
 
+    /**
+     * Prüft, ob das Feld eine Collection oder eine Listen-Relation ist.
+     */
     private boolean istCollectionOderListenRelation(Field feld) {
         return Collection.class.isAssignableFrom(feld.getType())
                 || feld.isAnnotationPresent(jakarta.persistence.OneToMany.class)
@@ -116,6 +147,10 @@ public class AuditService {
                 || feld.isAnnotationPresent(jakarta.persistence.ElementCollection.class);
     }
 
+    /**
+     * Liest den Wert eines Feldes; Relationen werden auf ihre ID abgebildet,
+     * Enums auf ihren Namen.
+     */
     private Object leseWert(Field feld, Object entity) {
         if (entity == null) {
             return null;
@@ -136,6 +171,9 @@ public class AuditService {
         return wert;
     }
 
+    /**
+     * Bildet den Envers-Revisionstyp auf die SQL-übliche Bezeichnung ab.
+     */
     private static String typ(RevisionType revisionType) {
         return switch (revisionType) {
             case ADD -> "INSERT";

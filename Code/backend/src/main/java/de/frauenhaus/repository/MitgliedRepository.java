@@ -11,18 +11,19 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * Datenzugriff für {@link Mitglied}, mit Abfragen für Verteiler,
  * E-Mail-Rundschreiben und Spendenquittungs-Empfänger.
+ *
+ * @author Ole
  */
 public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
 
     /**
-     * @author Nils
+     * Sucht Mitglieder über die wichtigsten Textfelder der Mitgliederliste.
      *
-     * Generische Suche über die wichtigsten Textfelder der Mitgliederliste
-     * (alt: Filter im generischen Listen-Frame).
+     * @param suche der Suchbegriff (Teilstring, Groß-/Kleinschreibung egal)
+     * @param pageable die gewünschte Seite und Sortierung
+     * @return die passenden Mitglieder seitenweise
      */
     @Query(value = """
             SELECT DISTINCT m FROM Mitglied m
@@ -49,10 +50,10 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
     Page<Mitglied> suchen(@Param("suche") String suche, Pageable pageable);
 
     /**
-     * @author Nils
+     * Liefert die Serienbrief-Adressaten zu den angegebenen Verteiler-Stichworten.
      *
-     * Serienbrief-Adressen für Verteiler-Stichworte
-     * (alt: CReportSerienbriefAdressen – jetzt parameterisiert statt String-Konkatenation).
+     * @param stichworte die Namen der Stichworte
+     * @return die Mitglieder sortiert nach Name und Vorname
      */
     @Query("""
             SELECT DISTINCT m FROM Mitglied m JOIN m.stichworte s
@@ -61,9 +62,10 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
     List<Mitglied> findVerteiler(@Param("stichworte") Collection<String> stichworte);
 
     /**
-     * @author Nils
+     * Liefert die E-Mail-Adressen des Verteilers zu den angegebenen Stichworten.
      *
-     * E-Mail-Verteiler (alt: CReportVerteiler).
+     * @param stichworte die Namen der Stichworte
+     * @return die E-Mail-Adressen sortiert und ohne Duplikate
      */
     @Query("""
             SELECT DISTINCT m.email FROM Mitglied m JOIN m.stichworte s
@@ -72,18 +74,22 @@ public interface MitgliedRepository extends JpaRepository<Mitglied, Long> {
     List<String> findVerteilerEmails(@Param("stichworte") Collection<String> stichworte);
 
     /**
-     * @author Nils
+     * Liefert den Empfänger einer Spendenquittung.
      *
-     * Empfänger einer Spendenquittung (alt: CCommandSpendenQuittung).
+     * @param spendeId die ID der Spende
+     * @return das spendende Mitglied
      */
     @Query("SELECT DISTINCT s.mitglied FROM Spende s WHERE s.id = :spendeId")
     List<Mitglied> findBySpende(@Param("spendeId") Long spendeId);
 
     /**
-     * @author Nils
+     * Sucht Mitglieder über ein oder mehrere Stichworte, optional zusätzlich
+     * auf Förderverein- bzw. Frauenhaus-Mitglieder eingeschränkt.
      *
-     * Mitgliedersuche über ein oder mehrere Stichworte, optional zusätzlich auf
-     * Förderverein-/Frauenhaus-Mitglieder eingeschränkt (alt: CReportStichwortSuche).
+     * @param stichworte die Namen der Stichworte
+     * @param foerderverein wenn {@code true}, nur Förderverein-Mitglieder
+     * @param frauenhaus wenn {@code true}, nur Frauenhaus-Mitglieder
+     * @return die Mitglieder sortiert nach Name und Vorname
      */
     @Query("""
             SELECT DISTINCT m FROM Mitglied m JOIN m.stichworte s

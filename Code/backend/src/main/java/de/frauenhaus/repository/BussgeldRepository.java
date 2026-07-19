@@ -12,17 +12,19 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * @author Nils
+ * Datenzugriff für {@link Bussgeld}, inklusive der Reporting-Abfragen für die
+ * Bußgeld-Übersicht und -Detailansicht.
  *
- * Datenzugriff für {@link Bussgeld}, inklusive der nativen Reporting-Abfragen
- * für die Bußgeld-Übersicht und -Detailansicht.
+ * @author Ole
  */
 public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
 
     /**
-     * @author Nils
+     * Sucht Bußgelder über die wichtigsten Textfelder der Bußgeldliste.
      *
-     * Generische Suche über die wichtigsten Textfelder der Bußgeldliste.
+     * @param suche der Suchbegriff (Teilstring, Groß-/Kleinschreibung egal)
+     * @param pageable die gewünschte Seite und Sortierung
+     * @return die passenden Bußgelder seitenweise
      */
     @Query(value = """
             SELECT b FROM Bussgeld b
@@ -53,20 +55,27 @@ public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
     Page<Bussgeld> suchen(@Param("suche") String suche, Pageable pageable);
 
     /**
-     * @author Nils
-     *
-     * Zeile der Bußgeld-Übersicht: Summen je Gericht (alt: CReportBussgeldUebersicht.compute).
+     * Zeile der Bußgeld-Übersicht mit den Summen je Gericht.
      */
     interface UebersichtZeile {
+        /** Liefert die Bezeichnung des Gerichts. */
         String getBezeichnung();
+
+        /** Liefert die Summe der zugewiesenen Bußgelder. */
         BigDecimal getBussgelder();
+
+        /** Liefert die Summe der Zahlungseingänge. */
         BigDecimal getEingaenge();
     }
 
     /**
-     * @author Nils
+     * Ermittelt die Summen der Bußgelder und Zahlungseingänge je Gericht im
+     * Zeitraum für einen Träger.
      *
-     * Summen der Bußgelder und Zahlungseingänge je Gericht im Zeitraum, für einen Träger.
+     * @param von Beginn des Zeitraums (einschließlich)
+     * @param bis Ende des Zeitraums (einschließlich)
+     * @param verein der Kurzname des Trägervereins
+     * @return eine Übersichtszeile je Gericht
      */
     @Query(value = """
             SELECT g.bezeichnung AS bezeichnung,
@@ -87,9 +96,12 @@ public interface BussgeldRepository extends JpaRepository<Bussgeld, Long> {
                                      @Param("verein") String verein);
 
     /**
-     * @author Nils
+     * Liefert alle Bußgelder eines Trägers mit Zahlungseingängen im Zeitraum.
      *
-     * Bußgelder mit Zahlungseingängen im Zeitraum (alt: CReportBussgeldDetail).
+     * @param von Beginn des Zeitraums (einschließlich)
+     * @param bis Ende des Zeitraums (einschließlich)
+     * @param verein der Kurzname des Trägervereins
+     * @return die Bußgelder sortiert nach Datum und Aktenzeichen
      */
     @Query("""
             SELECT DISTINCT b FROM Bussgeld b

@@ -14,34 +14,33 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @author Nils
+ * Baustein zum Aufbau von Word-Briefen mit POI-XWPF direkt aus den Fachdaten.
+ * Serienbrief-Generierung und Spendenquittungs-docx bauen auf diesen
+ * Methoden auf.
  *
- * Wiederverwendbarer Word-Dokumentenbaustein (ersetzt die Word-COM-Ansteuerung
- * aus {@code de/must/util/WordProcessing.java}). Statt echter .dot/.docx-Vorlagen
- * (im Altsystem in {@code frauenhaus/vorlagen/} abgelegt, aber nicht als
- * bearbeitbare Dateien überliefert) werden die Briefe mit POI-XWPF direkt aus
- * den Fachdaten zusammengesetzt – nach demselben Muster wie zuvor in
- * {@link BussgeldReportService#bestaetigung}. Serienbrief-Generierung und
- * Spendenquittung-docx bauen auf diesem Baustein auf.
+ * @author Paul
  */
 @Service
 public class WordTemplateService {
 
+    /** Datumsformat für Briefe (TT.MM.JJJJ). */
     public static final DateTimeFormatter DATUM = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
-     * @author Nils
+     * Erzeugt ein neues, leeres Word-Dokument.
      *
-     * Neues, leeres Word-Dokument.
+     * @return das leere Dokument
      */
     public XWPFDocument neuesDokument() {
         return new XWPFDocument();
     }
 
     /**
-     * @author Nils
+     * Fügt einen einfachen Textabsatz an.
      *
-     * Einfacher Textabsatz.
+     * @param doc das Dokument
+     * @param text der Absatztext ({@code null} ergibt einen leeren Absatz)
+     * @return der erzeugte Absatz
      */
     public XWPFParagraph absatz(XWPFDocument doc, String text) {
         XWPFParagraph p = doc.createParagraph();
@@ -50,9 +49,11 @@ public class WordTemplateService {
     }
 
     /**
-     * @author Nils
+     * Fügt einen fett hervorgehobenen Textabsatz an, z.B. eine Betreffzeile.
      *
-     * Fett hervorgehobener Textabsatz (z. B. Betreffzeile).
+     * @param doc das Dokument
+     * @param text der Absatztext ({@code null} ergibt einen leeren Absatz)
+     * @return der erzeugte Absatz
      */
     public XWPFParagraph absatzFett(XWPFDocument doc, String text) {
         XWPFParagraph p = doc.createParagraph();
@@ -63,9 +64,11 @@ public class WordTemplateService {
     }
 
     /**
-     * @author Nils
+     * Fügt einen rechtsbündigen Textabsatz an, z.B. eine Ort/Datum-Zeile.
      *
-     * Rechtsbündiger Textabsatz (z. B. Ort/Datum-Zeile).
+     * @param doc das Dokument
+     * @param text der Absatztext
+     * @return der erzeugte Absatz
      */
     public XWPFParagraph absatzRechts(XWPFDocument doc, String text) {
         XWPFParagraph p = absatz(doc, text);
@@ -74,18 +77,20 @@ public class WordTemplateService {
     }
 
     /**
-     * @author Nils
+     * Fügt eine Leerzeile zur optischen Gliederung an.
      *
-     * Leerzeile zur optischen Gliederung.
+     * @param doc das Dokument
      */
     public void leerzeile(XWPFDocument doc) {
         doc.createParagraph();
     }
 
     /**
-     * @author Nils
+     * Fügt einen mehrzeiligen Adress- oder Absenderblock an, eine Zeile pro
+     * Argument; leere und {@code null}-Zeilen werden übersprungen.
      *
-     * Mehrzeiliger Adress-/Absenderblock, eine Zeile pro Argument (leere/{@code null}-Zeilen werden übersprungen).
+     * @param doc das Dokument
+     * @param zeilen die Adresszeilen
      */
     public void adresse(XWPFDocument doc, String... zeilen) {
         for (String zeile : zeilen) {
@@ -96,18 +101,20 @@ public class WordTemplateService {
     }
 
     /**
-     * @author Nils
+     * Fügt eine "Ort, TT.MM.JJJJ"-Zeile mit dem heutigen Datum an.
      *
-     * "Ort, TT.MM.JJJJ"-Zeile mit dem heutigen Datum.
+     * @param doc das Dokument
+     * @param ort der Ort
      */
     public void ortUndDatum(XWPFDocument doc, String ort) {
         absatzRechts(doc, ort + ", " + DATUM.format(LocalDate.now(ZoneId.systemDefault())));
     }
 
     /**
-     * @author Nils
-     *
      * Serialisiert das Dokument als docx-Bytes.
+     *
+     * @param doc das zu serialisierende Dokument
+     * @return der docx-Inhalt als Byte-Array
      */
     public byte[] toBytes(XWPFDocument doc) {
         try (doc; ByteArrayOutputStream out = new ByteArrayOutputStream()) {

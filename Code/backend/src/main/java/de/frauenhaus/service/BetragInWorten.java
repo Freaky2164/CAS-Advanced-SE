@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * @author Nils
+ * Wandelt Geldbeträge in Worte um, wie es Spendenquittungen als Pflichtangabe
+ * verlangen.
  *
- * Betrag in Worten für Spendenquittungen (Pflichtangabe),
- * Port von CCommandSpendenQuittung.betragInWorten.
+ * @author Nils
  */
 public final class BetragInWorten {
 
@@ -17,14 +17,16 @@ public final class BetragInWorten {
     private static final String[] ZEHNER = {"", "", "zwanzig", "dreißig", "vierzig",
             "fünfzig", "sechzig", "siebzig", "achtzig", "neunzig"};
 
+    /** Verhindert Instanziierung der Utility-Klasse. */
     private BetragInWorten() { }
 
     /**
-     * @author Nils
+     * Liefert das Zahlwort ohne Währungsangabe – für Vorlagen, die das Wort
+     * "Euro" bereits enthalten, z.B. {@code 50.05} ->
+     * {@code "*fünfzig Komma null fünf*"}.
      *
-     * Zahlwort ohne Währungsangabe – für Vorlagen, die das Wort "Euro" bereits
-     * enthalten (Lesezeichen {@code worte} in den Spendenbescheinigungen),
-     * z.B. {@code 50.05} -> {@code "*fünfzig Komma null fünf*"}.
+     * @param betrag der umzuwandelnde Betrag
+     * @return das Zahlwort in Sternchen eingefasst
      */
     public static String ohneWaehrung(BigDecimal betrag) {
         BigDecimal gerundet = betrag.setScale(2, RoundingMode.HALF_UP);
@@ -44,10 +46,11 @@ public final class BetragInWorten {
     }
 
     /**
-     * @author Nils
+     * Wandelt einen Geldbetrag in die für Spendenquittungen übliche Textform
+     * um, z.B. {@code 50.05} -> {@code "*fünfzig Euro und fünf Cent*"}.
      *
-     * Wandelt einen Geldbetrag in die für Spendenquittungen übliche Textform um,
-     * z.B. {@code 50.05} -> {@code "*fünfzig Euro und fünf Cent*"}.
+     * @param betrag der umzuwandelnde Betrag
+     * @return der Betrag in Worten, in Sternchen eingefasst
      */
     public static String von(BigDecimal betrag) {
         BigDecimal gerundet = betrag.setScale(2, RoundingMode.HALF_UP);
@@ -64,8 +67,6 @@ public final class BetragInWorten {
     }
 
     /**
-     * @author Nils
-     *
      * Wandelt eine nichtnegative Ganzzahl rekursiv in deutsche Zahlwörter um.
      */
     private static String zahlInWorten(long n) {
@@ -92,9 +93,8 @@ public final class BetragInWorten {
     }
 
     /**
-     * @author Nils
-     *
-     * Standalone "eins" wird als Multiplikator zu "ein" (eintausend, einhunderteintausend).
+     * Wandelt ein alleinstehendes "eins" in den Multiplikator "ein" um
+     * (eintausend, einhundert).
      */
     private static String alsPrefix(String zahlwort) {
         return zahlwort.endsWith("eins")

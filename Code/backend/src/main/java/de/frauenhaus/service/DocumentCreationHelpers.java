@@ -20,40 +20,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Nils
- *
  * Befüllt die Word-Vorlagen (.dot) aus dem Vorlagen-Verzeichnis über ihre
- * Lesezeichen (ersetzt WordProcessing.typeTextAtBookmark aus dem Altsystem,
- * das Word per COM fernsteuerte – hier stattdessen POI-HWPF, läuft damit
- * auch headless im Container).
+ * Lesezeichen mit POI-HWPF.
+ *
+ * @author Nils
  */
 final class DocumentCreationHelpers {
 
-    /**
-     * @author Nils
-     *
-     * Kein Instanziieren – reine Hilfsklasse.
-     */
+    /** Verhindert Instanziierung der Utility-Klasse. */
     private DocumentCreationHelpers() { }
 
     /**
-     * @author Nils
-     *
      * Öffnet die Vorlage, setzt an jedem Lesezeichen den zugehörigen Wert aus
      * {@code werte} ein (Lesezeichen ohne Eintrag bleiben unverändert) und
-     * liefert das Ergebnis als Word-Dokument (.doc).
+     * liefert das Ergebnis als Word-Dokument (.doc). Eingesetzt wird von hinten
+     * nach vorne, damit die Offsets der noch nicht befüllten Lesezeichen durch
+     * das Einfügen gültig bleiben.
      *
      * <p>Zeilenumbrüche im Wert ({@code \r}) erzeugen neue Absätze, Tabs bleiben
      * erhalten – so lassen sich Listen wie "Datum &lt;Tab&gt; Betrag" einsetzen.
      * Die neuen Absätze übernehmen die Absatzformatierung des Lesezeichen-Absatzes,
      * Aufzählungen (Bulletpoints/Nummerierungen) werden also je Zeile weitergeführt.</p>
+     *
+     * @param vorlage der Pfad zur .dot-Vorlage
+     * @param werte die Werte je Lesezeichen-Name
+     * @return das befüllte Dokument als .doc-Bytes
      */
     static byte[] fuelleVorlage(Path vorlage, Map<String, String> werte) {
         try (InputStream in = Files.newInputStream(vorlage)) {
             HWPFDocument doc = new HWPFDocument(in);
 
-            // Von hinten nach vorne einsetzen, damit die Offsets der noch
-            // nicht befüllten Lesezeichen durch das Einfügen gültig bleiben.
             List<int[]> mehrzeilig = new ArrayList<>();
             for (Bookmark bookmark : rueckwaertsSortiert(doc.getBookmarks())) {
                 String wert = werte.get(bookmark.getName());
@@ -66,8 +62,6 @@ final class DocumentCreationHelpers {
                 } else {
                     range.insertBefore(wert);
                 }
-                // Bereits gemerkte Bereiche liegen hinter dieser Einfügestelle
-                // und verschieben sich um die eingefügte Länge nach hinten.
                 for (int[] bereich : mehrzeilig) {
                     bereich[0] += wert.length();
                     bereich[1] += wert.length();
@@ -89,8 +83,6 @@ final class DocumentCreationHelpers {
     }
 
     /**
-     * @author Nils
-     *
      * Überträgt die Absatzformatierung des Lesezeichen-Absatzes auf alle durch
      * mehrzeiliges Einfügen entstandenen Absätze. Im Word-Binärformat hängen die
      * Absatz-Eigenschaften (PAPX) an der Absatzmarke; neu eingefügte Absatzmarken
@@ -98,6 +90,10 @@ final class DocumentCreationHelpers {
      * würden nicht weitergeführt. Beim erneuten Einlesen legt POI für diese
      * Absätze Default-Einträge an, die hier durch Klone des Originals ersetzt
      * werden (die Original-Formatierung deckt die letzte eingefügte Zeile ab).
+     *
+     * @param dokument das serialisierte Dokument
+     * @param mehrzeilig die Start-/End-Offsets der mehrzeilig befüllten Bereiche
+     * @return das Dokument mit weitergeführten Absatzformaten
      */
     private static byte[] absatzformateWeiterfuehren(byte[] dokument, List<int[]> mehrzeilig) throws IOException {
         HWPFDocument doc = new HWPFDocument(new ByteArrayInputStream(dokument));
@@ -128,9 +124,10 @@ final class DocumentCreationHelpers {
     }
 
     /**
-     * @author Nils
+     * Liefert alle Lesezeichen des Dokuments, absteigend nach Startposition.
      *
-     * Alle Lesezeichen des Dokuments, absteigend nach Startposition.
+     * @param bookmarks die Lesezeichen des Dokuments
+     * @return die Lesezeichen absteigend sortiert
      */
     private static List<Bookmark> rueckwaertsSortiert(Bookmarks bookmarks) {
         List<Bookmark> alle = new ArrayList<>();

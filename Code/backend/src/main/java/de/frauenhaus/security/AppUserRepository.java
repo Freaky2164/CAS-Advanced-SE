@@ -5,16 +5,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 /**
- * @author Nils
- *
  * Datenzugriff für {@link AppUser}.
+ *
+ * @author Ole
  */
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     /**
-     * @author Nils
-     *
      * Sucht einen Benutzer anhand seines eindeutigen Benutzernamens.
+     *
+     * @param username der Benutzername
+     * @return der Benutzer, falls vorhanden
      */
     Optional<AppUser> findByUsername(String username);
 }

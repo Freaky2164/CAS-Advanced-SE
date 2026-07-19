@@ -5,13 +5,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * @author Nils
+ * Überträgt den angemeldeten Benutzernamen aus Spring Security in den
+ * Envers-Revisionskopf, damit die Änderungshistorie den Bearbeiter ausweist.
  *
- * Übernimmt den angemeldeten Benutzernamen aus Spring Security in den Envers-
- * Revisionskopf, damit die Änderungshistorie den Bearbeiter anzeigen kann.
+ * @author Robin
  */
 public class AuditRevisionListener implements RevisionListener {
 
+    /**
+     * Setzt den Benutzernamen der aktuellen Anmeldung an der neuen Revision;
+     * ohne authentifizierten Benutzer wird "system" eingetragen.
+     *
+     * @param revisionEntity die neu angelegte {@link Revision}
+     */
     @Override
     public void newRevision(Object revisionEntity) {
         Revision revision = (Revision) revisionEntity;

@@ -6,12 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * @author Nils
+ * Stammdaten-Entität für die zulässigen Spendentypen einer {@link Spendenart}.
  *
- * Spendentyp-Lookup für {@link Spendenart} (alt: frauenhaus.spendentyp), z.B.
- * 'Geldspende dauer', 'Mitgliedsbeitrag', 'Dauerspende', 'Sachspende'. Bisher nur als
- * DB-Fremdschlüssel-Constraint vorhanden, jetzt als eigenständige Stammdaten-Entität
- * für die Pflege der zulässigen Spendentypen (Grundlage für Stammdaten-CRUD).
+ * @author Ole
  */
 @Entity
 @Table(name = "spendentyp", schema = "frauenhaus")
@@ -21,16 +18,18 @@ public class Spendentyp {
     @Column(name = "spendentyp")
     private String name;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Spendentyp() { }
 
+    /**
+     * Legt einen Spendentyp mit dem angegebenen Namen an.
+     *
+     * @param name die Bezeichnung des Spendentyps
+     */
     public Spendentyp(String name) {
         this.name = name;
     }
 
+    /** Liefert die Bezeichnung des Spendentyps. */
     public String getName() { return name; }
 }

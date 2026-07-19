@@ -34,19 +34,35 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * @author Nils
- *
  * Pflege der Nachschlage-Stammdaten in Reitern: Anreden, Spendentypen,
- * Bußgeldstatus, Vereine (Träger), Gerichte und Spendenarten
- * (Vaadin-Ersatz für die frühere Angular-Verwaltungs-Komponente).
+ * Bußgeldstatus, Vereine (Träger), Gerichte und Spendenarten.
+ *
+ * @author Paul
  */
 @Route(value = "verwaltung", layout = MainLayout.class)
 @PageTitle("Verwaltung | Frauenhaus Verwaltung")
 @PermitAll
 public class VerwaltungView extends VerticalLayout {
 
+    private static final String ANLEGEN = "Anlegen";
+    private static final String LOESCHEN = "Löschen";
+    private static final String BEZEICHNUNG_LABEL = "Bezeichnung";
+    private static final String SPENDENTYP_LABEL = "Spendentyp";
+    private static final String SPENDENART_LABEL = "Spendenart";
+
     private final transient AuditService auditService;
 
+    /**
+     * Baut die Verwaltungs-Seite mit einem Reiter je Stammdaten-Art auf.
+     *
+     * @param anredeService der Service für Anreden
+     * @param spendentypService der Service für Spendentypen
+     * @param bussgeldstatusService der Service für Bußgeldstatus
+     * @param vereinService der Service für Vereine
+     * @param gerichtService der Service für Gerichte
+     * @param spendenartService der Service für Spendenarten
+     * @param auditService der Service für den Änderungsverlauf
+     */
     public VerwaltungView(AnredeService anredeService, SpendentypService spendentypService,
                           BussgeldstatusService bussgeldstatusService, VereinService vereinService,
                           GerichtService gerichtService, SpendenartService spendenartService,
@@ -57,7 +73,7 @@ public class VerwaltungView extends VerticalLayout {
         tabs.setSizeFull();
         tabs.add("Anreden", namensListe("Anrede", Anrede::getName,
                 anredeService::alle, anredeService::anlegen, anredeService::loeschen));
-        tabs.add("Spendentypen", namensListe("Spendentyp", Spendentyp::getName,
+        tabs.add("Spendentypen", namensListe(SPENDENTYP_LABEL, Spendentyp::getName,
                 spendentypService::alle, spendentypService::anlegen, spendentypService::loeschen));
         tabs.add("Bußgeldstatus", namensListe("Bußgeldstatus", Bussgeldstatus::getName,
                 bussgeldstatusService::alle, bussgeldstatusService::anlegen, bussgeldstatusService::loeschen));
@@ -70,9 +86,15 @@ public class VerwaltungView extends VerticalLayout {
     }
 
     /**
-     * @author Nils
+     * Baut eine einfache Namensliste (Anrede, Spendentyp, Bußgeldstatus) mit
+     * Grid, Anlegen und Löschen auf.
      *
-     * Einfache Namensliste (Anrede, Spendentyp, Bußgeldstatus): Grid + Anlegen + Löschen.
+     * @param bezeichnung die Bezeichnung der Stammdaten-Art
+     * @param nameVon liefert den Namen eines Eintrags
+     * @param laden lädt alle Einträge
+     * @param anlegen legt einen Eintrag mit dem gegebenen Namen an
+     * @param loeschen löscht den Eintrag mit dem gegebenen Namen
+     * @return das fertige Reiter-Layout
      */
     private <T> VerticalLayout namensListe(String bezeichnung, Function<T, String> nameVon,
                                            Supplier<java.util.List<T>> laden,
@@ -83,7 +105,7 @@ public class VerwaltungView extends VerticalLayout {
 
         TextField neuName = new TextField();
         neuName.setPlaceholder("Neue(r) " + bezeichnung);
-        Button anlegenButton = new Button("Anlegen", e -> {
+        Button anlegenButton = new Button(ANLEGEN, e -> {
             if (neuName.getValue().isBlank()) {
                 return;
             }
@@ -98,7 +120,7 @@ public class VerwaltungView extends VerticalLayout {
         });
         anlegenButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        Button loeschenButton = new Button("Löschen", e ->
+        Button loeschenButton = new Button(LOESCHEN, e ->
                 grid.asSingleSelect().getOptionalValue().ifPresentOrElse(auswahl ->
                                 bestaetigtLoeschen(bezeichnung, nameVon.apply(auswahl), () -> {
                                     loeschen.accept(nameVon.apply(auswahl));
@@ -112,10 +134,17 @@ public class VerwaltungView extends VerticalLayout {
         return layout;
     }
 
+    /**
+     * Fragt die Löschung ab und führt die Aktion nach Bestätigung aus.
+     *
+     * @param bezeichnung die Bezeichnung der Stammdaten-Art
+     * @param name der Name des zu löschenden Eintrags
+     * @param aktion die auszuführende Löschaktion
+     */
     private static void bestaetigtLoeschen(String bezeichnung, String name, Runnable aktion) {
         ConfirmDialog dialog = new ConfirmDialog(bezeichnung + " löschen",
                 "Soll \"" + name + "\" wirklich gelöscht werden?",
-                "Löschen", e -> {
+                LOESCHEN, e -> {
                     try {
                         aktion.run();
                         UiUtil.erfolg(bezeichnung + " gelöscht");
@@ -130,24 +159,28 @@ public class VerwaltungView extends VerticalLayout {
     }
 
     /**
-     * @author Nils
-     *
-     * Vereine (Träger): Name ist fachlicher Schlüssel, nur die Bezeichnung ist änderbar.
+     * Reiter für Vereine (Träger): der Name ist fachlicher Schlüssel, nur die
+     * Bezeichnung ist änderbar.
      */
     private final class VereineTab extends VerticalLayout {
 
         private final Grid<Verein> grid = new Grid<>();
 
+        /**
+         * Baut den Reiter mit Eingabefeldern, Buttons und Liste auf.
+         *
+         * @param service der Service für die Vereinspflege
+         */
         private VereineTab(VereinService service) {
             grid.addColumn(Verein::getName).setHeader("Name").setAutoWidth(true);
-            grid.addColumn(Verein::getBezeichnung).setHeader("Bezeichnung");
+            grid.addColumn(Verein::getBezeichnung).setHeader(BEZEICHNUNG_LABEL);
             grid.setItems(service.alle(null));
 
             TextField name = new TextField();
             name.setPlaceholder("Name (Kürzel)");
             TextField bezeichnung = new TextField();
-            bezeichnung.setPlaceholder("Bezeichnung");
-            Button anlegen = new Button("Anlegen", e -> {
+            bezeichnung.setPlaceholder(BEZEICHNUNG_LABEL);
+            Button anlegen = new Button(ANLEGEN, e -> {
                 if (name.getValue().isBlank() || bezeichnung.getValue().isBlank()) {
                     UiUtil.fehler(new IllegalStateException("Bitte Name und Bezeichnung angeben"));
                     return;
@@ -179,7 +212,7 @@ public class VerwaltungView extends VerticalLayout {
                 }
             }));
 
-            Button loeschen = new Button("Löschen", e -> auswahl().ifPresent(v ->
+            Button loeschen = new Button(LOESCHEN, e -> auswahl().ifPresent(v ->
                     bestaetigtLoeschen("Verein", v.getName(), () -> {
                         service.loeschen(v.getName());
                         grid.setItems(service.alle(null));
@@ -193,6 +226,9 @@ public class VerwaltungView extends VerticalLayout {
             setSizeFull();
         }
 
+        /**
+         * Liefert den ausgewählten Verein oder zeigt einen Hinweis an.
+         */
         private java.util.Optional<Verein> auswahl() {
             java.util.Optional<Verein> auswahl = grid.asSingleSelect().getOptionalValue();
             if (auswahl.isEmpty()) {
@@ -203,76 +239,47 @@ public class VerwaltungView extends VerticalLayout {
     }
 
     /**
-     * @author Nils
-     *
-     * Gerichte mit Adresse: Anlegen, Ändern (übernimmt Werte in die Felder), Löschen, Verlauf.
+     * Reiter für Gerichte mit Adresse: Anlegen, Ändern (übernimmt Werte in die
+     * Felder), Löschen und Verlauf.
      */
     private final class GerichteTab extends VerticalLayout {
 
         private final Grid<Gericht> grid = new Grid<>();
+        private final TextField bezeichnung = new TextField();
+        private final TextField strasse = new TextField();
+        private final TextField plz = new TextField();
+        private final TextField ort = new TextField();
+        private final transient GerichtService service;
 
+        /**
+         * Baut den Reiter mit Eingabefeldern, Buttons und Liste auf.
+         *
+         * @param service der Service für die Gerichtspflege
+         */
         private GerichteTab(GerichtService service) {
-            grid.addColumn(Gericht::getBezeichnung).setHeader("Bezeichnung").setAutoWidth(true);
+            this.service = service;
+            grid.addColumn(Gericht::getBezeichnung).setHeader(BEZEICHNUNG_LABEL).setAutoWidth(true);
             grid.addColumn(Gericht::getStrasse).setHeader("Straße").setAutoWidth(true);
             grid.addColumn(Gericht::getPlz).setHeader("PLZ").setAutoWidth(true);
             grid.addColumn(Gericht::getOrt).setHeader("Ort").setAutoWidth(true);
             grid.setItems(service.alle(null));
+            grid.asSingleSelect().addValueChangeListener(e -> felderUebernehmen(e.getValue()));
 
-            TextField bezeichnung = new TextField();
-            bezeichnung.setPlaceholder("Bezeichnung");
-            TextField strasse = new TextField();
+            bezeichnung.setPlaceholder(BEZEICHNUNG_LABEL);
             strasse.setPlaceholder("Straße");
-            TextField plz = new TextField();
             plz.setPlaceholder("PLZ");
             plz.setWidth("6em");
-            TextField ort = new TextField();
             ort.setPlaceholder("Ort");
 
-            grid.asSingleSelect().addValueChangeListener(e -> {
-                Gericht g = e.getValue();
-                bezeichnung.setValue(g != null && g.getBezeichnung() != null ? g.getBezeichnung() : "");
-                strasse.setValue(g != null && g.getStrasse() != null ? g.getStrasse() : "");
-                plz.setValue(g != null && g.getPlz() != null ? g.getPlz() : "");
-                ort.setValue(g != null && g.getOrt() != null ? g.getOrt() : "");
-            });
-
-            Button anlegen = new Button("Anlegen", e -> {
-                if (bezeichnung.getValue().isBlank()) {
-                    UiUtil.fehler(new IllegalStateException("Bitte die Bezeichnung angeben"));
-                    return;
-                }
-                try {
-                    service.anlegen(bezeichnung.getValue().trim(), wertOderNull(strasse), wertOderNull(plz), wertOderNull(ort));
-                    grid.setItems(service.alle(null));
-                    UiUtil.erfolg("Gericht angelegt");
-                } catch (Exception ex) {
-                    UiUtil.fehler(ex);
-                }
-            });
+            Button anlegen = new Button(ANLEGEN, e -> anlegen());
             anlegen.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-            Button aendern = new Button("Ändern", e -> auswahl().ifPresent(g -> {
-                if (bezeichnung.getValue().isBlank()) {
-                    UiUtil.fehler(new IllegalStateException("Bitte die Bezeichnung angeben"));
-                    return;
-                }
-                try {
-                    service.aendern(g.getId(), bezeichnung.getValue().trim(),
-                            wertOderNull(strasse), wertOderNull(plz), wertOderNull(ort));
-                    grid.setItems(service.alle(null));
-                    UiUtil.erfolg("Gericht geändert");
-                } catch (Exception ex) {
-                    UiUtil.fehler(ex);
-                }
-            }));
-
-            Button loeschen = new Button("Löschen", e -> auswahl().ifPresent(g ->
+            Button aendern = new Button("Ändern", e -> auswahl().ifPresent(this::aendern));
+            Button loeschen = new Button(LOESCHEN, e -> auswahl().ifPresent(g ->
                     bestaetigtLoeschen("Gericht", g.getBezeichnung(), () -> {
                         service.loeschen(g.getId());
                         grid.setItems(service.alle(null));
                     })));
             loeschen.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
             Button verlauf = new Button("Verlauf", e -> auswahl().ifPresent(g ->
                     new VerlaufDialog(g.getBezeichnung(), auditService.verlauf(Gericht.class, g.getId())).open()));
 
@@ -280,6 +287,54 @@ public class VerwaltungView extends VerticalLayout {
             setSizeFull();
         }
 
+        /**
+         * Übernimmt die Werte des ausgewählten Gerichts in die Eingabefelder.
+         */
+        private void felderUebernehmen(Gericht g) {
+            bezeichnung.setValue(g != null && g.getBezeichnung() != null ? g.getBezeichnung() : "");
+            strasse.setValue(g != null && g.getStrasse() != null ? g.getStrasse() : "");
+            plz.setValue(g != null && g.getPlz() != null ? g.getPlz() : "");
+            ort.setValue(g != null && g.getOrt() != null ? g.getOrt() : "");
+        }
+
+        /**
+         * Legt ein Gericht aus den Eingabefeldern an.
+         */
+        private void anlegen() {
+            if (bezeichnung.getValue().isBlank()) {
+                UiUtil.fehler(new IllegalStateException("Bitte die Bezeichnung angeben"));
+                return;
+            }
+            try {
+                service.anlegen(bezeichnung.getValue().trim(), wertOderNull(strasse), wertOderNull(plz), wertOderNull(ort));
+                grid.setItems(service.alle(null));
+                UiUtil.erfolg("Gericht angelegt");
+            } catch (Exception ex) {
+                UiUtil.fehler(ex);
+            }
+        }
+
+        /**
+         * Übernimmt die Eingabefelder in das ausgewählte Gericht.
+         */
+        private void aendern(Gericht g) {
+            if (bezeichnung.getValue().isBlank()) {
+                UiUtil.fehler(new IllegalStateException("Bitte die Bezeichnung angeben"));
+                return;
+            }
+            try {
+                service.aendern(g.getId(), bezeichnung.getValue().trim(),
+                        wertOderNull(strasse), wertOderNull(plz), wertOderNull(ort));
+                grid.setItems(service.alle(null));
+                UiUtil.erfolg("Gericht geändert");
+            } catch (Exception ex) {
+                UiUtil.fehler(ex);
+            }
+        }
+
+        /**
+         * Liefert das ausgewählte Gericht oder zeigt einen Hinweis an.
+         */
         private java.util.Optional<Gericht> auswahl() {
             java.util.Optional<Gericht> auswahl = grid.asSingleSelect().getOptionalValue();
             if (auswahl.isEmpty()) {
@@ -288,32 +343,39 @@ public class VerwaltungView extends VerticalLayout {
             return auswahl;
         }
 
+        /**
+         * Trimmt den Feldwert und liefert {@code null}, wenn er leer ist.
+         */
         private static String wertOderNull(TextField feld) {
             return feld.getValue().isBlank() ? null : feld.getValue().trim();
         }
     }
 
     /**
-     * @author Nils
-     *
-     * Spendenarten mit zugeordnetem Spendentyp.
+     * Reiter für Spendenarten mit zugeordnetem Spendentyp.
      */
     private static final class SpendenartenTab extends VerticalLayout {
 
         private final Grid<Spendenart> grid = new Grid<>();
 
+        /**
+         * Baut den Reiter mit Eingabefeldern, Buttons und Liste auf.
+         *
+         * @param service der Service für die Spendenart-Pflege
+         * @param spendentypService der Service für die Spendentyp-Auswahl
+         */
         private SpendenartenTab(SpendenartService service, SpendentypService spendentypService) {
-            grid.addColumn(Spendenart::getName).setHeader("Spendenart").setAutoWidth(true);
-            grid.addColumn(Spendenart::getSpendentyp).setHeader("Spendentyp");
+            grid.addColumn(Spendenart::getName).setHeader(SPENDENART_LABEL).setAutoWidth(true);
+            grid.addColumn(Spendenart::getSpendentyp).setHeader(SPENDENTYP_LABEL);
             grid.setItems(service.alle());
 
             TextField name = new TextField();
-            name.setPlaceholder("Spendenart");
+            name.setPlaceholder(SPENDENART_LABEL);
             ComboBox<String> spendentyp = new ComboBox<>();
-            spendentyp.setPlaceholder("Spendentyp");
+            spendentyp.setPlaceholder(SPENDENTYP_LABEL);
             spendentyp.setItems(spendentypService.alle().stream().map(Spendentyp::getName).toList());
 
-            Button anlegen = new Button("Anlegen", e -> {
+            Button anlegen = new Button(ANLEGEN, e -> {
                 if (name.getValue().isBlank() || spendentyp.getValue() == null) {
                     UiUtil.fehler(new IllegalStateException("Bitte Spendenart und Spendentyp angeben"));
                     return;
@@ -343,8 +405,8 @@ public class VerwaltungView extends VerticalLayout {
                 }
             }));
 
-            Button loeschen = new Button("Löschen", e -> auswahl().ifPresent(sa ->
-                    bestaetigtLoeschen("Spendenart", sa.getName(), () -> {
+            Button loeschen = new Button(LOESCHEN, e -> auswahl().ifPresent(sa ->
+                    bestaetigtLoeschen(SPENDENART_LABEL, sa.getName(), () -> {
                         service.loeschen(sa.getName());
                         grid.setItems(service.alle());
                     })));
@@ -354,6 +416,9 @@ public class VerwaltungView extends VerticalLayout {
             setSizeFull();
         }
 
+        /**
+         * Liefert die ausgewählte Spendenart oder zeigt einen Hinweis an.
+         */
         private java.util.Optional<Spendenart> auswahl() {
             java.util.Optional<Spendenart> auswahl = grid.asSingleSelect().getOptionalValue();
             if (auswahl.isEmpty()) {

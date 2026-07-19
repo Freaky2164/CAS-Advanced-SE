@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Nils
+ * Bußgeld-Zuweisung durch ein {@link Gericht} an einen {@link Verein}.
+ * Hält den geschuldeten Betrag sowie alle zugehörigen
+ * {@link Eingang Zahlungseingänge}.
  *
- * Bußgeld-Zuweisung durch ein {@link Gericht} an einen {@link Verein}
- * (alt: frauenhaus.bussgeld). Hält den geschuldeten Betrag sowie alle
- * zugehörigen {@link Eingang Zahlungseingänge}.
+ * @author Ole
  */
 @Entity
 @Table(name = "bussgeld", schema = "frauenhaus")
@@ -46,11 +46,6 @@ public class Bussgeld {
     @Column(nullable = false)
     private LocalDate datum;
 
-    /**
-     * @author Nils
-     *
-     * Zahlungsziel (alt: zieldatum).
-     */
     private LocalDate zieldatum;
 
     @Column(nullable = false)
@@ -65,28 +60,75 @@ public class Bussgeld {
     @OneToMany(mappedBy = "bussgeld", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Eingang> eingaenge = new ArrayList<>();
 
+    /** Liefert die ID des Bußgelds. */
     public Long getId() { return id; }
+
+    /** Liefert das zuweisende Gericht. */
     public Gericht getGericht() { return gericht; }
+
+    /** Setzt das zuweisende Gericht. */
     public void setGericht(Gericht gericht) { this.gericht = gericht; }
+
+    /** Liefert den begünstigten Verein. */
     public Verein getVerein() { return verein; }
+
+    /** Setzt den begünstigten Verein. */
     public void setVerein(Verein verein) { this.verein = verein; }
+
+    /** Liefert den Bearbeitungsstatus. */
     public String getStatus() { return status; }
+
+    /** Setzt den Bearbeitungsstatus. */
     public void setStatus(String status) { this.status = status; }
+
+    /** Liefert den Nachnamen der zahlungspflichtigen Person. */
     public String getName() { return name; }
+
+    /** Setzt den Nachnamen der zahlungspflichtigen Person. */
     public void setName(String name) { this.name = name; }
+
+    /** Liefert den Vornamen der zahlungspflichtigen Person. */
     public String getVorname() { return vorname; }
+
+    /** Setzt den Vornamen der zahlungspflichtigen Person. */
     public void setVorname(String vorname) { this.vorname = vorname; }
+
+    /** Liefert das Aktenzeichen. */
     public String getAktenzeichen() { return aktenzeichen; }
+
+    /** Setzt das Aktenzeichen. */
     public void setAktenzeichen(String aktenzeichen) { this.aktenzeichen = aktenzeichen; }
+
+    /** Liefert das Zuweisungsdatum. */
     public LocalDate getDatum() { return datum; }
+
+    /** Setzt das Zuweisungsdatum. */
     public void setDatum(LocalDate datum) { this.datum = datum; }
+
+    /** Liefert das Zahlungsziel. */
     public LocalDate getZieldatum() { return zieldatum; }
+
+    /** Setzt das Zahlungsziel. */
     public void setZieldatum(LocalDate zieldatum) { this.zieldatum = zieldatum; }
+
+    /** Liefert den geschuldeten Betrag. */
     public BigDecimal getBetrag() { return betrag; }
+
+    /** Setzt den geschuldeten Betrag. */
     public void setBetrag(BigDecimal betrag) { this.betrag = betrag; }
+
+    /** Gibt an, ob das Bußgeld vollständig bezahlt ist. */
     public boolean isBezahlt() { return bezahlt; }
+
+    /** Setzt das Kennzeichen, ob das Bußgeld vollständig bezahlt ist. */
     public void setBezahlt(boolean bezahlt) { this.bezahlt = bezahlt; }
+
+    /** Liefert die Bemerkung. */
     public String getBemerkung() { return bemerkung; }
+
+    /** Setzt die Bemerkung. */
     public void setBemerkung(String bemerkung) { this.bemerkung = bemerkung; }
+
+    /** Liefert die Zahlungseingänge zu diesem Bußgeld. */
     public List<Eingang> getEingaenge() { return eingaenge; }
 }

@@ -11,10 +11,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 /**
- * @author Nils
- *
  * Anmeldeseite des Vaadin-UIs; das Formular postet auf den von Spring Security
  * bereitgestellten "login"-Endpunkt (siehe SecurityConfig#uiFilterChain).
+ *
+ * @author Ole
  */
 @Route("login")
 @PageTitle("Anmeldung | Frauenhaus Verwaltung")
@@ -23,6 +23,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
     private final LoginForm login = new LoginForm();
 
+    /**
+     * Baut die Anmeldeseite mit Titel und deutschsprachigem Formular auf.
+     */
     public LoginView() {
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -36,8 +39,6 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     /**
-     * @author Nils
-     *
      * Zeigt die Fehlermeldung, wenn Spring Security nach fehlgeschlagener
      * Anmeldung auf /login?error umleitet.
      */
@@ -48,6 +49,9 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         }
     }
 
+    /**
+     * Liefert die deutschsprachigen Texte des Anmeldeformulars.
+     */
     private static LoginI18n deutscheTexte() {
         LoginI18n i18n = LoginI18n.createDefault();
         LoginI18n.Form form = i18n.getForm();

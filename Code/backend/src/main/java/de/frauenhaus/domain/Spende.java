@@ -9,10 +9,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * @author Nils
- *
  * Spende eines {@link Mitglied}s an einen {@link Verein}, klassifiziert nach
- * {@link Spendenart} (alt: frauenhaus.spende).
+ * {@link Spendenart}.
+ *
+ * @author Robin
  */
 @Entity
 @Table(name = "spende", schema = "frauenhaus")
@@ -46,17 +46,42 @@ public class Spende {
 
     private String bemerkung;
 
+    /** Liefert die ID der Spende. */
     public Long getId() { return id; }
+
+    /** Liefert das spendende Mitglied. */
     public Mitglied getMitglied() { return mitglied; }
+
+    /** Setzt das spendende Mitglied. */
     public void setMitglied(Mitglied mitglied) { this.mitglied = mitglied; }
+
+    /** Liefert die Spendenart. */
     public Spendenart getSpendenart() { return spendenart; }
+
+    /** Setzt die Spendenart. */
     public void setSpendenart(Spendenart spendenart) { this.spendenart = spendenart; }
+
+    /** Liefert den begünstigten Verein. */
     public Verein getVerein() { return verein; }
+
+    /** Setzt den begünstigten Verein. */
     public void setVerein(Verein verein) { this.verein = verein; }
+
+    /** Liefert das Spendendatum. */
     public LocalDate getDatum() { return datum; }
+
+    /** Setzt das Spendendatum. */
     public void setDatum(LocalDate datum) { this.datum = datum; }
+
+    /** Liefert den gespendeten Betrag. */
     public BigDecimal getBetrag() { return betrag; }
+
+    /** Setzt den gespendeten Betrag. */
     public void setBetrag(BigDecimal betrag) { this.betrag = betrag; }
+
+    /** Liefert die Bemerkung. */
     public String getBemerkung() { return bemerkung; }
+
+    /** Setzt die Bemerkung. */
     public void setBemerkung(String bemerkung) { this.bemerkung = bemerkung; }
 }

@@ -16,18 +16,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * REST-Endpunkte zur Pflege der Mitglieder/Adressen (Stammdaten-CRUD),
- * inkl. Duplizieren (alt: CInfoFrameStatusCopy) und Verteiler-/Vereinszuordnung.
+ * inkl. Duplizieren und Verteiler-/Vereinszuordnung.
+ *
+ * @author Ole
  */
 @RestController
 @RequestMapping("/api/mitglieder")
 public class MitgliedController {
 
     /**
-     * @author Nils
-     *
      * Anfrage zum Anlegen/Ändern eines Mitglieds; {@code stichworte}/{@code vereine} sind optional.
      */
     public record MitgliedRequest(
@@ -36,6 +34,9 @@ public class MitgliedController {
             String tel1, String tel2, String fax, boolean foerderverein, boolean frauenhaus,
             String bemerkung, List<String> stichworte, List<String> vereine) {
 
+        /**
+         * Bildet die Anfrage auf eine {@link Mitglied}-Entität ohne Zuordnungen ab.
+         */
         Mitglied toEntity() {
             Mitglied m = new Mitglied();
             m.setAnrede(anrede);
@@ -61,41 +62,57 @@ public class MitgliedController {
     private final MitgliedService mitgliedService;
     private final AuditService auditService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public MitgliedController(MitgliedService mitgliedService, AuditService auditService) {
         this.mitgliedService = mitgliedService;
         this.auditService = auditService;
     }
 
+    /**
+     * Liefert die Einträge, optional gefiltert bzw. seitenweise.
+     */
     @GetMapping
     public Page<MitgliedResponse> alle(Pageable pageable,
                                        @RequestParam(required = false) String suche) {
         return mitgliedService.alle(pageable, suche);
     }
 
+    /**
+     * Liefert einen Eintrag anhand seines Schlüssels.
+     */
     @GetMapping("/{id}")
     public MitgliedResponse finden(@PathVariable Long id) {
         return mitgliedService.finden(id);
     }
 
+    /**
+     * Liefert den Änderungsverlauf des Eintrags.
+     */
     @GetMapping("/{id}/verlauf")
     public List<VerlaufEintrag> verlauf(@PathVariable Long id) {
         return auditService.verlauf(Mitglied.class, id);
     }
 
+    /**
+     * Legt einen neuen Eintrag an.
+     */
     @PostMapping
     public ResponseEntity<MitgliedResponse> anlegen(@Valid @RequestBody MitgliedRequest request) {
         MitgliedResponse angelegt = mitgliedService.anlegen(request.toEntity(), request.stichworte(), request.vereine());
         return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
     }
 
+    /**
+     * Ändert einen bestehenden Eintrag.
+     */
     @PutMapping("/{id}")
     public MitgliedResponse aendern(@PathVariable Long id, @Valid @RequestBody MitgliedRequest request) {
         return mitgliedService.aendern(id, request.toEntity(), request.stichworte(), request.vereine());
     }
 
     /**
-     * @author Nils
-     *
      * Dupliziert ein Mitglied inkl. Stammdaten und Zuordnungen.
      */
     @PostMapping("/{id}/duplizieren")
@@ -103,6 +120,9 @@ public class MitgliedController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mitgliedService.duplizieren(id));
     }
 
+    /**
+     * Löscht den Eintrag.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> loeschen(@PathVariable Long id) {
         mitgliedService.loeschen(id);

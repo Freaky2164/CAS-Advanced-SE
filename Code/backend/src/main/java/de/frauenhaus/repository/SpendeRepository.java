@@ -10,17 +10,19 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 /**
- * @author Nils
+ * Datenzugriff für {@link Spende}, mit Abfragen für die Jahresübersicht und
+ * für die Summenbildung bei Dauerspenden-Quittungen.
  *
- * Datenzugriff für {@link Spende}, mit Abfragen für die Jahresübersicht
- * und für die Summenbildung bei Dauerspenden-Quittungen.
+ * @author Nils
  */
 public interface SpendeRepository extends JpaRepository<Spende, Long> {
 
     /**
-     * @author Nils
+     * Sucht Spenden über die wichtigsten Textfelder der Spendenliste.
      *
-     * Generische Suche über die wichtigsten Textfelder der Spendenliste.
+     * @param suche der Suchbegriff (Teilstring, Groß-/Kleinschreibung egal)
+     * @param pageable die gewünschte Seite und Sortierung
+     * @return die passenden Spenden seitenweise
      */
     @Query(value = """
             SELECT s FROM Spende s
@@ -51,9 +53,10 @@ public interface SpendeRepository extends JpaRepository<Spende, Long> {
     Page<Spende> suchen(@Param("suche") String suche, Pageable pageable);
 
     /**
-     * @author Nils
+     * Liefert alle Spenden eines Jahres für die Spendenübersicht.
      *
-     * Spendenübersicht eines Jahres (alt: CReportSpendenUebersicht).
+     * @param jahr das Kalenderjahr
+     * @return die Spenden sortiert nach Träger, Spendentyp, Spendenart und Spender
      */
     @Query("""
             SELECT s FROM Spende s
@@ -63,10 +66,14 @@ public interface SpendeRepository extends JpaRepository<Spende, Long> {
     List<Spende> findUebersicht(@Param("jahr") int jahr);
 
     /**
-     * @author Nils
+     * Liefert alle Einzelspenden eines Mitglieds im Jahr für einen Spendentyp
+     * und Träger, als Grundlage der Summenbildung bei Dauerspenden-Quittungen.
      *
-     * Alle Einzelspenden eines Mitglieds im Jahr für einen Spendentyp/Träger –
-     * Summenbildung für Dauerspenden-Quittungen (alt: fillDonationSummary).
+     * @param mitgliedId die ID des Mitglieds
+     * @param jahr das Kalenderjahr
+     * @param spendentyp die Bezeichnung des Spendentyps
+     * @param verein der Kurzname des Trägervereins
+     * @return die Spenden sortiert nach Datum
      */
     @Query("""
             SELECT s FROM Spende s

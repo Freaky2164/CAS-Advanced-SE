@@ -11,11 +11,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.UUID;
 
 /**
- * @author Nils
+ * Legt beim ersten Start einen Admin-Benutzer an, falls noch kein Benutzer
+ * existiert. Das Passwort kommt aus der Konfiguration oder wird zufällig
+ * erzeugt und einmalig geloggt; ein Standardpasswort gibt es nicht.
  *
- * Legt beim allerersten Start einen Admin an, falls noch kein Benutzer existiert.
- * Passwort aus APP_ADMIN_PASSWORD, sonst Zufallswert (wird einmalig geloggt).
- * Es wird nie ein Standardpasswort eingebrannt.
+ * @author Robin
  */
 @Configuration
 public class AdminBootstrap {
@@ -23,11 +23,15 @@ public class AdminBootstrap {
     private static final Logger LOG = LoggerFactory.getLogger(AdminBootstrap.class);
 
     /**
-     * @author Nils
-     *
      * Erstellt beim Anwendungsstart genau dann einen Admin-Benutzer, wenn die
-     * Benutzertabelle noch leer ist. Nutzt {@code app.security.initial-admin-password},
-     * falls gesetzt, andernfalls ein zufällig generiertes Einmal-Passwort.
+     * Benutzertabelle noch leer ist. Nutzt
+     * {@code app.security.initial-admin-password}, falls gesetzt, andernfalls
+     * ein zufällig generiertes Einmal-Passwort.
+     *
+     * @param users das Benutzer-Repository
+     * @param encoder der Passwort-Encoder
+     * @param configured das konfigurierte Initial-Passwort (leer, wenn nicht gesetzt)
+     * @return der ApplicationRunner für den Anwendungsstart
      */
     @Bean
     ApplicationRunner createInitialAdmin(AppUserRepository users,

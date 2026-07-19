@@ -9,14 +9,17 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * @author Nils
- *
  * Einheitliche REST-Fehler für Upload-Grenzen, damit das Frontend klare Hinweise
  * auf zu große Dokumente erhält.
+ *
+ * @author Nils
  */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    /**
+     * Übersetzt eine ResponseStatusException in eine ProblemDetail-Antwort.
+     */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ProblemDetail> responseStatus(ResponseStatusException ex) {
         String detail = ex.getReason() != null ? ex.getReason() : ex.getMessage();
@@ -24,6 +27,9 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(problem);
     }
 
+    /**
+     * Übersetzt eine überschrittene Upload-Größe in eine ProblemDetail-Antwort.
+     */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ProblemDetail> maxUploadSizeExceeded(MaxUploadSizeExceededException ignored) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,

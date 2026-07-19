@@ -11,10 +11,10 @@ import de.frauenhaus.service.DokumentService;
 import de.frauenhaus.service.DokumentService.DokumentMetadaten;
 
 /**
- * @author Nils
- *
  * Dialog für die Dokument-Anhänge eines Datensatzes: Liste mit Download-Link
  * und Löschen sowie Upload neuer Dateien (max. 10 MB, wie im Backend geprüft).
+ *
+ * @author Ole
  */
 public final class DokumenteDialog extends Dialog {
 
@@ -23,6 +23,14 @@ public final class DokumenteDialog extends Dialog {
     private final String entityId;
     private final Grid<DokumentMetadaten> grid = new Grid<>();
 
+    /**
+     * Baut den Dialog mit Upload-Bereich und Dokumentliste auf.
+     *
+     * @param dokumentService der Service für die Dokument-Anhänge
+     * @param entityTyp der Typ des Stammdatensatzes
+     * @param entityId die ID des Stammdatensatzes
+     * @param titel die Kurzbeschreibung des Datensatzes für den Dialogtitel
+     */
     public DokumenteDialog(DokumentService dokumentService, String entityTyp, String entityId, String titel) {
         this.dokumentService = dokumentService;
         this.entityTyp = entityTyp;
@@ -53,6 +61,9 @@ public final class DokumenteDialog extends Dialog {
         aktualisieren();
     }
 
+    /**
+     * Erzeugt den Download-Link für ein Dokument.
+     */
     private com.vaadin.flow.component.html.Anchor downloadLink(DokumentMetadaten d) {
         return UiUtil.downloadLink(d.dateiname(), () -> {
             DokumentService.DokumentDownload download = dokumentService.herunterladen(d.id());
@@ -60,6 +71,9 @@ public final class DokumenteDialog extends Dialog {
         });
     }
 
+    /**
+     * Erzeugt den Button zum Löschen eines Dokuments.
+     */
     private Button loeschenButton(DokumentMetadaten d) {
         Button button = new Button("Löschen", e -> {
             try {
@@ -73,6 +87,9 @@ public final class DokumenteDialog extends Dialog {
         return button;
     }
 
+    /**
+     * Lädt die Dokumentliste neu.
+     */
     private void aktualisieren() {
         grid.setItems(dokumentService.liste(entityTyp, entityId));
     }

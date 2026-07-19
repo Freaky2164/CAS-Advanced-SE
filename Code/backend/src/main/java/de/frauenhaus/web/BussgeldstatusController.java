@@ -11,33 +11,48 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * REST-Endpunkte zur Pflege der zulässigen Bußgeld-Status (Stammdaten-Lookup).
+ *
+ * @author Ole
  */
 @RestController
 @RequestMapping("/api/bussgeldstatus")
 public class BussgeldstatusController {
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record BussgeldstatusRequest(@NotBlank String name) { }
 
     private final BussgeldstatusService bussgeldstatusService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public BussgeldstatusController(BussgeldstatusService bussgeldstatusService) {
         this.bussgeldstatusService = bussgeldstatusService;
     }
 
+    /**
+     * Liefert die Einträge, optional gefiltert bzw. seitenweise.
+     */
     @GetMapping
     public List<Bussgeldstatus> alle() {
         return bussgeldstatusService.alle();
     }
 
+    /**
+     * Legt einen neuen Eintrag an.
+     */
     @PostMapping
     public ResponseEntity<Bussgeldstatus> anlegen(@Valid @RequestBody BussgeldstatusRequest request) {
         Bussgeldstatus angelegt = bussgeldstatusService.anlegen(request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
     }
 
+    /**
+     * Löscht den Eintrag.
+     */
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> loeschen(@PathVariable String name) {
         bussgeldstatusService.loeschen(name);

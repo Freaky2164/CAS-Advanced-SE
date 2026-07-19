@@ -17,12 +17,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * @author Nils
- *
  * Kleine UI-Helfer: Erfolgs-/Fehlermeldungen, Download-Links auf Service-Ergebnisse
  * und Formatierung der in den Grids angezeigten Werte.
+ *
+ * @author Nils
  */
 public final class UiUtil {
 
@@ -34,25 +35,47 @@ public final class UiUtil {
     private static final DateTimeFormatter ZEITPUNKT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private static final ZoneId ZONE = ZoneId.of("Europe/Berlin");
 
+    /** Verhindert Instanziierung der Utility-Klasse. */
     private UiUtil() {
     }
 
     /**
-     * @author Nils
-     *
      * Datei-Inhalt eines Downloads: Name, Content-Type und Bytes.
      */
     public record Datei(String name, String contentType, byte[] inhalt) {
+
+        /** Vergleicht auch den Inhalt des Byte-Arrays. */
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof Datei other
+                    && Objects.equals(name, other.name)
+                    && Objects.equals(contentType, other.contentType)
+                    && Arrays.equals(inhalt, other.inhalt);
+        }
+
+        /** Bezieht den Inhalt des Byte-Arrays in den Hashwert ein. */
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, contentType, Arrays.hashCode(inhalt));
+        }
+
+        /** Gibt statt des Array-Inhalts nur die Dateigröße aus. */
+        @Override
+        public String toString() {
+            return "Datei[name=" + name + ", contentType=" + contentType
+                    + ", groesse=" + (inhalt == null ? 0 : inhalt.length) + "]";
+        }
     }
 
+    /**
+     * Zeigt eine Erfolgsmeldung als Notification an.
+     */
     public static void erfolg(String text) {
         Notification n = Notification.show(text, 4000, Notification.Position.BOTTOM_START);
         n.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 
     /**
-     * @author Nils
-     *
      * Zeigt die Fehlermeldung einer fehlgeschlagenen Service-Operation an;
      * bei {@link ResponseStatusException} wird der deutsche Grund angezeigt.
      */
@@ -65,8 +88,6 @@ public final class UiUtil {
     }
 
     /**
-     * @author Nils
-     *
      * Download-Link, der die Datei erst beim Klick über den gegebenen Lieferanten
      * (typisch: ein Report-Service) erzeugt.
      */
@@ -86,8 +107,6 @@ public final class UiUtil {
     }
 
     /**
-     * @author Nils
-     *
      * Zerlegt eine Komma-getrennte Eingabe (z.B. Stichworte) in eine bereinigte Liste.
      */
     public static List<String> kommaListe(String eingabe) {
@@ -100,22 +119,37 @@ public final class UiUtil {
                 .toList();
     }
 
+    /**
+     * Formatiert ein Datum als TT.MM.JJJJ; {@code null} ergibt einen leeren String.
+     */
     public static String datum(LocalDate datum) {
         return datum == null ? "" : DATUM.format(datum);
     }
 
+    /**
+     * Formatiert einen Zeitpunkt als TT.MM.JJJJ HH:mm in Berliner Zeit; {@code null} ergibt einen leeren String.
+     */
     public static String zeitpunkt(Instant instant) {
         return instant == null ? "" : ZEITPUNKT.format(instant.atZone(ZONE));
     }
 
+    /**
+     * Formatiert einen Zeitpunkt als TT.MM.JJJJ HH:mm in Berliner Zeit; {@code null} ergibt einen leeren String.
+     */
     public static String zeitpunkt(OffsetDateTime zeitpunkt) {
         return zeitpunkt == null ? "" : ZEITPUNKT.format(zeitpunkt.atZoneSameInstant(ZONE));
     }
 
+    /**
+     * Formatiert einen Betrag als Euro-Wert; {@code null} ergibt einen leeren String.
+     */
     public static String betrag(BigDecimal betrag) {
         return betrag == null ? "" : String.format("%,.2f €", betrag);
     }
 
+    /**
+     * Formatiert eine Dateigröße in B, KB oder MB.
+     */
     public static String groesse(long bytes) {
         if (bytes < 1024) {
             return bytes + " B";

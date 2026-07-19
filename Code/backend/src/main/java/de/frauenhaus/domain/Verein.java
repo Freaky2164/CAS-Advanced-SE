@@ -8,9 +8,9 @@ import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
 /**
- * @author Nils
+ * Trägerverein, dem Spenden und Bußgelder zugeordnet werden.
  *
- * Träger: 'Frauenhaus' oder 'Förderverein' (alt: Spaltenwert verein).
+ * @author Robin
  */
 @Entity
 @Table(name = "verein", schema = "frauenhaus")
@@ -24,19 +24,26 @@ public class Verein {
 
     private String bezeichnung;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Verein() { }
 
+    /**
+     * Legt einen Verein mit Kurzname und Bezeichnung an.
+     *
+     * @param name der Kurzname des Vereins
+     * @param bezeichnung die ausgeschriebene Bezeichnung
+     */
     public Verein(String name, String bezeichnung) {
         this.name = name;
         this.bezeichnung = bezeichnung;
     }
 
+    /** Liefert den Kurznamen des Vereins. */
     public String getName() { return name; }
+
+    /** Liefert die ausgeschriebene Bezeichnung. */
     public String getBezeichnung() { return bezeichnung; }
+
+    /** Setzt die ausgeschriebene Bezeichnung. */
     public void setBezeichnung(String bezeichnung) { this.bezeichnung = bezeichnung; }
 }

@@ -10,11 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @author Nils
+ * Erzeugt die Spendenübersicht eines Jahres als xlsx-Report.
  *
- * Spendenübersicht als xlsx, portiert aus CReportSpendenUebersicht.
- * Die Spendenbescheinigungen erzeugt {@link DocumentCreationService}
- * aus den Word-Vorlagen.
+ * @author Ole
  */
 @Service
 @Transactional(readOnly = true)
@@ -24,20 +22,27 @@ public class SpendenService {
 
     private final SpendeRepository spenden;
 
+    /**
+     * Erzeugt den Service mit dem Spenden-Repository.
+     *
+     * @param spenden das Spenden-Repository
+     */
     public SpendenService(SpendeRepository spenden) {
         this.spenden = spenden;
     }
 
     /**
-     * @author Nils
+     * Erstellt die Übersicht aller Spenden eines Jahres, gruppiert nach
+     * Träger, Spendentyp und Spendenart. Die Spenden-Nr in der ersten Spalte
+     * ist die ID für die Dokumenterstellung.
      *
-     * Alle Spenden eines Jahres, gruppiert nach Träger/Spendentyp/-art.
+     * @param jahr das Kalenderjahr
+     * @return die Übersicht als xlsx-Datei
      */
     public byte[] uebersicht(int jahr) {
         Workbook wb = ExcelUtil.neuesWorkbook("Spendenübersicht " + jahr);
         Sheet sheet = wb.getSheetAt(0);
         int line = 0;
-        // Spenden-Nr ist die ID für die Dokumenterstellung (/api/reports/spendenquittung/{id})
         ExcelUtil.headerZeile(sheet, ExcelUtil.headerStyle(wb), line++,
                 "Spenden-Nr", "Träger", "Spendentyp", "Spendenart", "Name", "Vorname", "Datum", "Betrag");
         for (Spende s : spenden.findUebersicht(jahr)) {

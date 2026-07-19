@@ -7,28 +7,30 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 /**
- * @author Nils
+ * Umhüllt die automatisch konfigurierte DataSource mit einer
+ * {@link RowLevelSecurityDataSource}, damit jede Datenbankverbindung den
+ * Benutzerkontext für die Row-Level-Security-Policies trägt.
  *
- * Hängt {@link RowLevelSecurityDataSource} um die automatisch konfigurierte
- * (Hikari-)DataSource, damit jede Datenbankverbindung den Benutzerkontext für
- * die Row-Level-Security-Policies trägt.
+ * @author Ole
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class RowLevelSecurityConfig {
 
+    /** Verhindert Instanziierung von außen; Spring erzeugt die Konfiguration per Reflection. */
+    private RowLevelSecurityConfig() { }
+
     /**
-     * @author Nils
+     * Registriert einen BeanPostProcessor, der DataSource-Beans in eine
+     * {@link RowLevelSecurityDataSource} einpackt, ohne die
+     * Auto-Konfiguration von Spring Boot zu ersetzen.
      *
-     * BeanPostProcessor statt eigener DataSource-Definition, damit Spring Boots
-     * Auto-Konfiguration (Pooling, Properties, Metriken) unverändert bleibt.
+     * @return der BeanPostProcessor für das Umhüllen der DataSource
      */
     @Bean
     static BeanPostProcessor rowLevelSecurityDataSourceWrapper() {
         return new BeanPostProcessor() {
             /**
-             * @author Nils
-             *
-             * Umhüllt genau die DataSource-Beans, die noch keinen RLS-Wrapper haben.
+             * Umhüllt alle DataSource-Beans, die noch keinen RLS-Wrapper haben.
              */
             @Override
             public Object postProcessAfterInitialization(Object bean, String beanName) {

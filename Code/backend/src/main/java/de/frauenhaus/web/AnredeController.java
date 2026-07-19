@@ -11,33 +11,48 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * REST-Endpunkte zur Pflege der zulässigen Anreden (Stammdaten-Lookup).
+ *
+ * @author Ole
  */
 @RestController
 @RequestMapping("/api/anreden")
 public class AnredeController {
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record AnredeRequest(@NotBlank String name) { }
 
     private final AnredeService anredeService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public AnredeController(AnredeService anredeService) {
         this.anredeService = anredeService;
     }
 
+    /**
+     * Liefert die Einträge, optional gefiltert bzw. seitenweise.
+     */
     @GetMapping
     public List<Anrede> alle() {
         return anredeService.alle();
     }
 
+    /**
+     * Legt einen neuen Eintrag an.
+     */
     @PostMapping
     public ResponseEntity<Anrede> anlegen(@Valid @RequestBody AnredeRequest request) {
         Anrede angelegt = anredeService.anlegen(request.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(angelegt);
     }
 
+    /**
+     * Löscht den Eintrag.
+     */
     @DeleteMapping("/{name}")
     public ResponseEntity<Void> loeschen(@PathVariable String name) {
         anredeService.loeschen(name);

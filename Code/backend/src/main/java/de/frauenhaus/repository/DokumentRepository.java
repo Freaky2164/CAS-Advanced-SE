@@ -9,26 +9,59 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
- * @author Nils
+ * Datenzugriff für {@link Dokument}, inklusive Metadaten-Abfrage ohne Laden
+ * des eigentlichen Dateiinhalts.
  *
- * Datenzugriff für {@link Dokument} inkl. leichter Metadaten-Abfrage ohne
- * Laden des eigentlichen Datei-Inhalts.
+ * @author Robin
  */
 public interface DokumentRepository extends JpaRepository<Dokument, Long> {
 
+    /**
+     * Projektion der Dokument-Metadaten ohne den Dateiinhalt.
+     */
     interface DokumentMetadatenProjection {
+        /** Liefert die ID des Dokuments. */
         Long getId();
+
+        /** Liefert den Typ des zugeordneten Stammdatensatzes. */
         Dokument.EntityTyp getEntityTyp();
+
+        /** Liefert die ID des zugeordneten Stammdatensatzes. */
         String getEntityId();
+
+        /** Liefert den Dateinamen. */
         String getDateiname();
+
+        /** Liefert den MIME-Typ des Inhalts. */
         String getContentType();
+
+        /** Liefert die Dateigröße in Bytes. */
         long getGroesse();
+
+        /** Liefert den Zeitpunkt des Uploads. */
         OffsetDateTime getHochgeladenAm();
+
+        /** Liefert den Benutzernamen des Hochladenden. */
         String getHochgeladenVon();
     }
 
+    /**
+     * Liefert alle Dokumente eines Stammdatensatzes, neueste zuerst.
+     *
+     * @param entityTyp der Typ des Stammdatensatzes
+     * @param entityId die ID des Stammdatensatzes
+     * @return die Dokumente inklusive Inhalt
+     */
     List<Dokument> findByEntityTypAndEntityIdOrderByHochgeladenAmDesc(Dokument.EntityTyp entityTyp, String entityId);
 
+    /**
+     * Liefert die Metadaten aller Dokumente eines Stammdatensatzes, neueste
+     * zuerst, ohne den Dateiinhalt zu laden.
+     *
+     * @param entityTyp der Typ des Stammdatensatzes
+     * @param entityId die ID des Stammdatensatzes
+     * @return die Metadaten-Projektionen
+     */
     @Query("""
             SELECT d.id AS id,
                    d.entityTyp AS entityTyp,
@@ -46,5 +79,11 @@ public interface DokumentRepository extends JpaRepository<Dokument, Long> {
             @Param("entityTyp") Dokument.EntityTyp entityTyp,
             @Param("entityId") String entityId);
 
+    /**
+     * Löscht alle Dokumente eines Stammdatensatzes.
+     *
+     * @param entityTyp der Typ des Stammdatensatzes
+     * @param entityId die ID des Stammdatensatzes
+     */
     void deleteByEntityTypAndEntityId(Dokument.EntityTyp entityTyp, String entityId);
 }

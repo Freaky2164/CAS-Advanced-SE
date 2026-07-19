@@ -8,17 +8,17 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 /**
- * @author Nils
+ * Datenzugriff für {@link Verein}.
  *
- * Datenzugriff für {@link Verein} (Träger: 'Frauenhaus'/'Förderverein'). Reine
- * CRUD-Operationen, keine zusätzlichen Abfragen.
+ * @author Nils
  */
 public interface VereinRepository extends JpaRepository<Verein, String> {
 
     /**
-     * @author Nils
+     * Sucht Vereine über Kurzname und Bezeichnung.
      *
-     * Generische Suche über Kürzel und Bezeichnung der Vereine.
+     * @param suche der Suchbegriff (Teilstring, Groß-/Kleinschreibung egal)
+     * @return die passenden Vereine
      */
     @Query("""
             SELECT v FROM Verein v

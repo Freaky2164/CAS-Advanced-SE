@@ -6,10 +6,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * @author Nils
+ * Verteiler-Stichwort, mit dem {@link Mitglied}er für Serienbriefe und
+ * E-Mail-Verteiler gruppiert werden.
  *
- * Verteiler-Stichwort, mit dem {@link Mitglied}er für Serienbriefe/E-Mail-Verteiler
- * gruppiert werden (alt: frauenhaus.stichwort).
+ * @author Nils
  */
 @Entity
 @Table(name = "stichwort", schema = "frauenhaus")
@@ -19,14 +19,16 @@ public class Stichwort {
     @Column(name = "stichwort")
     private String name;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Stichwort() { }
 
+    /**
+     * Legt ein Stichwort mit dem angegebenen Namen an.
+     *
+     * @param name die Bezeichnung des Stichworts
+     */
     public Stichwort(String name) { this.name = name; }
 
+    /** Liefert die Bezeichnung des Stichworts. */
     public String getName() { return name; }
 }

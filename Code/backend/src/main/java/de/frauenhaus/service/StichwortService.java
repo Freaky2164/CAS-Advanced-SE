@@ -8,41 +8,61 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 
 /**
- * @author Nils
+ * Pflege der Verteiler-Stichworte: Zusammenstellen und Zusammenfassen.
  *
- * Stichwort-Pflege, portiert aus CReportStichwortZusammenstellen
- * und CReportStichworteZusammenfassen.
+ * @author Paul
  */
 @Service
 public class StichwortService {
 
     private final StichwortRepository stichworte;
 
+    /**
+     * Erzeugt den Service mit dem Stichwort-Repository.
+     *
+     * @param stichworte das Stichwort-Repository
+     */
     public StichwortService(StichwortRepository stichworte) {
         this.stichworte = stichworte;
     }
 
     /**
-     * @author Nils
+     * Stellt ein neues Stichwort aus bestehenden zusammen; die alten
+     * Stichworte bleiben erhalten.
      *
-     * Neues Stichwort aus bestehenden zusammenstellen (alte bleiben erhalten).
+     * @param neu der Name des neuen Stichworts
+     * @param alte die Namen der bestehenden Stichworte
+     * @return die Anzahl der neu zugeordneten Mitglieder
      */
     @Transactional
     public int zusammenstellen(String neu, Collection<String> alte) {
-        stichworte.findById(neu).orElseGet(() -> stichworte.save(new Stichwort(neu)));
-        return stichworte.stichworteZuordnen(neu, alte);
+        return zuordnen(neu, alte);
     }
 
     /**
-     * @author Nils
+     * Fasst Stichworte zu einem neuen zusammen; die alten Stichworte werden
+     * gelöscht.
      *
-     * Stichworte zu einem neuen zusammenfassen, alte Stichworte werden gelöscht.
+     * @param neu der Name des neuen Stichworts
+     * @param alte die Namen der zusammenzufassenden Stichworte
+     * @return die Anzahl der neu zugeordneten Mitglieder
      */
     @Transactional
     public int zusammenfassen(String neu, Collection<String> alte) {
-        int zugeordnet = zusammenstellen(neu, alte);
+        int zugeordnet = zuordnen(neu, alte);
         stichworte.zuordnungenLoeschen(alte);
         stichworte.stichworteLoeschen(alte);
         return zugeordnet;
+    }
+
+    /**
+     * Legt das Zielstichwort bei Bedarf an und ordnet ihm die Mitglieder der
+     * bestehenden Stichworte zu.
+     */
+    private int zuordnen(String neu, Collection<String> alte) {
+        if (stichworte.findById(neu).isEmpty()) {
+            stichworte.save(new Stichwort(neu));
+        }
+        return stichworte.stichworteZuordnen(neu, alte);
     }
 }

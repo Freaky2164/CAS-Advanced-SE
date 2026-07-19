@@ -7,21 +7,20 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * @author Nils
+ * Einstiegspunkt der Spring-Boot-Anwendung zur Verwaltung von Spenden,
+ * Mitgliedern und Bußgeldern des Fördervereins. Dient zugleich als
+ * Vaadin-AppShell und lädt das Aura-Theme.
  *
- * Einstiegspunkt der Spring-Boot-Anwendung, die das alte compucrash-System
- * (Verwaltung von Frauenhaus/Förderverein, Spenden, Mitgliedern und Bußgeldern) ablöst.
- * Dient zugleich als Vaadin-AppShell; das Aura-Theme muss seit Vaadin 25 explizit
- * geladen werden – ohne @StyleSheet gäbe es nur ungestylte Browser-Basisdarstellung.
+ * @author Nils
  */
 @SpringBootApplication
 @StyleSheet(Aura.STYLESHEET)
 public class FrauenhausApplication implements AppShellConfigurator {
 
     /**
-     * @author Nils
-     *
      * Startet den Spring-Application-Context.
+     *
+     * @param args Kommandozeilenargumente
      */
     public static void main(String[] args) {
         SpringApplication.run(FrauenhausApplication.class, args);

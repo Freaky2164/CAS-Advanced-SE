@@ -26,18 +26,25 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * @author Nils
- *
  * App-Rahmen des Vaadin-UIs: Kopfzeile mit Titel, Navigations-Drawer mit den
  * Hauptbereichen (Benutzerverwaltung nur für Rolle ADMIN) und Abmelde-Knopf.
- * @PermitAll: der Rahmen selbst ist für alle angemeldeten Benutzer zugänglich,
- * die Zugriffsregeln der einzelnen Views gelten zusätzlich.
+ * Der Rahmen selbst ist für alle angemeldeten Benutzer zugänglich, die
+ * Zugriffsregeln der einzelnen Views gelten zusätzlich.
+ *
+ * @author Nils
  */
 @PermitAll
 public class MainLayout extends AppLayout {
 
+    private static final String FONT_WEIGHT = "font-weight";
+
     private final transient AuthenticationContext authContext;
 
+    /**
+     * Baut den App-Rahmen mit Drawer und Kopfzeile auf.
+     *
+     * @param authContext der Security-Kontext des angemeldeten Benutzers
+     */
     public MainLayout(AuthenticationContext authContext) {
         this.authContext = authContext;
         setPrimarySection(Section.DRAWER);
@@ -45,6 +52,9 @@ public class MainLayout extends AppLayout {
         addHeaderContent();
     }
 
+    /**
+     * Baut die Kopfzeile mit Drawer-Umschalter und Anwendungstitel auf.
+     */
     private void addHeaderContent() {
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menü umschalten");
@@ -52,17 +62,20 @@ public class MainLayout extends AppLayout {
         H1 titel = new H1("Frauenhaus Verwaltung");
         titel.getStyle()
                 .set("font-size", "1.15rem")
-                .set("font-weight", "600")
+                .set(FONT_WEIGHT, "600")
                 .set("margin", "0");
 
         addToNavbar(true, toggle, titel);
     }
 
+    /**
+     * Baut den Drawer mit Logo, Navigation und Benutzer-Fußzeile auf.
+     */
     private void addDrawerContent() {
         Span logo = new Span(VaadinIcon.HOME_O.create(), new Span(" Frauenhaus"));
         logo.getStyle()
                 .set("font-size", "1.1rem")
-                .set("font-weight", "700")
+                .set(FONT_WEIGHT, "700")
                 .set("display", "flex")
                 .set("align-items", "center")
                 .set("gap", "0.5rem")
@@ -75,6 +88,10 @@ public class MainLayout extends AppLayout {
         addToDrawer(inhalt, benutzerFusszeile());
     }
 
+    /**
+     * Baut die Seitennavigation auf; der Benutzer-Eintrag erscheint nur für
+     * Administratoren.
+     */
     private SideNav navigation() {
         SideNav nav = new SideNav();
         nav.addItem(new SideNavItem("Mitglieder", MitgliederView.class, VaadinIcon.USERS.create()));
@@ -89,12 +106,15 @@ public class MainLayout extends AppLayout {
         return nav;
     }
 
+    /**
+     * Baut die Fußzeile mit Avatar, Benutzername und Abmelde-Knopf auf.
+     */
     private Footer benutzerFusszeile() {
         String benutzer = authContext.getPrincipalName().orElse("?");
 
         Avatar avatar = new Avatar(benutzer);
         Span name = new Span(benutzer);
-        name.getStyle().set("font-weight", "600");
+        name.getStyle().set(FONT_WEIGHT, "600");
 
         Button abmelden = new Button(VaadinIcon.SIGN_OUT.create(), e -> authContext.logout());
         abmelden.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
@@ -110,6 +130,9 @@ public class MainLayout extends AppLayout {
         return new Footer(zeile);
     }
 
+    /**
+     * Prüft, ob der angemeldete Benutzer die Rolle ADMIN besitzt.
+     */
     private boolean istAdmin() {
         return authContext.getAuthenticatedUser(UserDetails.class)
                 .map(user -> user.getAuthorities().stream()

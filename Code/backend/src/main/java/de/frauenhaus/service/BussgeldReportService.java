@@ -15,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
- * @author Nils
+ * Erzeugt die Bußgeld-Reports (Übersicht und Detail) als xlsx. Die
+ * Zahlungsbestätigung an das Gericht erzeugt {@link DocumentCreationService}
+ * aus den Word-Vorlagen.
  *
- * Bußgeld-Reports (Übersicht und Detail als xlsx), portiert aus
- * CReportBussgeldUebersicht und CReportBussgeldDetail. Die Zahlungsbestätigung
- * an das Gericht erzeugt {@link DocumentCreationService} aus den Word-Vorlagen.
+ * @author Robin
  */
 @Service
 @Transactional(readOnly = true)
@@ -30,14 +30,22 @@ public class BussgeldReportService {
 
     private final BussgeldRepository bussgelder;
 
+    /**
+     * Erzeugt den Service mit dem Bußgeld-Repository.
+     *
+     * @param bussgelder das Bußgeld-Repository
+     */
     public BussgeldReportService(BussgeldRepository bussgelder) {
         this.bussgelder = bussgelder;
     }
 
     /**
-     * @author Nils
+     * Erstellt die Übersicht: je Träger die Summen der Bußgelder und
+     * Zahlungseingänge pro Gericht, durch eine Leerzeile getrennt.
      *
-     * Übersicht: je Träger die Summen pro Gericht (Bußgelder vs. Zahlungseingänge).
+     * @param von Beginn des Zeitraums (einschließlich)
+     * @param bis Ende des Zeitraums (einschließlich)
+     * @return die Übersicht als xlsx-Datei
      */
     public byte[] uebersicht(LocalDate von, LocalDate bis) {
         Workbook wb = ExcelUtil.neuesWorkbook("Bußgelder Übersicht");
@@ -55,21 +63,26 @@ public class BussgeldReportService {
                 summeEingang = summeEingang.add(z.getEingaenge());
             }
             ExcelUtil.zeile(sheet, line++, List.of("Summe " + verein, summeBussgeld, summeEingang));
-            line++; // Leerzeile zwischen den Trägern
+            line++;
         }
         return ExcelUtil.toBytes(wb);
     }
 
     /**
-     * @author Nils
+     * Erstellt den Detail-Report: je Bußgeld eine Zeile pro Zahlungseingang,
+     * der im Zeitraum liegt. Die Spalte "Offen" zeigt den nach allen bislang
+     * geleisteten Zahlungen noch offenen Betrag. Die Bußgeld-Nr in der ersten
+     * Spalte ist die ID für die Dokumenterstellung.
      *
-     * Detail: Bußgelder mit allen Zahlungseingängen im Zeitraum.
+     * @param von Beginn des Zeitraums (einschließlich)
+     * @param bis Ende des Zeitraums (einschließlich)
+     * @param verein der Kurzname des Trägervereins
+     * @return der Detail-Report als xlsx-Datei
      */
     public byte[] detail(LocalDate von, LocalDate bis, String verein) {
         Workbook wb = ExcelUtil.neuesWorkbook("Bußgelder Detail");
         Sheet sheet = wb.getSheetAt(0);
         int line = 0;
-        // Bußgeld-Nr ist die ID für die Dokumenterstellung (/api/reports/bussgeld-bestaetigung/{id})
         ExcelUtil.headerZeile(sheet, ExcelUtil.headerStyle(wb), line++,
                 "Bußgeld-Nr", "Datum", "Gericht", "Aktenzeichen", "Name", "Bußgeld", "Offen", "Eingang am", "Eingang");
 
@@ -80,6 +93,9 @@ public class BussgeldReportService {
             BigDecimal offen = b.getBetrag().subtract(gezahlt);
             String aktenzeichen = b.getAktenzeichen() == null ? "unbekannt" : b.getAktenzeichen();
             for (Eingang e : b.getEingaenge()) {
+                if (e.getDatum().isBefore(von) || e.getDatum().isAfter(bis)) {
+                    continue;
+                }
                 ExcelUtil.zeile(sheet, line++, java.util.Arrays.asList(
                         b.getId(),
                         DATUM.format(b.getDatum()),

@@ -11,10 +11,10 @@ import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
 
 /**
- * @author Nils
+ * Revisionskopf für Hibernate Envers; hält Revisionsnummer, Zeitstempel und
+ * Benutzer einer Änderung.
  *
- * Revisionskopf für Hibernate Envers; hält Zeitstempel und Benutzer der Änderung
- * (ersetzt die History-Metadaten aus dem Altsystem).
+ * @author Paul
  */
 @Entity
 @Table(name = "revinfo", schema = "app")
@@ -34,8 +34,15 @@ public class Revision {
     @Column(length = 50)
     private String username;
 
+    /** Liefert die Revisionsnummer. */
     public Long getRev() { return rev; }
+
+    /** Liefert den Zeitstempel der Revision in Millisekunden. */
     public long getRevtstmp() { return revtstmp; }
+
+    /** Liefert den Benutzernamen des Bearbeiters. */
     public String getUsername() { return username; }
+
+    /** Setzt den Benutzernamen des Bearbeiters. */
     public void setUsername(String username) { this.username = username; }
 }

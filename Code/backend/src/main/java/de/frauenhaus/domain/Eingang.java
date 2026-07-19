@@ -5,9 +5,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * @author Nils
+ * Zahlungseingang zu einem {@link Bussgeld}.
  *
- * Zahlungseingang zu einem {@link Bussgeld} (alt: frauenhaus.eingang).
+ * @author Paul
  */
 @Entity
 @Table(name = "eingang", schema = "frauenhaus")
@@ -30,13 +30,30 @@ public class Eingang {
 
     private String bemerkung;
 
+    /** Liefert die ID des Zahlungseingangs. */
     public Long getId() { return id; }
+
+    /** Liefert das zugehörige Bußgeld. */
     public Bussgeld getBussgeld() { return bussgeld; }
+
+    /** Setzt das zugehörige Bußgeld. */
     public void setBussgeld(Bussgeld bussgeld) { this.bussgeld = bussgeld; }
+
+    /** Liefert das Eingangsdatum. */
     public LocalDate getDatum() { return datum; }
+
+    /** Setzt das Eingangsdatum. */
     public void setDatum(LocalDate datum) { this.datum = datum; }
+
+    /** Liefert den eingegangenen Betrag. */
     public BigDecimal getBetrag() { return betrag; }
+
+    /** Setzt den eingegangenen Betrag. */
     public void setBetrag(BigDecimal betrag) { this.betrag = betrag; }
+
+    /** Liefert die Bemerkung. */
     public String getBemerkung() { return bemerkung; }
+
+    /** Setzt die Bemerkung. */
     public void setBemerkung(String bemerkung) { this.bemerkung = bemerkung; }
 }

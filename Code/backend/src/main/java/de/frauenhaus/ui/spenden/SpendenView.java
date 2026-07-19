@@ -40,15 +40,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
- * @author Nils
- *
  * Pflege der Spenden: durchsuchbare Liste mit Anlegen, Bearbeiten, Löschen,
  * Spendenbescheinigung als Word-Download sowie Dokumenten und Verlauf.
+ *
+ * @author Robin
  */
 @Route(value = "spenden", layout = MainLayout.class)
 @PageTitle("Spenden | Frauenhaus Verwaltung")
@@ -66,6 +67,17 @@ public class SpendenView extends VerticalLayout {
     private final TextField suche = new TextField();
     private final Grid<SpendeResponse> grid = new Grid<>();
 
+    /**
+     * Baut die Spenden-Seite mit Werkzeugleiste und Liste auf.
+     *
+     * @param spendeService der Service für die Spenden-Pflege
+     * @param mitgliedService der Service für die Mitgliederauswahl
+     * @param spendenartService der Service für die Spendenart-Auswahl
+     * @param vereinService der Service für die Trägerauswahl
+     * @param documentCreationService der Service für die Spendenbescheinigung
+     * @param auditService der Service für den Änderungsverlauf
+     * @param dokumentService der Service für Dokument-Anhänge
+     */
     public SpendenView(SpendeService spendeService, MitgliedService mitgliedService,
                        SpendenartService spendenartService, VereinService vereinService,
                        DocumentCreationService documentCreationService,
@@ -83,6 +95,10 @@ public class SpendenView extends VerticalLayout {
         gridAufbauen();
     }
 
+    /**
+     * Baut die Werkzeugleiste mit Suche, Aktions-Buttons und dem Download-Link
+     * für die Spendenquittung auf.
+     */
     private HorizontalLayout werkzeugleiste() {
         suche.setPlaceholder("Suche (Mitglied, Spendenart …)");
         suche.setClearButtonVisible(true);
@@ -113,6 +129,9 @@ public class SpendenView extends VerticalLayout {
         return leiste;
     }
 
+    /**
+     * Konfiguriert die Spalten und die seitenweise Datenanbindung der Liste.
+     */
     private void gridAufbauen() {
         grid.addColumn(SpendeResponse::id).setHeader("Nr.").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(s -> UiUtil.datum(s.datum())).setHeader("Datum").setAutoWidth(true);
@@ -129,6 +148,9 @@ public class SpendenView extends VerticalLayout {
         grid.setSizeFull();
     }
 
+    /**
+     * Liefert die ausgewählte Spende oder zeigt einen Hinweis an.
+     */
     private java.util.Optional<SpendeResponse> auswahl() {
         java.util.Optional<SpendeResponse> auswahl = grid.asSingleSelect().getOptionalValue();
         if (auswahl.isEmpty()) {
@@ -137,10 +159,16 @@ public class SpendenView extends VerticalLayout {
         return auswahl;
     }
 
+    /**
+     * Öffnet den Bearbeitungsdialog; {@code null} legt eine neue Spende an.
+     */
     private void bearbeiten(SpendeResponse vorhanden) {
         new SpendeDialog(vorhanden).open();
     }
 
+    /**
+     * Fragt die Löschung ab und löscht die Spende nach Bestätigung.
+     */
     private void loeschenBestaetigen(SpendeResponse s) {
         ConfirmDialog dialog = new ConfirmDialog("Spende löschen",
                 "Soll die Spende Nr. " + s.id() + " (" + beschreibung(s) + ") wirklich gelöscht werden?",
@@ -159,6 +187,9 @@ public class SpendenView extends VerticalLayout {
         dialog.open();
     }
 
+    /**
+     * Öffnet den Änderungsverlauf der Spende.
+     */
     private void verlaufAnzeigen(SpendeResponse s) {
         try {
             new VerlaufDialog(beschreibung(s), auditService.verlauf(Spende.class, s.id())).open();
@@ -167,13 +198,14 @@ public class SpendenView extends VerticalLayout {
         }
     }
 
+    /**
+     * Liefert eine Kurzbeschreibung der Spende für Dialogtitel.
+     */
     private static String beschreibung(SpendeResponse s) {
         return s.mitgliedName() + ", " + UiUtil.datum(s.datum()) + ", " + UiUtil.betrag(s.betrag());
     }
 
     /**
-     * @author Nils
-     *
      * Bearbeitungsdialog für eine Spende; Mitglied per durchsuchbarer Auswahl.
      */
     private final class SpendeDialog extends Dialog {
@@ -187,6 +219,11 @@ public class SpendenView extends VerticalLayout {
         private final BigDecimalField betrag = new BigDecimalField("Betrag (€)");
         private final TextArea bemerkung = new TextArea("Bemerkung");
 
+        /**
+         * Baut den Dialog auf und füllt bei bestehenden Spenden die Felder vor.
+         *
+         * @param vorhanden die zu bearbeitende Spende oder {@code null} zum Anlegen
+         */
         private SpendeDialog(SpendeResponse vorhanden) {
             this.vorhanden = vorhanden;
             setHeaderTitle(vorhanden == null ? "Spende anlegen" : "Spende bearbeiten (Nr. " + vorhanden.id() + ")");
@@ -200,7 +237,7 @@ public class SpendenView extends VerticalLayout {
             spendenart.setItems(spendenartService.alle().stream().map(Spendenart::getName).toList());
             verein.setItems(vereinService.alle(null).stream().map(Verein::getName).toList());
             datum.setLocale(Locale.GERMANY);
-            datum.setValue(LocalDate.now());
+            datum.setValue(LocalDate.now(ZoneId.systemDefault()));
 
             if (vorhanden != null) {
                 mitglied.setValue(mitgliedService.finden(vorhanden.mitgliedId()));
@@ -221,6 +258,9 @@ public class SpendenView extends VerticalLayout {
             getFooter().add(new Button("Abbrechen", e -> close()), speichern);
         }
 
+        /**
+         * Validiert die Eingaben und legt die Spende an bzw. speichert sie.
+         */
         private void speichern() {
             if (mitglied.getValue() == null || spendenart.getValue() == null
                     || verein.getValue() == null || datum.getValue() == null || betrag.getValue() == null) {

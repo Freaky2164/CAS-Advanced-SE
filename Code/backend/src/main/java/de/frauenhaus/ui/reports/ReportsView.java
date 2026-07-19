@@ -30,22 +30,25 @@ import jakarta.annotation.security.PermitAll;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
- * @author Nils
+ * Report-Seite: Excel-Übersichten für Bußgelder und Spenden, Serienbriefe,
+ * Stichwortsuche mit Vorschau sowie der E-Mail-Verteiler-Versand.
  *
- * Report-Seite: Excel-Übersichten (Bußgelder, Spenden), Serienbriefe,
- * Stichwortsuche mit Vorschau sowie der E-Mail-Verteiler-Versand
- * (Vaadin-Ersatz für die frühere Angular-Reports-Komponente).
+ * @author Nils
  */
 @Route(value = "reports", layout = MainLayout.class)
 @PageTitle("Reports | Frauenhaus Verwaltung")
 @PermitAll
 public class ReportsView extends VerticalLayout {
+
+    private static final String EXCEL_DOWNLOAD = "Als Excel herunterladen";
+    private static final String STICHWORTE_LABEL = "Stichworte (Komma-getrennt)";
 
     private final transient BussgeldReportService bussgeldReports;
     private final transient SpendenService spendenService;
@@ -53,6 +56,15 @@ public class ReportsView extends VerticalLayout {
     private final transient StichwortsucheService stichwortsucheService;
     private final transient VereinService vereinService;
 
+    /**
+     * Baut die Report-Seite mit allen Report-Abschnitten auf.
+     *
+     * @param bussgeldReports der Service für Bußgeld-Reports
+     * @param spendenService der Service für die Spendenübersicht
+     * @param verteilerService der Service für Verteiler und Serienbriefe
+     * @param stichwortsucheService der Service für die Stichwortsuche
+     * @param vereinService der Service für die Trägerauswahl
+     */
     public ReportsView(BussgeldReportService bussgeldReports, SpendenService spendenService,
                        VerteilerService verteilerService, StichwortsucheService stichwortsucheService,
                        VereinService vereinService) {
@@ -66,10 +78,16 @@ public class ReportsView extends VerticalLayout {
                 serienbriefe(), stichwortsuche(), verteiler());
     }
 
+    /**
+     * Liefert die Kurznamen aller Träger für Auswahlfelder.
+     */
     private List<String> vereinsNamen() {
         return vereinService.alle(null).stream().map(Verein::getName).toList();
     }
 
+    /**
+     * Erzeugt ein deutschsprachiges Datumsfeld mit Startwert.
+     */
     private static DatePicker datumsfeld(String label, LocalDate startwert) {
         DatePicker feld = new DatePicker(label);
         feld.setLocale(Locale.GERMANY);
@@ -77,10 +95,20 @@ public class ReportsView extends VerticalLayout {
         return feld;
     }
 
+    /**
+     * Liefert das heutige Datum in der Systemzeitzone.
+     */
+    private static LocalDate heute() {
+        return LocalDate.now(ZoneId.systemDefault());
+    }
+
+    /**
+     * Baut den Abschnitt für die Bußgeld-Übersicht als Excel-Download.
+     */
     private Card bussgeldUebersicht() {
-        DatePicker von = datumsfeld("Von", LocalDate.now().withDayOfYear(1));
-        DatePicker bis = datumsfeld("Bis", LocalDate.now());
-        var download = UiUtil.downloadLink("Als Excel herunterladen", () -> {
+        DatePicker von = datumsfeld("Von", heute().withDayOfYear(1));
+        DatePicker bis = datumsfeld("Bis", heute());
+        var download = UiUtil.downloadLink(EXCEL_DOWNLOAD, () -> {
             if (von.getValue() == null || bis.getValue() == null) {
                 throw new ResponseStatusException(BAD_REQUEST, "Bitte Zeitraum angeben");
             }
@@ -91,12 +119,15 @@ public class ReportsView extends VerticalLayout {
                 zeile(von, bis, download));
     }
 
+    /**
+     * Baut den Abschnitt für die Bußgeld-Detailliste als Excel-Download.
+     */
     private Card bussgeldDetail() {
-        DatePicker von = datumsfeld("Von", LocalDate.now().withDayOfYear(1));
-        DatePicker bis = datumsfeld("Bis", LocalDate.now());
+        DatePicker von = datumsfeld("Von", heute().withDayOfYear(1));
+        DatePicker bis = datumsfeld("Bis", heute());
         ComboBox<String> verein = new ComboBox<>("Träger");
         verein.setItems(vereinsNamen());
-        var download = UiUtil.downloadLink("Als Excel herunterladen", () -> {
+        var download = UiUtil.downloadLink(EXCEL_DOWNLOAD, () -> {
             if (von.getValue() == null || bis.getValue() == null || verein.getValue() == null) {
                 throw new ResponseStatusException(BAD_REQUEST, "Bitte Zeitraum und Träger angeben");
             }
@@ -107,11 +138,14 @@ public class ReportsView extends VerticalLayout {
                 zeile(von, bis, verein, download));
     }
 
+    /**
+     * Baut den Abschnitt für die Spenden-Jahresübersicht als Excel-Download.
+     */
     private Card spendenUebersicht() {
         IntegerField jahr = new IntegerField("Jahr");
-        jahr.setValue(LocalDate.now().getYear());
+        jahr.setValue(heute().getYear());
         jahr.setStepButtonsVisible(true);
-        var download = UiUtil.downloadLink("Als Excel herunterladen", () -> {
+        var download = UiUtil.downloadLink(EXCEL_DOWNLOAD, () -> {
             if (jahr.getValue() == null) {
                 throw new ResponseStatusException(BAD_REQUEST, "Bitte das Jahr angeben");
             }
@@ -122,8 +156,11 @@ public class ReportsView extends VerticalLayout {
                 zeile(jahr, download));
     }
 
+    /**
+     * Baut den Abschnitt für Serienbrief-Adressliste und Serienbrief-Download.
+     */
     private Card serienbriefe() {
-        TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
+        TextField stichworte = new TextField(STICHWORTE_LABEL);
         stichworte.setWidth("26em");
         ComboBox<String> verein = new ComboBox<>("Träger (für Anschreiben)");
         verein.setItems(vereinsNamen());
@@ -153,8 +190,11 @@ public class ReportsView extends VerticalLayout {
         return abschnitt;
     }
 
+    /**
+     * Baut den Abschnitt für die Stichwortsuche mit Vorschau und Excel-Download.
+     */
     private Card stichwortsuche() {
-        TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
+        TextField stichworte = new TextField(STICHWORTE_LABEL);
         stichworte.setWidth("26em");
         Checkbox foerderverein = new Checkbox("Nur Förderverein");
         Checkbox frauenhaus = new Checkbox("Nur Frauenhaus");
@@ -187,7 +227,7 @@ public class ReportsView extends VerticalLayout {
         });
         suchen.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        var download = UiUtil.downloadLink("Als Excel herunterladen", () -> {
+        var download = UiUtil.downloadLink(EXCEL_DOWNLOAD, () -> {
             List<String> liste = UiUtil.kommaListe(stichworte.getValue());
             if (liste.isEmpty()) {
                 throw new ResponseStatusException(BAD_REQUEST, "Bitte mindestens ein Stichwort angeben");
@@ -202,8 +242,11 @@ public class ReportsView extends VerticalLayout {
         return abschnitt;
     }
 
+    /**
+     * Baut den Abschnitt für den E-Mail-Verteiler-Versand.
+     */
     private Card verteiler() {
-        TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
+        TextField stichworte = new TextField(STICHWORTE_LABEL);
         stichworte.setWidth("26em");
         TextArea empfaenger = new TextArea("Empfänger");
         empfaenger.setReadOnly(true);
@@ -226,8 +269,6 @@ public class ReportsView extends VerticalLayout {
             }
         });
 
-        ComboBox<String> traeger = new ComboBox<>("Träger (Absender)");
-        traeger.setItems(vereinsNamen());
         TextField betreff = new TextField("Betreff");
         betreff.setWidth("26em");
         TextArea text = new TextArea("Text");
@@ -236,9 +277,8 @@ public class ReportsView extends VerticalLayout {
 
         Button versenden = new Button("Versenden", e -> {
             List<String> liste = UiUtil.kommaListe(stichworte.getValue());
-            if (liste.isEmpty() || traeger.getValue() == null
-                    || betreff.getValue().isBlank() || text.getValue().isBlank()) {
-                UiUtil.fehler(new IllegalStateException("Bitte Stichworte, Träger, Betreff und Text angeben"));
+            if (liste.isEmpty() || betreff.getValue().isBlank() || text.getValue().isBlank()) {
+                UiUtil.fehler(new IllegalStateException("Bitte Stichworte, Betreff und Text angeben"));
                 return;
             }
             ConfirmDialog dialog = new ConfirmDialog("Verteiler versenden",
@@ -246,7 +286,7 @@ public class ReportsView extends VerticalLayout {
                     "Versenden", ev -> {
                         try {
                             VerteilerService.VersandErgebnis erg = verteilerService.versenden(
-                                    liste, traeger.getValue(), betreff.getValue().trim(), text.getValue());
+                                    liste, betreff.getValue().trim(), text.getValue());
                             UiUtil.erfolg("E-Mail an " + erg.empfaengerAnzahl() + " Empfänger versendet");
                         } catch (Exception ex) {
                             UiUtil.fehler(ex);
@@ -260,14 +300,12 @@ public class ReportsView extends VerticalLayout {
 
         Card abschnitt = abschnitt("E-Mail-Verteiler",
                 zeile(stichworte, anzeigen));
-        abschnitt.add(empfaenger, zeile(traeger, betreff), text, versenden);
+        abschnitt.add(empfaenger, betreff, text, versenden);
         return abschnitt;
     }
 
     /**
-     * @author Nils
-     *
-     * Karte mit Titel für einen Report-Abschnitt.
+     * Erzeugt eine Karte mit Titel für einen Report-Abschnitt.
      */
     private static Card abschnitt(String titel, HorizontalLayout inhalt) {
         Card card = new Card();
@@ -277,6 +315,9 @@ public class ReportsView extends VerticalLayout {
         return card;
     }
 
+    /**
+     * Ordnet die Komponenten in einer unten ausgerichteten Zeile an.
+     */
     private static HorizontalLayout zeile(com.vaadin.flow.component.Component... komponenten) {
         HorizontalLayout zeile = new HorizontalLayout(komponenten);
         zeile.setAlignItems(Alignment.END);

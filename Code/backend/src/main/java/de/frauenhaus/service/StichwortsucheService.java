@@ -15,12 +15,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author Nils
+ * Mitgliedersuche über Verteiler-Stichworte mit optionaler Einschränkung auf
+ * Förderverein- bzw. Frauenhaus-Mitglieder und xlsx-Export des Ergebnisses.
  *
- * Mitgliedersuche über Stichworte mit xlsx-Export (alt: CReportStichwortSuche).
- * Anders als {@link VerteilerService} durchsucht dies gezielt nach Mitgliedern
- * (statt nur die Adressliste eines bestehenden Verteilers auszugeben) und kann
- * zusätzlich auf Förderverein-/Frauenhaus-Mitglieder eingeschränkt werden.
+ * @author Ole
  */
 @Service
 @Transactional(readOnly = true)
@@ -28,23 +26,34 @@ public class StichwortsucheService {
 
     private final MitgliedRepository mitglieder;
 
+    /**
+     * Erzeugt den Service mit dem Mitglieder-Repository.
+     *
+     * @param mitglieder das Mitglieder-Repository
+     */
     public StichwortsucheService(MitgliedRepository mitglieder) {
         this.mitglieder = mitglieder;
     }
 
     /**
-     * @author Nils
+     * Sucht Mitglieder, die mindestens eines der gegebenen Stichworte tragen.
      *
-     * Mitglieder, die mindestens eines der gegebenen Stichworte tragen (mit optionalen Filtern).
+     * @param stichworte die Namen der Stichworte
+     * @param foerderverein wenn {@code true}, nur Förderverein-Mitglieder
+     * @param frauenhaus wenn {@code true}, nur Frauenhaus-Mitglieder
+     * @return die gefundenen Mitglieder
      */
     public List<Mitglied> suchen(Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
         return mitglieder.findByStichwortSuche(stichworte, foerderverein, frauenhaus);
     }
 
     /**
-     * @author Nils
+     * Liefert das Suchergebnis als Vorschau-Liste für die UI.
      *
-     * Suchergebnis als Vorschau-Liste für die UI.
+     * @param stichworte die Namen der Stichworte
+     * @param foerderverein wenn {@code true}, nur Förderverein-Mitglieder
+     * @param frauenhaus wenn {@code true}, nur Frauenhaus-Mitglieder
+     * @return die gefundenen Mitglieder in der Antwortdarstellung
      */
     public List<MitgliedService.MitgliedResponse> suchenAlsResponses(
             Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
@@ -54,9 +63,12 @@ public class StichwortsucheService {
     }
 
     /**
-     * @author Nils
+     * Liefert das Suchergebnis als xlsx-Report.
      *
-     * Suchergebnis als xlsx-Report (alt: StichwortSuche.xls).
+     * @param stichworte die Namen der Stichworte
+     * @param foerderverein wenn {@code true}, nur Förderverein-Mitglieder
+     * @param frauenhaus wenn {@code true}, nur Frauenhaus-Mitglieder
+     * @return der Report als xlsx-Datei
      */
     public byte[] suchenAlsExcel(Collection<String> stichworte, boolean foerderverein, boolean frauenhaus) {
         Workbook wb = ExcelUtil.neuesWorkbook("StichwortSuche");

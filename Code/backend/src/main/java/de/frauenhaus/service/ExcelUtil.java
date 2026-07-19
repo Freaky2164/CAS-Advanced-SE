@@ -10,17 +10,20 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * @author Nils
+ * Hilfsfunktionen zum Erzeugen von xlsx-Reports.
  *
- * Kleine Hilfe für xlsx-Reports (ersetzt die HSSF-/Vorlagen-Mechanik des Altsystems).
+ * @author Ole
  */
 final class ExcelUtil {
 
+    /** Verhindert Instanziierung der Utility-Klasse. */
     private ExcelUtil() { }
 
-    /** @author Nils
-     *
+    /**
      * Erstellt ein neues Workbook mit genau einem benannten Tabellenblatt.
+     *
+     * @param sheetName der Name des Tabellenblatts
+     * @return das neue Workbook
      */
     static Workbook neuesWorkbook(String sheetName) {
         Workbook wb = new XSSFWorkbook();
@@ -29,9 +32,11 @@ final class ExcelUtil {
     }
 
     /**
-     * @author Nils
+     * Liefert das Zellenformat für Überschriftenzeilen (fett).
      *
-     * Zellenformat für Überschriftenzeilen (fett). */
+     * @param wb das Workbook, für das der Stil erzeugt wird
+     * @return der Überschriften-Stil
+     */
     static CellStyle headerStyle(Workbook wb) {
         CellStyle style = wb.createCellStyle();
         Font font = wb.createFont();
@@ -40,9 +45,15 @@ final class ExcelUtil {
         return style;
     }
 
-    /** @author Nils
+    /**
+     * Schreibt eine Überschriftenzeile mit den gegebenen Spaltentiteln im
+     * übergebenen Stil.
      *
-     * Schreibt eine Überschriftenzeile mit den gegebenen Spaltentiteln im übergebenen Stil. */
+     * @param sheet das Tabellenblatt
+     * @param style der Zellen-Stil der Überschriften
+     * @param rowNum die Zeilennummer
+     * @param titel die Spaltentitel
+     */
     static void headerZeile(Sheet sheet, CellStyle style, int rowNum, String... titel) {
         Row row = sheet.createRow(rowNum);
         for (int i = 0; i < titel.length; i++) {
@@ -53,10 +64,13 @@ final class ExcelUtil {
     }
 
     /**
-     * @author Nils
+     * Schreibt eine Datenzeile. Zahlen werden als Zahl, {@link LocalDate}s als
+     * ISO-Text und alles andere über {@code toString()} geschrieben;
+     * {@code null} ergibt eine leere Zelle.
      *
-     * Schreibt eine Datenzeile. Zahlen werden als Zahl, {@link LocalDate}s als ISO-Text
-     * und alles andere über {@code toString()} geschrieben; {@code null} ergibt eine leere Zelle.
+     * @param sheet das Tabellenblatt
+     * @param rowNum die Zeilennummer
+     * @param werte die Zellenwerte
      */
     static void zeile(Sheet sheet, int rowNum, List<Object> werte) {
         Row row = sheet.createRow(rowNum);
@@ -75,8 +89,12 @@ final class ExcelUtil {
         }
     }
 
-    /** @author Nils
-     *  Passt die Spaltenbreiten an den Inhalt der ersten Zeile an und serialisiert das Workbook. */
+    /**
+     * Passt die Spaltenbreiten an den Inhalt an und serialisiert das Workbook.
+     *
+     * @param wb das zu serialisierende Workbook
+     * @return der xlsx-Inhalt als Byte-Array
+     */
     static byte[] toBytes(Workbook wb) {
         try (wb; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             for (int i = 0; i < wb.getSheetAt(0).getRow(0).getLastCellNum(); i++) {

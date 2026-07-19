@@ -8,16 +8,17 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 /**
- * @author Nils
+ * Datenzugriff für {@link Gericht}.
  *
- * Datenzugriff für {@link Gericht}. Reine CRUD-Operationen, keine zusätzlichen Abfragen.
+ * @author Paul
  */
 public interface GerichtRepository extends JpaRepository<Gericht, Long> {
 
     /**
-     * @author Nils
+     * Sucht Gerichte über die wichtigsten Textfelder.
      *
-     * Generische Suche über die wichtigsten Textfelder der Gerichte.
+     * @param suche der Suchbegriff (Teilstring, Groß-/Kleinschreibung egal)
+     * @return die passenden Gerichte
      */
     @Query("""
             SELECT g FROM Gericht g

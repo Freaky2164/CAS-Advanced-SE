@@ -39,9 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * @author Nils
- *
  * Integrationstests für den SMTP-basierten Verteiler-Versand.
+ *
+ * @author Robin
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -80,7 +80,6 @@ class VerteilerVersandIntegrationTest {
                         .content("""
                                 {
                                   "stichworte": ["Newsletter%s"],
-                                  "traeger": "Frauenhaus",
                                   "betreff": "Sommerbrief",
                                   "text": "Liebe Unterstuetzerinnen und Unterstuetzer"
                                 }
@@ -107,7 +106,6 @@ class VerteilerVersandIntegrationTest {
                         .content("""
                                 {
                                   "stichworte": ["Unbekannt"],
-                                  "traeger": "Frauenhaus",
                                   "betreff": "Leer",
                                   "text": "Niemand da"
                                 }
@@ -129,7 +127,6 @@ class VerteilerVersandIntegrationTest {
                         .content("""
                                 {
                                   "stichworte": ["Verteiler%s"],
-                                  "traeger": "Frauenhaus",
                                   "betreff": "Fehlerfall",
                                   "text": "Bitte ignorieren"
                                 }
@@ -138,6 +135,9 @@ class VerteilerVersandIntegrationTest {
                 .andExpect(jsonPath("$.detail").value("E-Mail konnte nicht versendet werden: SMTP down"));
     }
 
+    /**
+     * Erzeugt ein Mitglied mit dem angegebenen Stichwort.
+     */
     private Mitglied mitgliedMitStichwort(String vorname, String name, String email, Stichwort stichwort) {
         Mitglied mitglied = new Mitglied();
         mitglied.setVorname(vorname);
@@ -147,6 +147,9 @@ class VerteilerVersandIntegrationTest {
         return mitglied;
     }
 
+    /**
+     * Extrahiert die Adress-Strings aus den übergebenen Mail-Adressen.
+     */
     private static java.util.List<String> adressen(Address[] adressen) {
         return java.util.Arrays.stream(adressen)
                 .map(InternetAddress.class::cast)
@@ -154,6 +157,9 @@ class VerteilerVersandIntegrationTest {
                 .toList();
     }
 
+    /**
+     * Erzeugt ein zufälliges Suffix zur Kollisionsvermeidung der Testdaten.
+     */
     private static String suffix() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }

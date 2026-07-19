@@ -7,25 +7,32 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
- * @author Nils
+ * Lädt Benutzer für Spring Security aus der {@link AppUser}-Tabelle.
  *
- * Lädt Benutzer für Spring Security aus der {@link AppUser}-Tabelle,
- * anstatt sie in-memory oder statisch zu konfigurieren.
+ * @author Robin
  */
 @Service
 public class DbUserDetailsService implements UserDetailsService {
 
     private final AppUserRepository users;
 
+    /**
+     * Erzeugt den Service mit dem Benutzer-Repository.
+     *
+     * @param users das Benutzer-Repository
+     */
     public DbUserDetailsService(AppUserRepository users) {
         this.users = users;
     }
 
     /**
-     * @author Nils
+     * Sucht den Benutzer anhand des Benutzernamens und bildet ihn auf
+     * Spring Securitys {@link UserDetails} ab (Passwort-Hash, Rolle,
+     * Aktiv-Status).
      *
-     * Sucht den Benutzer über {@link AppUserRepository#findByUsername(String)} und
-     * bildet ihn auf Spring Securitys {@link UserDetails} ab (Passwort-Hash, Rolle, aktiviert-Flag).
+     * @param username der Benutzername
+     * @return die UserDetails für die Authentifizierung
+     * @throws UsernameNotFoundException wenn der Benutzer nicht existiert
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

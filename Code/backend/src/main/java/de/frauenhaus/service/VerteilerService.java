@@ -25,14 +25,11 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 /**
- * @author Nils
+ * Verteiler-Funktionen über Stichworte: E-Mail-Versand, Serienbrief-Adressen
+ * als xlsx und Serienbrief-Generierung als docx mit einem fertig adressierten
+ * Anschreiben je Empfänger.
  *
- * Verteiler, Serienbrief-Adressen und Serienbrief-Generierung, portiert aus
- * CReportVerteiler, CReportSerienbrief, CReportSerienbriefAdressen sowie
- * CCommandBriefFrauenhaus/CCommandBriefFoerderverein (FHBrief.dot/FVBrief.dot).
- * Anders als im Altsystem (Adressliste für Words natives Seriendruck-Feature,
- * Briefkopf einzeln per Word-COM-Lesezeichen) erzeugt {@link #serienbrief} die
- * fertig adressierten Anschreiben direkt als docx (ein Anschreiben je Empfänger).
+ * @author Robin
  */
 @Service
 @Transactional(readOnly = true)
@@ -43,8 +40,19 @@ public class VerteilerService {
     private final JavaMailSender mailSender;
     private final String absender;
 
+    /**
+     * Ergebnis des E-Mail-Versands mit der Anzahl der Empfänger.
+     */
     public record VersandErgebnis(int empfaengerAnzahl) { }
 
+    /**
+     * Erzeugt den Service mit Repository, Word-Baustein und Mail-Sender.
+     *
+     * @param mitglieder das Mitglieder-Repository
+     * @param wordTemplate der Baustein für Word-Briefe
+     * @param mailSender der Mail-Sender für den Verteiler-Versand
+     * @param absender die konfigurierte Absenderadresse
+     */
     public VerteilerService(MitgliedRepository mitglieder,
                             WordTemplateService wordTemplate,
                             JavaMailSender mailSender,
@@ -56,20 +64,24 @@ public class VerteilerService {
     }
 
     /**
-     * @author Nils
+     * Liefert die E-Mail-Adressen der Mitglieder mit den gegebenen Stichworten.
      *
-     * E-Mail-Adressen der Mitglieder mit den gegebenen Stichworten.
+     * @param stichworte die Namen der Stichworte
+     * @return die E-Mail-Adressen ohne Duplikate
      */
     public List<String> emails(Collection<String> stichworte) {
         return mitglieder.findVerteilerEmails(stichworte);
     }
 
     /**
-     * @author Nils
-     *
      * Versendet eine Sammel-E-Mail an den Verteiler per BCC.
+     *
+     * @param stichworte die Namen der Stichworte
+     * @param betreff der Betreff der E-Mail
+     * @param text der Nachrichtentext
+     * @return das Versandergebnis mit der Empfängeranzahl
      */
-    public VersandErgebnis versenden(Collection<String> stichworte, String traeger, String betreff, String text) {
+    public VersandErgebnis versenden(Collection<String> stichworte, String betreff, String text) {
         List<String> empfaenger = emails(stichworte);
         if (empfaenger.isEmpty()) {
             throw new ResponseStatusException(BAD_REQUEST,
@@ -96,9 +108,11 @@ public class VerteilerService {
     }
 
     /**
-     * @author Nils
+     * Liefert die Serienbrief-Adressliste als xlsx (Datenquelle für den
+     * Seriendruck).
      *
-     * Serienbrief-Adressliste als xlsx (Datenquelle für den Seriendruck).
+     * @param stichworte die Namen der Stichworte
+     * @return die Adressliste als xlsx-Datei
      */
     public byte[] adressen(Collection<String> stichworte) {
         Workbook wb = ExcelUtil.neuesWorkbook("Serienbrief-Adressen");
@@ -115,13 +129,16 @@ public class VerteilerService {
     }
 
     /**
-     * @author Nils
+     * Erzeugt den Serienbrief: ein fertig adressiertes Anschreiben je
+     * Empfänger im Verteiler. Briefkopf, Anschrift und Briefanrede werden
+     * vorausgefüllt; {@code text} wird als Brieftext eingesetzt
+     * (Zeilenumbrüche bleiben erhalten). Ohne Text bleiben Leerzeilen als
+     * Platz, um den Brief anschließend in Word zu ergänzen.
      *
-     * Serienbrief-Generierung: ein fertig adressiertes Anschreiben je Empfänger im Verteiler
-     * (alt: CCommandBriefFrauenhaus/CCommandBriefFoerderverein + FHBrief.dot/FVBrief.dot).
-     * Briefkopf, Anschrift und Briefanrede werden vorausgefüllt; {@code text} wird als
-     * Brieftext eingesetzt (Zeilenumbrüche bleiben erhalten). Ohne Text bleibt – wie im
-     * Altsystem – Platz, um den Brief anschließend in Word zu ergänzen.
+     * @param stichworte die Namen der Stichworte
+     * @param verein der Kurzname des Trägervereins (bestimmt den Briefkopf)
+     * @param text der Brieftext oder {@code null}
+     * @return die Anschreiben als docx-Datei
      */
     public byte[] serienbrief(Collection<String> stichworte, String verein, String text) {
         boolean istFoerderverein = "Förderverein".equalsIgnoreCase(verein);
@@ -132,55 +149,86 @@ public class VerteilerService {
             if (i > 0) {
                 doc.createParagraph().createRun().addBreak(BreakType.PAGE);
             }
-            Mitglied m = empfaenger.get(i);
-
-            wordTemplate.absatzFett(doc, istFoerderverein
-                    ? "FÖRDERVEREIN MANNHEIMER FRAUENHAUS e. V."
-                    : "MANNHEIMER FRAUENHAUS e. V.");
-            wordTemplate.absatz(doc, "Postfach 121348, 68064 Mannheim");
-            if (!istFoerderverein) {
-                wordTemplate.absatz(doc, "Tel.: 0621/744333, Fax.: 0621/744243");
-            }
-            wordTemplate.leerzeile(doc);
-
-            String zeile1 = ((m.getVorname() == null || m.getVorname().isBlank()) ? "" : m.getVorname() + " ")
-                    + m.getName();
-            String plzOrt = ((m.getPlz() == null || m.getPlz().isBlank()) ? "" : m.getPlz() + " ")
-                    + (m.getOrt() == null ? "" : m.getOrt());
-            wordTemplate.adresse(doc, zeile1, m.getName2(), m.getName3(), m.getStrasse(), plzOrt);
-            wordTemplate.leerzeile(doc);
-
-            wordTemplate.ortUndDatum(doc, "Mannheim");
-            wordTemplate.leerzeile(doc);
-
-            String briefanrede = (m.getBriefanrede() == null || m.getBriefanrede().isBlank())
-                    ? "Sehr geehrte Damen und Herren"
-                    : m.getBriefanrede();
-            wordTemplate.absatz(doc, briefanrede + ",");
-            wordTemplate.leerzeile(doc);
-            if (text == null || text.isBlank()) {
-                // Platzhalter wie im Altsystem: Brieftext wird nachträglich in Word ergänzt
-                wordTemplate.leerzeile(doc);
-                wordTemplate.leerzeile(doc);
-            } else {
-                for (String zeile : text.split("\n", -1)) {
-                    if (zeile.isBlank()) {
-                        wordTemplate.leerzeile(doc);
-                    } else {
-                        wordTemplate.absatz(doc, zeile.stripTrailing());
-                    }
-                }
-                wordTemplate.leerzeile(doc);
-            }
-
-            wordTemplate.absatz(doc, "Mit freundlichen Grüßen");
+            anschreiben(doc, empfaenger.get(i), istFoerderverein, text);
         }
         return wordTemplate.toBytes(doc);
     }
 
+    /**
+     * Baut ein einzelnes Anschreiben aus Briefkopf, Anschrift, Datumszeile,
+     * Briefanrede, Brieftext und Grußformel auf.
+     */
+    private void anschreiben(XWPFDocument doc, Mitglied m, boolean istFoerderverein, String text) {
+        briefkopf(doc, istFoerderverein);
+        anschrift(doc, m);
+        wordTemplate.ortUndDatum(doc, "Mannheim");
+        wordTemplate.leerzeile(doc);
+        wordTemplate.absatz(doc, briefanrede(m) + ",");
+        wordTemplate.leerzeile(doc);
+        brieftext(doc, text);
+        wordTemplate.absatz(doc, "Mit freundlichen Grüßen");
+    }
+
+    /**
+     * Fügt den Briefkopf des jeweiligen Trägers an.
+     */
+    private void briefkopf(XWPFDocument doc, boolean istFoerderverein) {
+        wordTemplate.absatzFett(doc, istFoerderverein
+                ? "FÖRDERVEREIN MANNHEIMER FRAUENHAUS e. V."
+                : "MANNHEIMER FRAUENHAUS e. V.");
+        wordTemplate.absatz(doc, "Postfach 121348, 68064 Mannheim");
+        if (!istFoerderverein) {
+            wordTemplate.absatz(doc, "Tel.: 0621/744333, Fax.: 0621/744243");
+        }
+        wordTemplate.leerzeile(doc);
+    }
+
+    /**
+     * Fügt den Anschriftblock des Empfängers an.
+     */
+    private void anschrift(XWPFDocument doc, Mitglied m) {
+        String zeile1 = ((m.getVorname() == null || m.getVorname().isBlank()) ? "" : m.getVorname() + " ")
+                + m.getName();
+        String plzOrt = ((m.getPlz() == null || m.getPlz().isBlank()) ? "" : m.getPlz() + " ")
+                + (m.getOrt() == null ? "" : m.getOrt());
+        wordTemplate.adresse(doc, zeile1, m.getName2(), m.getName3(), m.getStrasse(), plzOrt);
+        wordTemplate.leerzeile(doc);
+    }
+
+    /**
+     * Liefert die Briefanrede des Mitglieds oder die neutrale Standardanrede.
+     */
+    private static String briefanrede(Mitglied m) {
+        return (m.getBriefanrede() == null || m.getBriefanrede().isBlank())
+                ? "Sehr geehrte Damen und Herren"
+                : m.getBriefanrede();
+    }
+
+    /**
+     * Fügt den Brieftext zeilenweise an; ohne Text bleiben Leerzeilen als
+     * Platz zum späteren Ergänzen in Word.
+     */
+    private void brieftext(XWPFDocument doc, String text) {
+        if (text == null || text.isBlank()) {
+            wordTemplate.leerzeile(doc);
+            wordTemplate.leerzeile(doc);
+            return;
+        }
+        for (String zeile : text.split("\n", -1)) {
+            if (zeile.isBlank()) {
+                wordTemplate.leerzeile(doc);
+            } else {
+                wordTemplate.absatz(doc, zeile.stripTrailing());
+            }
+        }
+        wordTemplate.leerzeile(doc);
+    }
+
+    /**
+     * Ermittelt die aussagekräftigste Fehlermeldung aus der Ursachenkette.
+     */
     private static String fehlermeldung(Exception e) {
-        Throwable ursache = NestedExceptionUtils.getMostSpecificCause(e);
-        String meldung = ursache != null ? ursache.getMessage() : e.getMessage();
+        String meldung = NestedExceptionUtils.getMostSpecificCause(e).getMessage();
         return (meldung == null || meldung.isBlank()) ? e.getClass().getSimpleName() : meldung;
     }
 }

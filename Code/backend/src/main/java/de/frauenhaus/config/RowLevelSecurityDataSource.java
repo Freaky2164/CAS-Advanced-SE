@@ -12,33 +12,29 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
- * @author Nils
- *
  * Reicht den angemeldeten Anwendungsbenutzer bei jeder Connection-Ausleihe als
  * Postgres-Session-Variablen ({@code app.benutzer}, {@code app.benutzer_rolle})
- * an die Datenbank durch. Die Row-Level-Security-Policies
- * (db/init/05_sicherheit.sh) geben Zeilen mit personenbezogenen Daten nur frei,
- * wenn dieser Kontext gesetzt ist – eine DB-Verbindung ohne authentifizierten
- * Benutzer (z.B. direktes psql mit den Backend-Zugangsdaten) sieht keine Daten.
+ * an die Datenbank durch. Die Row-Level-Security-Policies geben Zeilen mit
+ * personenbezogenen Daten nur frei, wenn dieser Kontext gesetzt ist.
  *
- * <p>Der Kontext wird bei JEDER Ausleihe gesetzt (leer, wenn kein Benutzer
- * angemeldet ist). Damit kann eine an den Pool zurückgegebene Verbindung den
- * Kontext des vorherigen Benutzers nie in die nächste Ausleihe verschleppen.</p>
+ * <p>Der Kontext wird bei jeder Ausleihe neu gesetzt (leer ohne Anmeldung),
+ * damit eine an den Pool zurückgegebene Verbindung den Kontext des vorherigen
+ * Benutzers nicht in die nächste Ausleihe verschleppt.</p>
+ *
+ * @author Nils
  */
 public class RowLevelSecurityDataSource extends DelegatingDataSource {
 
     /**
-     * @author Nils
-     *
      * Umhüllt die eigentliche (gepoolte) DataSource.
+     *
+     * @param zielDataSource die zu umhüllende DataSource
      */
     public RowLevelSecurityDataSource(DataSource zielDataSource) {
         super(zielDataSource);
     }
 
     /**
-     * @author Nils
-     *
      * Liefert eine Verbindung mit gesetztem Benutzerkontext.
      */
     @Override
@@ -47,8 +43,6 @@ public class RowLevelSecurityDataSource extends DelegatingDataSource {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert eine Verbindung mit gesetztem Benutzerkontext (Variante mit Zugangsdaten).
      */
     @Override
@@ -57,11 +51,12 @@ public class RowLevelSecurityDataSource extends DelegatingDataSource {
     }
 
     /**
-     * @author Nils
-     *
      * Setzt Benutzername und Rolle des aktuell angemeldeten Benutzers als
-     * Session-Variablen; ohne Anmeldung werden beide geleert. set_config mit
-     * Parametern statt String-Konkatenation – der Benutzername ist Fremdeingabe.
+     * Session-Variablen; ohne Anmeldung werden beide geleert. Die Werte werden
+     * als Parameter übergeben, da der Benutzername Fremdeingabe ist.
+     *
+     * @param connection die frisch ausgeliehene Verbindung
+     * @return dieselbe Verbindung mit gesetztem Kontext
      */
     private static Connection mitBenutzerkontext(Connection connection) throws SQLException {
         String benutzer = "";

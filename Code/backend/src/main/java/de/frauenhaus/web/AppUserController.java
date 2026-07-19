@@ -18,33 +18,50 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 /**
- * @author Nils
+ * REST-Endpunkte der Benutzerverwaltung. Nur für die Rolle ADMIN erreichbar
+ * (Präfix {@code /api/admin/**}).
  *
- * Admin-only Benutzerverwaltung (ersetzt die im Altsystem fehlende Pflege von
- * compucrash.user_def). Nur für Rolle ADMIN erreichbar (siehe SecurityConfig,
- * Präfix /api/admin/**).
+ * @author Robin
  */
 @RestController
 @RequestMapping("/api/admin/users")
 public class AppUserController {
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record CreateRequest(@NotBlank String username, @NotBlank @Size(min = 8) String passwort, @NotNull AppUser.Role role) { }
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record UpdateRequest(@NotNull AppUser.Role role, boolean enabled) { }
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record PasswordResetRequest(@NotBlank @Size(min = 8) String neuesPasswort) { }
 
     private final AppUserService appUserService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public AppUserController(AppUserService appUserService) {
         this.appUserService = appUserService;
     }
 
+    /**
+     * Liefert die Einträge, optional gefiltert bzw. seitenweise.
+     */
     @GetMapping
     public List<AppUserResponse> alle() {
         return appUserService.alle();
     }
 
+    /**
+     * Legt einen neuen Eintrag an.
+     */
     @PostMapping
     public ResponseEntity<AppUserResponse> anlegen(@Valid @RequestBody CreateRequest request) {
         AppUserResponse angelegt = appUserService.anlegen(request.username(), request.passwort(), request.role());
@@ -52,8 +69,6 @@ public class AppUserController {
     }
 
     /**
-     * @author Nils
-     *
      * Rolle und Aktiv-Status ändern; ein Benutzer darf sich nicht selbst deaktivieren oder degradieren.
      */
     @PutMapping("/{id}")
@@ -62,11 +77,17 @@ public class AppUserController {
         return appUserService.aendern(id, request.role(), request.enabled());
     }
 
+    /**
+     * Setzt das Passwort eines Benutzers zurück.
+     */
     @PutMapping("/{id}/passwort")
     public AppUserResponse passwortZuruecksetzen(@PathVariable Long id, @Valid @RequestBody PasswordResetRequest request) {
         return appUserService.passwortZuruecksetzen(id, request.neuesPasswort());
     }
 
+    /**
+     * Verhindert, dass ein Benutzer die Aktion auf den eigenen Account anwendet.
+     */
     private void pruefeNichtSelbst(Long id, Authentication auth, String meldung) {
         boolean istEigenerBenutzer = appUserService.alle().stream()
                 .anyMatch(u -> u.id().equals(id) && u.username().equals(auth.getName()));

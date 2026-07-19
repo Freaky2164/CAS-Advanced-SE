@@ -9,18 +9,20 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 
 /**
- * @author Nils
- *
- * Datenzugriff für {@link Stichwort}, mit nativen Änderungsabfragen zum
+ * Datenzugriff für {@link Stichwort}, mit Änderungsabfragen zum
  * Zusammenstellen bzw. Zusammenfassen von Verteiler-Stichworten.
+ *
+ * @author Ole
  */
 public interface StichwortRepository extends JpaRepository<Stichwort, String> {
 
     /**
-     * @author Nils
+     * Ordnet alle Mitglieder der alten Stichworte dem neuen Stichwort zu,
+     * sofern die Zuordnung nicht bereits besteht.
      *
-     * Verteiler zusammenstellen: alle Mitglieder der alten Stichworte dem neuen
-     * Stichwort zuordnen (alt: CReportStichwortZusammenstellen – jetzt parameterisiert).
+     * @param neu der Name des neuen Stichworts
+     * @param alte die Namen der zusammenzufassenden Stichworte
+     * @return die Anzahl der angelegten Zuordnungen
      */
     @Modifying
     @Query(value = """
@@ -33,9 +35,10 @@ public interface StichwortRepository extends JpaRepository<Stichwort, String> {
     int stichworteZuordnen(@Param("neu") String neu, @Param("alte") Collection<String> alte);
 
     /**
-     * @author Nils
+     * Entfernt die Mitglieder-Zuordnungen der angegebenen Stichworte.
      *
-     * Alte Zuordnungen nach Zusammenfassen entfernen (alt: CReportStichworteZusammenfassen).
+     * @param alte die Namen der Stichworte
+     * @return die Anzahl der gelöschten Zuordnungen
      */
     @Modifying
     @Query(value = "DELETE FROM frauenhaus.stichwort_person WHERE stichwort IN (:alte)",
@@ -43,9 +46,10 @@ public interface StichwortRepository extends JpaRepository<Stichwort, String> {
     int zuordnungenLoeschen(@Param("alte") Collection<String> alte);
 
     /**
-     * @author Nils
+     * Löscht die angegebenen Stichworte endgültig.
      *
-     * Alte Stichworte nach Zusammenfassen endgültig löschen.
+     * @param alte die Namen der Stichworte
+     * @return die Anzahl der gelöschten Stichworte
      */
     @Modifying
     @Query(value = "DELETE FROM frauenhaus.stichwort WHERE stichwort IN (:alte)",

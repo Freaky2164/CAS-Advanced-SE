@@ -6,11 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * @author Nils
+ * Stammdaten-Entität für die zulässigen Statuswerte eines {@link Bussgeld}.
  *
- * Bußgeldstatus-Lookup für {@link Bussgeld} (alt: frauenhaus.bussgeldstatus). Bisher nur
- * als DB-Fremdschlüssel-Constraint vorhanden, jetzt als eigenständige Stammdaten-Entität
- * für die Pflege der zulässigen Status-Werte (Grundlage für Stammdaten-CRUD).
+ * @author Nils
  */
 @Entity
 @Table(name = "bussgeldstatus", schema = "frauenhaus")
@@ -20,16 +18,18 @@ public class Bussgeldstatus {
     @Column(name = "bussgeldstatus")
     private String name;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Bussgeldstatus() { }
 
+    /**
+     * Legt einen Bußgeldstatus mit dem angegebenen Namen an.
+     *
+     * @param name die Bezeichnung des Status
+     */
     public Bussgeldstatus(String name) {
         this.name = name;
     }
 
+    /** Liefert die Bezeichnung des Status. */
     public String getName() { return name; }
 }

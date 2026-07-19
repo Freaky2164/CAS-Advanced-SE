@@ -17,16 +17,21 @@ import jakarta.annotation.security.PermitAll;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * Pflege der Verteiler-Stichworte: Zusammenstellen (alte bleiben erhalten)
  * und Zusammenfassen (alte werden gelöscht) mehrerer Stichworte zu einem neuen.
+ *
+ * @author Paul
  */
 @Route(value = "stichworte", layout = MainLayout.class)
 @PageTitle("Stichworte | Frauenhaus Verwaltung")
 @PermitAll
 public class StichworteView extends VerticalLayout {
 
+    /**
+     * Baut die Seite mit den Formularen für Zusammenstellen und Zusammenfassen auf.
+     *
+     * @param stichwortService der Service für die Stichwort-Pflege
+     */
     public StichworteView(StichwortService stichwortService) {
         add(new H3("Stichworte zusammenstellen"),
                 new Paragraph("Ordnet dem neuen Stichwort alle Mitglieder der alten Stichworte zu; die alten bleiben erhalten."),
@@ -36,6 +41,14 @@ public class StichworteView extends VerticalLayout {
                 zusammenfuehrenFormular("Zusammenfassen", true, stichwortService));
     }
 
+    /**
+     * Baut ein Formular zum Zusammenführen von Stichworten auf.
+     *
+     * @param aktion die Beschriftung des Aktions-Buttons
+     * @param zusammenfassen wenn {@code true}, werden die alten Stichworte gelöscht
+     * @param stichwortService der Service für die Stichwort-Pflege
+     * @return das fertige Formular-Layout
+     */
     private VerticalLayout zusammenfuehrenFormular(String aktion, boolean zusammenfassen,
                                                    StichwortService stichwortService) {
         TextField neu = new TextField("Neues Stichwort");

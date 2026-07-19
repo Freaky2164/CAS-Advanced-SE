@@ -27,15 +27,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Nils
- *
  * Integrationstests für die generische Stammdaten-Suche über die Listen-Endpunkte.
+ *
+ * @author Nils
  */
 @SpringBootTest
 @Transactional
@@ -160,6 +161,9 @@ class StammdatenSucheIntegrationTest {
         assertThat(gerichtService.alle("")).hasSize((int) gerichte.count());
     }
 
+    /**
+     * Erzeugt ein Mitglied mit den angegebenen Kerndaten.
+     */
     private Mitglied neuesMitglied(String vorname, String name, String ort, String email) {
         Mitglied m = new Mitglied();
         m.setVorname(vorname);
@@ -169,17 +173,23 @@ class StammdatenSucheIntegrationTest {
         return m;
     }
 
+    /**
+     * Erzeugt eine Spende mit den angegebenen Bezügen.
+     */
     private Spende neueSpende(Mitglied mitglied, Spendenart spendenart, Verein verein, String bemerkung) {
         Spende spende = new Spende();
         spende.setMitglied(mitglied);
         spende.setSpendenart(spendenart);
         spende.setVerein(verein);
-        spende.setDatum(LocalDate.of(2026, 7, 12));
+        spende.setDatum(LocalDate.of(2026, Month.JULY, 12));
         spende.setBetrag(new BigDecimal("25.00"));
         spende.setBemerkung(bemerkung);
         return spende;
     }
 
+    /**
+     * Erzeugt ein Gericht mit den angegebenen Daten.
+     */
     private Gericht neuesGericht(String bezeichnung, String ort) {
         Gericht gericht = new Gericht();
         gericht.setBezeichnung(bezeichnung);
@@ -198,14 +208,17 @@ class StammdatenSucheIntegrationTest {
         bussgeld.setAktenzeichen(aktenzeichen);
         bussgeld.setVorname(vorname);
         bussgeld.setName(name);
-        bussgeld.setDatum(LocalDate.of(2026, 7, 12));
-        bussgeld.setZieldatum(LocalDate.of(2026, 8, 12));
+        bussgeld.setDatum(LocalDate.of(2026, Month.JULY, 12));
+        bussgeld.setZieldatum(LocalDate.of(2026, Month.AUGUST, 12));
         bussgeld.setBetrag(new BigDecimal("50.00"));
         bussgeld.setBezahlt(false);
         bussgeld.setBemerkung(bemerkung);
         return bussgeld;
     }
 
+    /**
+     * Erzeugt ein zufälliges Suffix zur Kollisionsvermeidung der Testdaten.
+     */
     private String suffix() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }

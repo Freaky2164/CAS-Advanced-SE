@@ -40,11 +40,11 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * @author Nils
+ * Pflege der Mitglieder und Adressen: durchsuchbare Liste mit Anlegen,
+ * Bearbeiten, Duplizieren, Löschen sowie Dokument-Anhängen und
+ * Änderungsverlauf.
  *
- * Pflege der Mitglieder/Adressen: durchsuchbare Liste mit Anlegen, Bearbeiten,
- * Duplizieren, Löschen sowie Dokument-Anhängen und Änderungsverlauf
- * (Vaadin-Ersatz für die frühere Angular-Mitglieder-Komponente).
+ * @author Ole
  */
 @Route(value = "mitglieder", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
@@ -61,6 +61,15 @@ public class MitgliederView extends VerticalLayout {
     private final TextField suche = new TextField();
     private final Grid<MitgliedResponse> grid = new Grid<>();
 
+    /**
+     * Baut die Mitglieder-Seite mit Werkzeugleiste und Liste auf.
+     *
+     * @param mitgliedService der Service für die Mitglieder-Pflege
+     * @param anredeService der Service für die Anrede-Auswahl
+     * @param vereinService der Service für die Vereinsauswahl
+     * @param auditService der Service für den Änderungsverlauf
+     * @param dokumentService der Service für Dokument-Anhänge
+     */
     public MitgliederView(MitgliedService mitgliedService, AnredeService anredeService,
                           VereinService vereinService, AuditService auditService,
                           DokumentService dokumentService) {
@@ -75,6 +84,9 @@ public class MitgliederView extends VerticalLayout {
         gridAufbauen();
     }
 
+    /**
+     * Baut die Werkzeugleiste mit Suche und Aktions-Buttons auf.
+     */
     private HorizontalLayout werkzeugleiste() {
         suche.setPlaceholder("Suche (Name, Ort, E-Mail …)");
         suche.setClearButtonVisible(true);
@@ -94,6 +106,9 @@ public class MitgliederView extends VerticalLayout {
         return new HorizontalLayout(suche, neu, bearbeiten, duplizieren, loeschen, dokumente, verlauf);
     }
 
+    /**
+     * Konfiguriert die Spalten und die seitenweise Datenanbindung der Liste.
+     */
     private void gridAufbauen() {
         grid.addColumn(MitgliedResponse::id).setHeader("Nr.").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(MitgliedResponse::name).setHeader("Name").setAutoWidth(true);
@@ -112,6 +127,9 @@ public class MitgliederView extends VerticalLayout {
         grid.setSizeFull();
     }
 
+    /**
+     * Liefert das ausgewählte Mitglied oder zeigt einen Hinweis an.
+     */
     private java.util.Optional<MitgliedResponse> auswahl() {
         java.util.Optional<MitgliedResponse> auswahl = grid.asSingleSelect().getOptionalValue();
         if (auswahl.isEmpty()) {
@@ -120,10 +138,16 @@ public class MitgliederView extends VerticalLayout {
         return auswahl;
     }
 
+    /**
+     * Öffnet den Bearbeitungsdialog; {@code null} legt ein neues Mitglied an.
+     */
     private void bearbeiten(MitgliedResponse vorhanden) {
         new MitgliedDialog(vorhanden).open();
     }
 
+    /**
+     * Dupliziert das Mitglied und aktualisiert die Liste.
+     */
     private void duplizieren(MitgliedResponse m) {
         try {
             MitgliedResponse kopie = mitgliedService.duplizieren(m.id());
@@ -134,6 +158,9 @@ public class MitgliederView extends VerticalLayout {
         }
     }
 
+    /**
+     * Fragt die Löschung ab und löscht das Mitglied nach Bestätigung.
+     */
     private void loeschenBestaetigen(MitgliedResponse m) {
         ConfirmDialog dialog = new ConfirmDialog("Mitglied löschen",
                 "Soll das Mitglied \"" + anzeigeName(m) + "\" (Nr. " + m.id() + ") wirklich gelöscht werden?",
@@ -152,10 +179,16 @@ public class MitgliederView extends VerticalLayout {
         dialog.open();
     }
 
+    /**
+     * Öffnet den Dialog mit den Dokument-Anhängen des Mitglieds.
+     */
     private void dokumenteAnzeigen(MitgliedResponse m) {
         new DokumenteDialog(dokumentService, "MITGLIED", Long.toString(m.id()), anzeigeName(m)).open();
     }
 
+    /**
+     * Öffnet den Änderungsverlauf des Mitglieds.
+     */
     private void verlaufAnzeigen(MitgliedResponse m) {
         try {
             new VerlaufDialog(anzeigeName(m), auditService.verlauf(Mitglied.class, m.id())).open();
@@ -164,15 +197,16 @@ public class MitgliederView extends VerticalLayout {
         }
     }
 
+    /**
+     * Liefert den Anzeigenamen aus Vorname und Name.
+     */
     private static String anzeigeName(MitgliedResponse m) {
         return (m.vorname() != null ? m.vorname() + " " : "") + m.name();
     }
 
     /**
-     * @author Nils
-     *
-     * Bearbeitungsdialog für ein Mitglied; Stichworte werden wie im alten
-     * Frontend als Komma-Liste eingegeben, Vereine per Mehrfachauswahl.
+     * Bearbeitungsdialog für ein Mitglied; Stichworte werden als Komma-Liste
+     * eingegeben, Vereine per Mehrfachauswahl.
      */
     private final class MitgliedDialog extends Dialog {
 
@@ -197,6 +231,11 @@ public class MitgliederView extends VerticalLayout {
         private final TextField stichworte = new TextField("Stichworte (Komma-getrennt)");
         private final MultiSelectComboBox<String> vereine = new MultiSelectComboBox<>("Vereine");
 
+        /**
+         * Baut den Dialog auf und füllt bei bestehenden Mitgliedern die Felder vor.
+         *
+         * @param vorhanden das zu bearbeitende Mitglied oder {@code null} zum Anlegen
+         */
         private MitgliedDialog(MitgliedResponse vorhanden) {
             this.vorhanden = vorhanden;
             setHeaderTitle(vorhanden == null ? "Mitglied anlegen" : "Mitglied bearbeiten (Nr. " + vorhanden.id() + ")");
@@ -240,6 +279,9 @@ public class MitgliederView extends VerticalLayout {
             getFooter().add(new Button("Abbrechen", e -> close()), speichern);
         }
 
+        /**
+         * Validiert die Eingaben und legt das Mitglied an bzw. speichert es.
+         */
         private void speichern() {
             if (name.getValue().isBlank()) {
                 UiUtil.fehler(new IllegalStateException("Name darf nicht leer sein"));
@@ -282,10 +324,16 @@ public class MitgliederView extends VerticalLayout {
         }
     }
 
+    /**
+     * Liefert einen leeren String, wenn der Wert {@code null} ist.
+     */
     private static String leerFalls(String wert) {
         return wert == null ? "" : wert;
     }
 
+    /**
+     * Trimmt den Wert und liefert {@code null}, wenn er leer ist.
+     */
     private static String wertOderNull(String wert) {
         return wert == null || wert.isBlank() ? null : wert.trim();
     }

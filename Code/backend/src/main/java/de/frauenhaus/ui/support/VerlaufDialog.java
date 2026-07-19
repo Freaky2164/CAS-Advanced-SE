@@ -11,13 +11,19 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Nils
- *
  * Dialog mit dem Änderungsverlauf (Envers-Audit) eines Datensatzes:
  * je Revision Zeitpunkt, Benutzer, Art und die geänderten Felder alt → neu.
+ *
+ * @author Robin
  */
 public final class VerlaufDialog extends Dialog {
 
+    /**
+     * Baut den Dialog mit der Verlaufstabelle auf.
+     *
+     * @param titel die Kurzbeschreibung des Datensatzes für den Dialogtitel
+     * @param eintraege die anzuzeigenden Verlaufseinträge
+     */
     public VerlaufDialog(String titel, List<VerlaufEintrag> eintraege) {
         setHeaderTitle("Verlauf: " + titel);
         setWidth("60em");
@@ -35,6 +41,9 @@ public final class VerlaufDialog extends Dialog {
         getFooter().add(schliessen);
     }
 
+    /**
+     * Stellt die Feld-Änderungen eines Eintrags zeilenweise als alt → neu dar.
+     */
     private static Div aenderungen(VerlaufEintrag eintrag) {
         Div div = new Div();
         eintrag.aenderungen().forEach(a -> {
@@ -45,6 +54,9 @@ public final class VerlaufDialog extends Dialog {
         return div;
     }
 
+    /**
+     * Liefert die Textdarstellung eines Feldwerts; {@code null} wird als "–" angezeigt.
+     */
     private static String wert(Object wert) {
         return Objects.toString(wert, "–");
     }

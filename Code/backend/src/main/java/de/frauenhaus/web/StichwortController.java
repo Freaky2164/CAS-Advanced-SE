@@ -12,31 +12,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author Nils
- *
  * REST-Endpunkte für die Pflege von Verteiler-Stichworten
  * (Zusammenstellen und Zusammenfassen bestehender Stichworte).
+ *
+ * @author Nils
  */
 @RestController
 @RequestMapping("/api/stichworte")
 public class StichwortController {
 
     /**
-     * @author Nils
-     *
      * Anfrage zum Zusammenführen: {@code neu} ist das Ziel-Stichwort, {@code alte} die Quell-Stichworte.
      */
     public record ZusammenfuehrenRequest(@NotBlank String neu, @NotEmpty List<String> alte) { }
 
     private final StichwortService stichwortService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public StichwortController(StichwortService stichwortService) {
         this.stichwortService = stichwortService;
     }
 
     /**
-     * @author Nils
-     *
      * Ordnet dem neuen Stichwort alle Mitglieder der alten Stichworte zu; die alten bleiben erhalten.
      */
     @PostMapping("/zusammenstellen")
@@ -45,8 +44,6 @@ public class StichwortController {
     }
 
     /**
-     * @author Nils
-     *
      * Wie {@link #zusammenstellen}, löscht danach aber die alten Stichworte und ihre Zuordnungen.
      */
     @PostMapping("/zusammenfassen")

@@ -19,12 +19,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * @author Nils
- *
  * REST-Endpunkte für die Report-Generierung: Übersichten als xlsx,
  * Bußgeldbestätigungen und Spendenbescheinigungen als Word-Dokumente
  * aus den Vorlagen in vorlagen/, Serienbriefe und Stichwortsuche
  * sowie der SMTP-Verteiler-Versand.
+ *
+ * @author Nils
  */
 @RestController
 @RequestMapping("/api/reports")
@@ -40,6 +40,9 @@ public class ReportController {
     private final DocumentCreationService documentCreationService;
     private final StichwortsucheService stichwortsucheService;
 
+    /**
+     * Erzeugt den Controller mit den benötigten Services.
+     */
     public ReportController(BussgeldReportService bussgeldReports,
                             SpendenService spendenService,
                             VerteilerService verteilerService,
@@ -53,8 +56,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die Bußgeld-Übersicht (Summen je Gericht und Träger) im gegebenen Zeitraum als xlsx.
      */
     @GetMapping("/bussgeld-uebersicht")
@@ -65,8 +66,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die Bußgeld-Detailliste mit Zahlungseingängen im Zeitraum für einen Träger als xlsx.
      */
     @GetMapping("/bussgeld-detail")
@@ -78,8 +77,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die Zahlungsbestätigung an das Gericht (Vorlage FHBG.dot/FVBG.dot) als Word-Dokument.
      */
     @GetMapping("/bussgeld-bestaetigung/{bussgeldId}")
@@ -89,8 +86,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert alle Spenden eines Jahres, gruppiert nach Träger/Spendentyp/-art, als xlsx.
      */
     @GetMapping("/spenden-uebersicht")
@@ -99,8 +94,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die Spendenbescheinigung (Vorlagen FHSB*.dot/FVSB*.dot je Träger und Spendentyp) als Word-Dokument.
      */
     @GetMapping("/spendenquittung/{spendeId}")
@@ -110,8 +103,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die E-Mail-Adressen aller Mitglieder mit den gegebenen Verteiler-Stichworten.
      */
     @GetMapping("/verteiler-emails")
@@ -120,18 +111,14 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Versendet eine Sammel-E-Mail an alle Verteiler-Empfänger per BCC.
      */
     @PostMapping("/verteiler/versenden")
     public VerteilerService.VersandErgebnis verteilerVersenden(@Valid @RequestBody VerteilerVersandRequest request) {
-        return verteilerService.versenden(request.stichworte(), request.traeger(), request.betreff(), request.text());
+        return verteilerService.versenden(request.stichworte(), request.betreff(), request.text());
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die Serienbrief-Adressliste zu den gegebenen Verteiler-Stichworten als xlsx.
      */
     @GetMapping("/serienbrief-adressen")
@@ -140,8 +127,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Liefert die generierten Serienbriefe (ein Anschreiben je Empfänger) als docx;
      * {@code text} ist der optionale Brieftext (ohne ihn bleibt Platz zum Ergänzen in Word).
      */
@@ -153,9 +138,7 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
-     * Liefert die Mitglieder, die mindestens eines der gegebenen Stichworte tragen, als Vorschau (alt: CReportStichwortSuche).
+     * Liefert die Mitglieder, die mindestens eines der gegebenen Stichworte tragen, als Vorschau.
      */
     @GetMapping("/stichwortsuche")
     public List<MitgliedService.MitgliedResponse> stichwortsuche(
@@ -166,9 +149,7 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
-     * Liefert die Mitgliedersuche über Stichworte als xlsx-Download (alt: CReportStichwortSuche).
+     * Liefert die Mitgliedersuche über Stichworte als xlsx-Download.
      */
     @GetMapping("/stichwortsuche.xlsx")
     public ResponseEntity<byte[]> stichwortsucheExcel(
@@ -180,8 +161,6 @@ public class ReportController {
     }
 
     /**
-     * @author Nils
-     *
      * Baut die Download-Antwort mit Dateinamen und Content-Type für den gegebenen Report-Inhalt.
      */
     private static ResponseEntity<byte[]> download(byte[] inhalt, String dateiname, String contentType) {
@@ -191,9 +170,11 @@ public class ReportController {
                 .body(inhalt);
     }
 
+    /**
+     * Datenobjekt der REST-Schnittstelle.
+     */
     public record VerteilerVersandRequest(
             @NotEmpty List<String> stichworte,
-            @NotBlank String traeger,
             @NotBlank String betreff,
             @NotBlank String text) { }
 }

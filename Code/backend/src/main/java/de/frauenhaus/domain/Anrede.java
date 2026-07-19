@@ -6,11 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * @author Nils
+ * Stammdaten-Entität für die zulässigen Anreden eines {@link Mitglied}.
  *
- * Anrede-Lookup für {@link Mitglied} (alt: frauenhaus.anrede). Bisher nur als
- * DB-Fremdschlüssel-Constraint vorhanden, jetzt als eigenständige Stammdaten-Entität
- * für die Pflege der zulässigen Anreden (Grundlage für Stammdaten-CRUD).
+ * @author Paul
  */
 @Entity
 @Table(name = "anrede", schema = "frauenhaus")
@@ -20,16 +18,18 @@ public class Anrede {
     @Column(name = "anrede")
     private String name;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Anrede() { }
 
+    /**
+     * Legt eine Anrede mit dem angegebenen Namen an.
+     *
+     * @param name die Bezeichnung der Anrede
+     */
     public Anrede(String name) {
         this.name = name;
     }
 
+    /** Liefert die Bezeichnung der Anrede. */
     public String getName() { return name; }
 }

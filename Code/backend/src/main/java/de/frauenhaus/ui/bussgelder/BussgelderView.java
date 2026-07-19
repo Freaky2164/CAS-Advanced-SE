@@ -12,6 +12,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
@@ -21,12 +22,11 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import de.frauenhaus.domain.Bussgeld;
 import de.frauenhaus.domain.Bussgeldstatus;
 import de.frauenhaus.domain.Gericht;
 import de.frauenhaus.domain.Verein;
-import de.frauenhaus.service.AuditService;
 import de.frauenhaus.service.BussgeldService;
+import de.frauenhaus.service.BussgeldService.BussgeldDaten;
 import de.frauenhaus.service.BussgeldService.BussgeldResponse;
 import de.frauenhaus.service.BussgeldService.EingangResponse;
 import de.frauenhaus.service.BussgeldstatusService;
@@ -37,49 +37,61 @@ import de.frauenhaus.service.VereinService;
 import de.frauenhaus.ui.MainLayout;
 import de.frauenhaus.ui.support.DokumenteDialog;
 import de.frauenhaus.ui.support.UiUtil;
-import de.frauenhaus.ui.support.VerlaufDialog;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
- * @author Nils
- *
  * Pflege der Bußgelder: durchsuchbare Liste mit Anlegen, Bearbeiten, Löschen,
  * Zahlungseingängen, Zahlungsbestätigung als Word-Download sowie Dokumenten
  * und Änderungsverlauf.
+ *
+ * @author Paul
  */
 @Route(value = "bussgelder", layout = MainLayout.class)
 @PageTitle("Bußgelder | Frauenhaus Verwaltung")
 @PermitAll
 public class BussgelderView extends VerticalLayout {
 
+    private static final String DATUM_LABEL = "Datum";
+    private static final String BEMERKUNG_LABEL = "Bemerkung";
+
     private final transient BussgeldService bussgeldService;
     private final transient GerichtService gerichtService;
     private final transient VereinService vereinService;
     private final transient BussgeldstatusService bussgeldstatusService;
     private final transient DocumentCreationService documentCreationService;
-    private final transient AuditService auditService;
     private final transient DokumentService dokumentService;
 
     private final TextField suche = new TextField();
     private final Grid<BussgeldResponse> grid = new Grid<>();
 
+    /**
+     * Baut die Bußgeld-Seite mit Werkzeugleiste und Liste auf.
+     *
+     * @param bussgeldService der Service für die Bußgeld-Pflege
+     * @param gerichtService der Service für die Gerichtsauswahl
+     * @param vereinService der Service für die Trägerauswahl
+     * @param bussgeldstatusService der Service für die Statusauswahl
+     * @param documentCreationService der Service für die Zahlungsbestätigung
+     * @param dokumentService der Service für Dokument-Anhänge
+     */
     public BussgelderView(BussgeldService bussgeldService, GerichtService gerichtService,
                           VereinService vereinService, BussgeldstatusService bussgeldstatusService,
                           DocumentCreationService documentCreationService,
-                          AuditService auditService, DokumentService dokumentService) {
+                          DokumentService dokumentService) {
         this.bussgeldService = bussgeldService;
         this.gerichtService = gerichtService;
         this.vereinService = vereinService;
         this.bussgeldstatusService = bussgeldstatusService;
         this.documentCreationService = documentCreationService;
-        this.auditService = auditService;
         this.dokumentService = dokumentService;
 
         setSizeFull();
@@ -87,6 +99,10 @@ public class BussgelderView extends VerticalLayout {
         gridAufbauen();
     }
 
+    /**
+     * Baut die Werkzeugleiste mit Suche, Aktions-Buttons und dem Download-Link
+     * für die Zahlungsbestätigung auf.
+     */
     private HorizontalLayout werkzeugleiste() {
         suche.setPlaceholder("Suche (Gericht, Aktenzeichen …)");
         suche.setClearButtonVisible(true);
@@ -117,9 +133,12 @@ public class BussgelderView extends VerticalLayout {
         return leiste;
     }
 
+    /**
+     * Konfiguriert die Spalten und die seitenweise Datenanbindung der Liste.
+     */
     private void gridAufbauen() {
         grid.addColumn(BussgeldResponse::id).setHeader("Nr.").setAutoWidth(true).setFlexGrow(0);
-        grid.addColumn(b -> UiUtil.datum(b.datum())).setHeader("Datum").setAutoWidth(true);
+        grid.addColumn(b -> UiUtil.datum(b.datum())).setHeader(DATUM_LABEL).setAutoWidth(true);
         grid.addColumn(BussgeldResponse::gerichtBezeichnung).setHeader("Gericht").setAutoWidth(true);
         grid.addColumn(BussgeldResponse::aktenzeichen).setHeader("Aktenzeichen").setAutoWidth(true);
         grid.addColumn(BussgeldResponse::verein).setHeader("Träger").setAutoWidth(true);
@@ -135,6 +154,9 @@ public class BussgelderView extends VerticalLayout {
         grid.setSizeFull();
     }
 
+    /**
+     * Liefert das ausgewählte Bußgeld oder zeigt einen Hinweis an.
+     */
     private java.util.Optional<BussgeldResponse> auswahl() {
         java.util.Optional<BussgeldResponse> auswahl = grid.asSingleSelect().getOptionalValue();
         if (auswahl.isEmpty()) {
@@ -143,10 +165,16 @@ public class BussgelderView extends VerticalLayout {
         return auswahl;
     }
 
+    /**
+     * Öffnet den Bearbeitungsdialog; {@code null} legt ein neues Bußgeld an.
+     */
     private void bearbeiten(BussgeldResponse vorhanden) {
         new BussgeldDialog(vorhanden).open();
     }
 
+    /**
+     * Fragt die Löschung ab und löscht das Bußgeld nach Bestätigung.
+     */
     private void loeschenBestaetigen(BussgeldResponse b) {
         ConfirmDialog dialog = new ConfirmDialog("Bußgeld löschen",
                 "Soll das Bußgeld Nr. " + b.id() + " (" + beschreibung(b) + ") wirklich gelöscht werden?",
@@ -165,21 +193,47 @@ public class BussgelderView extends VerticalLayout {
         dialog.open();
     }
 
+    /**
+     * Öffnet den Zahlungsverlauf des Bußgelds mit allen erfassten
+     * Zahlungseingängen in chronologischer Reihenfolge.
+     */
     private void verlaufAnzeigen(BussgeldResponse b) {
         try {
-            new VerlaufDialog(beschreibung(b), auditService.verlauf(Bussgeld.class, b.id())).open();
+            List<EingangResponse> eingaengeSortiert = bussgeldService.finden(b.id()).eingaenge().stream()
+                    .sorted(Comparator.comparing(EingangResponse::datum))
+                    .toList();
+
+            Dialog dialog = new Dialog();
+            dialog.setHeaderTitle("Zahlungsverlauf: " + beschreibung(b));
+            dialog.setWidth("40em");
+
+            if (eingaengeSortiert.isEmpty()) {
+                dialog.add(new Span("Für dieses Bußgeld sind keine Zahlungseingänge erfasst."));
+            } else {
+                Grid<EingangResponse> verlauf = new Grid<>();
+                verlauf.addColumn(e -> UiUtil.datum(e.datum())).setHeader(DATUM_LABEL).setAutoWidth(true);
+                verlauf.addColumn(e -> UiUtil.betrag(e.betrag())).setHeader("Betrag").setAutoWidth(true);
+                verlauf.addColumn(EingangResponse::bemerkung).setHeader(BEMERKUNG_LABEL).setFlexGrow(1);
+                verlauf.setItems(eingaengeSortiert);
+                verlauf.setAllRowsVisible(true);
+                dialog.add(verlauf);
+            }
+
+            dialog.getFooter().add(new Button("Schließen", e -> dialog.close()));
+            dialog.open();
         } catch (Exception e) {
             UiUtil.fehler(e);
         }
     }
 
+    /**
+     * Liefert eine Kurzbeschreibung des Bußgelds für Dialogtitel.
+     */
     private static String beschreibung(BussgeldResponse b) {
         return b.gerichtBezeichnung() + ", " + UiUtil.datum(b.datum()) + ", " + UiUtil.betrag(b.betrag());
     }
 
     /**
-     * @author Nils
-     *
      * Bearbeitungsdialog für ein Bußgeld; bei bestehenden Bußgeldern können
      * zusätzlich Zahlungseingänge erfasst und entfernt werden.
      */
@@ -193,17 +247,22 @@ public class BussgelderView extends VerticalLayout {
         private final TextField name = new TextField("Name");
         private final TextField vorname = new TextField("Vorname");
         private final TextField aktenzeichen = new TextField("Aktenzeichen");
-        private final DatePicker datum = new DatePicker("Datum");
+        private final DatePicker datum = new DatePicker(DATUM_LABEL);
         private final DatePicker zieldatum = new DatePicker("Zieldatum");
         private final BigDecimalField betrag = new BigDecimalField("Betrag (€)");
         private final Checkbox bezahlt = new Checkbox("Bezahlt");
-        private final TextArea bemerkung = new TextArea("Bemerkung");
+        private final TextArea bemerkung = new TextArea(BEMERKUNG_LABEL);
 
         private final Grid<EingangResponse> eingaenge = new Grid<>();
-        private final DatePicker eingangDatum = new DatePicker("Datum");
+        private final DatePicker eingangDatum = new DatePicker(DATUM_LABEL);
         private final BigDecimalField eingangBetrag = new BigDecimalField("Betrag (€)");
-        private final TextField eingangBemerkung = new TextField("Bemerkung");
+        private final TextField eingangBemerkung = new TextField(BEMERKUNG_LABEL);
 
+        /**
+         * Baut den Dialog auf und füllt bei bestehenden Bußgeldern die Felder vor.
+         *
+         * @param vorhanden das zu bearbeitende Bußgeld oder {@code null} zum Anlegen
+         */
         private BussgeldDialog(BussgeldResponse vorhanden) {
             this.vorhanden = vorhanden;
             setHeaderTitle(vorhanden == null ? "Bußgeld anlegen" : "Bußgeld bearbeiten (Nr. " + vorhanden.id() + ")");
@@ -252,10 +311,13 @@ public class BussgelderView extends VerticalLayout {
             getFooter().add(new Button("Abbrechen", e -> close()), speichern);
         }
 
+        /**
+         * Baut den Bereich zur Anzeige und Erfassung der Zahlungseingänge auf.
+         */
         private VerticalLayout eingaengeBereich() {
-            eingaenge.addColumn(e -> UiUtil.datum(e.datum())).setHeader("Datum").setAutoWidth(true);
+            eingaenge.addColumn(e -> UiUtil.datum(e.datum())).setHeader(DATUM_LABEL).setAutoWidth(true);
             eingaenge.addColumn(e -> UiUtil.betrag(e.betrag())).setHeader("Betrag").setAutoWidth(true);
-            eingaenge.addColumn(EingangResponse::bemerkung).setHeader("Bemerkung").setFlexGrow(1);
+            eingaenge.addColumn(EingangResponse::bemerkung).setHeader(BEMERKUNG_LABEL).setFlexGrow(1);
             eingaenge.addColumn(new ComponentRenderer<>(this::eingangEntfernenButton)).setHeader("").setAutoWidth(true);
             eingaenge.setAllRowsVisible(true);
             eingaenge.setItems(vorhanden.eingaenge());
@@ -269,6 +331,9 @@ public class BussgelderView extends VerticalLayout {
             return bereich;
         }
 
+        /**
+         * Erzeugt den Button zum Entfernen eines Zahlungseingangs.
+         */
         private Button eingangEntfernenButton(EingangResponse eingang) {
             Button button = new Button("Entfernen", e -> {
                 try {
@@ -283,6 +348,9 @@ public class BussgelderView extends VerticalLayout {
             return button;
         }
 
+        /**
+         * Erfasst einen neuen Zahlungseingang aus den Eingabefeldern.
+         */
         private void eingangHinzufuegen() {
             if (eingangDatum.getValue() == null || eingangBetrag.getValue() == null) {
                 UiUtil.fehler(new IllegalStateException("Bitte Datum und Betrag des Eingangs angeben"));
@@ -302,6 +370,9 @@ public class BussgelderView extends VerticalLayout {
             }
         }
 
+        /**
+         * Validiert die Eingaben und legt das Bußgeld an bzw. speichert es.
+         */
         private void speichern() {
             if (gericht.getValue() == null || verein.getValue() == null
                     || datum.getValue() == null || betrag.getValue() == null) {
@@ -309,17 +380,15 @@ public class BussgelderView extends VerticalLayout {
                 return;
             }
             try {
+                BussgeldDaten daten = new BussgeldDaten(gericht.getValue().getId(), verein.getValue(),
+                        status.getValue(), wertOderNull(name.getValue()), wertOderNull(vorname.getValue()),
+                        wertOderNull(aktenzeichen.getValue()), datum.getValue(), zieldatum.getValue(),
+                        betrag.getValue(), bezahlt.getValue(), wertOderNull(bemerkung.getValue()));
                 if (vorhanden == null) {
-                    bussgeldService.anlegen(gericht.getValue().getId(), verein.getValue(), status.getValue(),
-                            wertOderNull(name.getValue()), wertOderNull(vorname.getValue()),
-                            wertOderNull(aktenzeichen.getValue()), datum.getValue(), zieldatum.getValue(),
-                            betrag.getValue(), bezahlt.getValue(), wertOderNull(bemerkung.getValue()));
+                    bussgeldService.anlegen(daten);
                     UiUtil.erfolg("Bußgeld angelegt");
                 } else {
-                    bussgeldService.aendern(vorhanden.id(), gericht.getValue().getId(), verein.getValue(),
-                            status.getValue(), wertOderNull(name.getValue()), wertOderNull(vorname.getValue()),
-                            wertOderNull(aktenzeichen.getValue()), datum.getValue(), zieldatum.getValue(),
-                            betrag.getValue(), bezahlt.getValue(), wertOderNull(bemerkung.getValue()));
+                    bussgeldService.aendern(vorhanden.id(), daten);
                     UiUtil.erfolg("Bußgeld gespeichert");
                 }
                 grid.getDataProvider().refreshAll();
@@ -330,6 +399,9 @@ public class BussgelderView extends VerticalLayout {
         }
     }
 
+    /**
+     * Trimmt den Wert und liefert {@code null}, wenn er leer ist.
+     */
     private static String wertOderNull(String wert) {
         return wert == null || wert.isBlank() ? null : wert.trim();
     }

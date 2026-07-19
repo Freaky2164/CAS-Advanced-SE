@@ -16,15 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * @author Nils
- *
  * Testet das Befüllen der echten Word-Vorlagen aus vorlagen/ über ihre Lesezeichen.
+ *
+ * @author Ole
  */
 class DocumentCreationHelpersTest {
 
     /**
-     * @author Nils
-     *
      * Bußgeld-Vorlage: alle Lesezeichen werden mit den Werten befüllt.
      */
     @Test
@@ -49,8 +47,6 @@ class DocumentCreationHelpersTest {
     }
 
     /**
-     * @author Nils
-     *
      * Spendenbescheinigung: Adresse, Betrag, Betrag in Worten und Datum landen in der Vorlage.
      */
     @Test
@@ -75,8 +71,6 @@ class DocumentCreationHelpersTest {
     }
 
     /**
-     * @author Nils
-     *
      * Das Lesezeichen datumbetrag sitzt in einem Aufzählungs-Absatz – beim
      * mehrzeiligen Einfügen muss jede Zeile die Aufzählung weiterführen
      * (gleiche Listenzugehörigkeit und gleicher Einzug wie der Vorlagen-Absatz).
@@ -110,21 +104,16 @@ class DocumentCreationHelpersTest {
     }
 
     /**
-     * @author Nils
-     *
      * Unbekannte Lesezeichen dürfen die Vorlage nicht beschädigen.
      */
     @Test
     void unbekannteLesezeichenBleibenUnangetastet() throws IOException {
         byte[] doc = DocumentCreationHelpers.fuelleVorlage(Path.of("vorlagen/FVSB.dot"),
                 Map.of("gibtEsNicht", "Wert"));
-        // Vorlage bleibt lesbar und enthält weiterhin ihren Basistext
         assertTrue(extrahiere(doc).contains("Bestätigung"));
     }
 
     /**
-     * @author Nils
-     *
      * Liest den kompletten Text des erzeugten Dokuments zum Prüfen aus.
      */
     private static String extrahiere(byte[] doc) throws IOException {

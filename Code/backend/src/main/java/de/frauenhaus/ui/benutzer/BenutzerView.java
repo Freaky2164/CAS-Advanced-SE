@@ -22,19 +22,27 @@ import de.frauenhaus.ui.support.UiUtil;
 import jakarta.annotation.security.RolesAllowed;
 
 /**
- * @author Nils
- *
  * Benutzerverwaltung (nur Rolle ADMIN): Anlegen, Rolle/Aktiv-Status ändern
  * und Passwort zurücksetzen.
+ *
+ * @author Robin
  */
 @Route(value = "benutzer", layout = MainLayout.class)
 @PageTitle("Benutzer | Frauenhaus Verwaltung")
 @RolesAllowed("ADMIN")
 public class BenutzerView extends VerticalLayout {
 
+    private static final String ROLLE_LABEL = "Rolle";
+    private static final String ABBRECHEN = "Abbrechen";
+
     private final transient AppUserService appUserService;
     private final Grid<AppUserResponse> grid = new Grid<>();
 
+    /**
+     * Baut die Benutzerverwaltung mit Aktions-Buttons und Liste auf.
+     *
+     * @param appUserService der Service für die Benutzerverwaltung
+     */
     public BenutzerView(AppUserService appUserService) {
         this.appUserService = appUserService;
 
@@ -45,7 +53,7 @@ public class BenutzerView extends VerticalLayout {
 
         grid.addColumn(AppUserResponse::id).setHeader("Nr.").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(AppUserResponse::username).setHeader("Benutzername").setAutoWidth(true);
-        grid.addColumn(u -> u.role().name()).setHeader("Rolle").setAutoWidth(true);
+        grid.addColumn(u -> u.role().name()).setHeader(ROLLE_LABEL).setAutoWidth(true);
         grid.addColumn(u -> u.enabled() ? "aktiv" : "deaktiviert").setHeader("Status").setAutoWidth(true);
         grid.addColumn(u -> UiUtil.zeitpunkt(u.createdAt())).setHeader("Angelegt am");
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
@@ -55,6 +63,9 @@ public class BenutzerView extends VerticalLayout {
         aktualisieren();
     }
 
+    /**
+     * Liefert den ausgewählten Benutzer oder zeigt einen Hinweis an.
+     */
     private java.util.Optional<AppUserResponse> auswahl() {
         java.util.Optional<AppUserResponse> auswahl = grid.asSingleSelect().getOptionalValue();
         if (auswahl.isEmpty()) {
@@ -63,23 +74,27 @@ public class BenutzerView extends VerticalLayout {
         return auswahl;
     }
 
+    /**
+     * Lädt die Benutzerliste neu.
+     */
     private void aktualisieren() {
         grid.setItems(appUserService.alle());
     }
 
     /**
-     * @author Nils
-     *
      * Dialog zum Anlegen eines Benutzers mit Startpasswort und Rolle.
      */
     private final class AnlegenDialog extends Dialog {
 
+        /**
+         * Baut den Dialog mit Eingabefeldern und Buttons auf.
+         */
         private AnlegenDialog() {
             setHeaderTitle("Benutzer anlegen");
 
             TextField username = new TextField("Benutzername");
             PasswordField passwort = new PasswordField("Passwort");
-            ComboBox<AppUser.Role> rolle = new ComboBox<>("Rolle");
+            ComboBox<AppUser.Role> rolle = new ComboBox<>(ROLLE_LABEL);
             rolle.setItems(AppUser.Role.values());
             rolle.setValue(AppUser.Role.SACHBEARBEITUNG);
 
@@ -101,21 +116,24 @@ public class BenutzerView extends VerticalLayout {
                 }
             });
             speichern.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            getFooter().add(new Button("Abbrechen", e -> close()), speichern);
+            getFooter().add(new Button(ABBRECHEN, e -> close()), speichern);
         }
     }
 
     /**
-     * @author Nils
-     *
      * Dialog zum Ändern von Rolle und Aktiv-Status.
      */
     private final class BearbeitenDialog extends Dialog {
 
+        /**
+         * Baut den Dialog auf und füllt die Felder mit dem Benutzer vor.
+         *
+         * @param benutzer der zu bearbeitende Benutzer
+         */
         private BearbeitenDialog(AppUserResponse benutzer) {
             setHeaderTitle("Benutzer bearbeiten: " + benutzer.username());
 
-            ComboBox<AppUser.Role> rolle = new ComboBox<>("Rolle");
+            ComboBox<AppUser.Role> rolle = new ComboBox<>(ROLLE_LABEL);
             rolle.setItems(AppUser.Role.values());
             rolle.setValue(benutzer.role());
             Checkbox aktiv = new Checkbox("Aktiv");
@@ -134,17 +152,20 @@ public class BenutzerView extends VerticalLayout {
                 }
             });
             speichern.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            getFooter().add(new Button("Abbrechen", e -> close()), speichern);
+            getFooter().add(new Button(ABBRECHEN, e -> close()), speichern);
         }
     }
 
     /**
-     * @author Nils
-     *
      * Dialog zum Zurücksetzen des Passworts durch Administratoren.
      */
     private final class PasswortDialog extends Dialog {
 
+        /**
+         * Baut den Dialog mit dem Passwortfeld auf.
+         *
+         * @param benutzer der Benutzer, dessen Passwort zurückgesetzt wird
+         */
         private PasswortDialog(AppUserResponse benutzer) {
             setHeaderTitle("Passwort zurücksetzen: " + benutzer.username());
 
@@ -165,7 +186,7 @@ public class BenutzerView extends VerticalLayout {
                 }
             });
             speichern.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            getFooter().add(new Button("Abbrechen", e -> close()), speichern);
+            getFooter().add(new Button(ABBRECHEN, e -> close()), speichern);
         }
     }
 }

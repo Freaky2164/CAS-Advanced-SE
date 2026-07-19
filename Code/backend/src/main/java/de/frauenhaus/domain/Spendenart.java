@@ -6,9 +6,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * @author Nils
+ * Stammdaten-Entität für Spendenarten; jede Spendenart ist einem
+ * {@link Spendentyp} zugeordnet.
  *
- * Spendenart mit Typ, z.B. 'Geldspende dauer', 'Mitgliedsbeitrag' (alt: frauenhaus.spendenart).
+ * @author Paul
  */
 @Entity
 @Table(name = "spendenart", schema = "frauenhaus")
@@ -21,19 +22,26 @@ public class Spendenart {
     @Column(nullable = false)
     private String spendentyp;
 
-    /**
-     * @author Nils
-     *
-     * Für JPA.
-     */
+    /** Parameterloser Konstruktor für JPA. */
     protected Spendenart() { }
 
+    /**
+     * Legt eine Spendenart mit Name und zugehörigem Spendentyp an.
+     *
+     * @param name die Bezeichnung der Spendenart
+     * @param spendentyp die Bezeichnung des zugehörigen Spendentyps
+     */
     public Spendenart(String name, String spendentyp) {
         this.name = name;
         this.spendentyp = spendentyp;
     }
 
+    /** Liefert die Bezeichnung der Spendenart. */
     public String getName() { return name; }
+
+    /** Liefert die Bezeichnung des zugehörigen Spendentyps. */
     public String getSpendentyp() { return spendentyp; }
+
+    /** Setzt die Bezeichnung des zugehörigen Spendentyps. */
     public void setSpendentyp(String spendentyp) { this.spendentyp = spendentyp; }
 }
