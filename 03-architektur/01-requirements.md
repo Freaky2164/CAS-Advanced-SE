@@ -63,7 +63,7 @@ Zu speichern sind mindestens:
 * Mitgliedsnummer
 
 ### FR-3: Verwaltung von Spenden
-Das System muss Geldspenden erfassen.
+Das System muss verschiedene Arten von Spenden erfassen.
 
 Eine Spende besitzt:
 
@@ -173,7 +173,7 @@ Das System muss Serienbriefe erzeugen auf Grundlage von
 Dazu muss eine Anbindung an Outlook gegeben sein, die ein direktes Versenden von Serienbriefen ermöglicht.
 
 ### FR-11: Validierung
-Pflichtfelder dürfen nicht leer sein und müssen einen gültigen Wer enthalten.
+Pflichtfelder dürfen nicht leer sein und müssen einen gültigen Wert enthalten.
 
 ### FR-12: Datenkonsistenz
 Das System darf keine inkonsistenten Daten zulassen.
@@ -188,5 +188,4 @@ Das System darf keine inkonsistenten Daten zulassen.
 * **NFR-3 Modularer Aufbau:** Das System muss modular aufgebaut sein, um eine einfache Wartbarkeit zu gewährleisten.
 * **NFR-4 Backup & Recovery:** Daten müssen vollumfänglich und automatisiert gesichert werden und wiederherstellbar sein. Sicherungen müssen sicher und verschlüsselt sowie unter Einhaltung der DSGVO-Aufbewahrungsfristen abgelegt werden.
 * **NFR-4 Bedienbarkeit:** Das System muss für Personen mit nicht-technischem Hintergrund bedienbar sein.
-
-tbc
+* **NFR-5 Lauffähigkeit:** Aufgrund bereits vorhandener Hardware, muss das System mindestens unter Windows lauffähig sein.
