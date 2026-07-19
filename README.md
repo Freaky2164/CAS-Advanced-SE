@@ -116,13 +116,17 @@ pre-commit install
 | `just format` | Formatiert Backend (Spotless) und Frontend (Prettier). |
 | `just lint` | Prüft Formatierung und führt Frontend-Linting aus. |
 | `just test` | Führt alle Tests für Backend und Frontend aus. |
-| `just metrics-ck` | Ermittelt objektorientierte Metriken mit dem `ck`-Tool. |
+| `just metrics-ck` | Ermittelt objektorientierte Metriken über das Maven-Plugin. |
 | `just metrics-sonar` | Führt die SonarQube-Analyse über das Maven-Plugin aus. |
+| `just sonar-up` | Startet einen lokalen SonarQube-Server mit Docker Compose. |
+| `just sonar-down` | Stoppt den lokalen SonarQube-Server. |
 | `just check` | Führt `format`, `lint` und `test` nacheinander aus. |
 
 ### CK-Metriken
 
-Das Kommandozeilen-Tool `ck` (Chidamber & Kemerer) berechnet klassische objektorientierte Metriken für den Java-Quellcode:
+Das Maven-Plugin `exec-maven-plugin` führt die CK-Bibliothek (`com.github.mauricioaniche:ck`)
+auf `src/main/java` aus und erzeugt die CSV-Dateien unter `Code/backend/metrics-ck/`
+(kein externes Tool nötig):
 
 - **LCOM** (Lack of Cohesion of Methods): Misst, wie stark die Methoden einer Klasse zusammengehören. Niedrigere Werte bedeuten bessere Kohäsion.
 - **CBO** (Coupling Between Objects): Anzahl der Klassen, mit denen eine Klasse gekoppelt ist. Weniger Kopplung erleichtert Wartung und Tests.
@@ -130,3 +134,36 @@ Das Kommandozeilen-Tool `ck` (Chidamber & Kemerer) berechnet klassische objektor
 - **WMC** (Weighted Methods per Class): Summe der zyklomatischen Komplexitäten aller Methoden einer Klasse.
 - **DIT** (Depth of Inheritance Tree): Vererbungstiefe.
 - **NOC** (Number of Children): Anzahl direkter Subklassen.
+
+### SonarQube
+
+Für die lokale Analyse wird **SonarQube Community Edition** in der Version
+**26.7.0.124771** über Docker Compose gestartet. Die Konfiguration liegt in
+`Code/backend/docker-compose.sonarqube.yml` und verwendet persistente Volumes für
+Daten, Logs und Extensions.
+
+```bash
+just sonar-up
+```
+
+- URL: http://localhost:9000
+- Standard-Zugangsdaten: **admin/admin**
+- Beim ersten Login muss das Passwort geändert werden.
+- Das Starten dauert ca. 2–3 Minuten; der integrierte Healthcheck prüft die
+  Bereitschaft.
+
+Analyse ausführen (erfordert laufenden SonarQube-Server):
+
+```bash
+just metrics-sonar
+```
+
+Der Analyse-Token wird beim `just sonar-up` automatisch vom Init-Container
+generiert und in `.sonar-token/sonar-token` gespeichert. Keine manuellen
+Schritte nötig.
+
+Stoppen:
+
+```bash
+just sonar-down
+```
