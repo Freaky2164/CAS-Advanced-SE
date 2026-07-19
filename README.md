@@ -116,6 +116,8 @@ pre-commit install
 | `just format` | Formatiert Backend (Spotless) und Frontend (Prettier). |
 | `just lint` | Prüft Formatierung und führt Frontend-Linting aus. |
 | `just test` | Führt alle Tests für Backend und Frontend aus. |
+| `just up` | Startet die komplette Anwendung (DB + Backend + Frontend). |
+| `just down` | Stoppt die komplette Anwendung. |
 | `just metrics-ck` | Ermittelt objektorientierte Metriken über das Maven-Plugin. |
 | `just metrics-sonar` | Führt die SonarQube-Analyse über das Maven-Plugin aus. |
 | `just sonar-up` | Startet einen lokalen SonarQube-Server mit Docker Compose. |

@@ -13,6 +13,16 @@ test:
     cd Code/backend && ./mvnw test
     cd Code/frontend && npm test
 
+# Start the full application (DB + Backend + Frontend)
+up:
+    cd Code/backend && APP_ADMIN_PASSWORD=admin docker compose up -d --build
+    echo "Application starting at https://localhost"
+    echo "Admin credentials: admin / admin"
+
+# Stop the full application
+down:
+    cd Code/backend && docker compose down
+
 # Run CK metrics via Maven plugin
 metrics-ck:
     mkdir -p Code/backend/metrics-ck
