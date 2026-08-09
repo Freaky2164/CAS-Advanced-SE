@@ -1,4 +1,4 @@
-# ADR-001: Architekturstil – 3-Schichten-Architektur statt Fat-Client
+# ADR-001: Architekturstil – 3-Tier-Monolith statt Fat-Client
 
 ## Status
 
@@ -19,15 +19,15 @@ Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und
 
 ## Entscheidung
 
-Wir entscheiden uns für eine **3-Schichten-Architektur** (Präsentation → Anwendungslogik → Daten)
-mit folgender Aufteilung:
+Wir entscheiden uns für eine **3-Tier-Monolith-Architektur** (Präsentation → Anwendungslogik → Daten)
+mit Full-Stack-Java-Ansatz:
 
-1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
-2. **Anwendungsschicht**: Zentrales Backend als Windows-Dienst auf dem Server
-3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben Server
+1. **Präsentationsschicht**: Web-UI im Browser
+2. **Anwendungsschicht**: Frontend und Backend als Spring Boot Anwendung mit **Vaadin**, betrieben in Container-Infrastruktur auf dem On-Premises-Server
+3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben On-Premises-Server, Anbindung der Anwendungsschicht via JDBC
 
 ```
-Browser (SPA)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
+Browser ──> HTTPS + WebSocket ──> Frontend + Backend Monolith ──> JDBC ──> DB
 ```
 
 ## Betrachtete Alternativen
