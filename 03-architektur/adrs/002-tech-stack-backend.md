@@ -1,4 +1,4 @@
-# ADR-002: Technologie-Stack Backend – Spring Boot (Java 21)
+# ADR-002: Technologie-Stack Backend – Spring Boot (Java 25)
 
 ## Status
 
@@ -6,23 +6,23 @@
 
 ## Kontext
 
-Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem REST-Backend implementiert.
+Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem Backend implementiert.
 Für die Anwendungsschicht muss eine Technologie gewählt werden, die folgende Anforderungen erfüllt:
 
 | Anforderung | Beschreibung |
 |-------------|-------------|
 | **Office-Dokumentengenerierung** | Excel-Reports (Mitgliederlisten, Spendenübersichten) und Word-Briefe (.docx Serienbriefe, Spendenquittungen) |
 | **PostgreSQL-Anbindung** | Relationale Open-Source-Datenbank, keine Lizenzkosten, keine Größenlimitierungen |
-| **Sicherheit** | JWT-Authentifizierung, RBAC, Passwort-Hashing, HTTPS |
-| **Windows-Dienst** | Betrieb als automatisch startender Windows Service ohne manuelle Interaktion |
+| **Sicherheit** | RBAC, Passwort-Hashing, HTTPS |
+| **Container-Infrastruktur** | Betrieb als automatisch startender Docker-Container auf einem On-Premises-Server |
 | **Wartbarkeit** | Automatische DB-Migrationen, zentrales Logging, Health Checks |
-| **Teamkompetenz** | Das Legacy-System ist in Java geschrieben – Java-Grundkenntnisse vorhanden |
+| **Teamkompetenz** | Das Legacy-System ist in Java geschrieben; Java-Grundkenntnisse vorhanden |
 | **Langlebigkeit** | Für einen Verein muss die Technologie über 5–10 Jahre stabil und gewartet bleiben |
 
 ## Entscheidung
 
-Wir entscheiden uns für **Spring Boot 3.4.x mit Java 21 LTS** (OpenJDK / Eclipse Temurin)
-als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst via WinSW.
+Wir entscheiden uns für **Spring Boot 3.4.x mit Java 25 LTS** (OpenJDK / Eclipse Temurin)
+als Backend-Technologie, deployed als Docker-Container in einer On-Premises-Umgebung.
 
 ## Betrachtete Alternativen
 
@@ -31,8 +31,8 @@ als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst v
 | Aspekt | Bewertung |
 |--------|-----------|
 | Office-Dokumente | ✅ OpenXML SDK (Microsoft-nativ), NPOI (Apache-POI-Port) |
-| PostgreSQL | ✅ Npgsql + Entity Framework Core – ausgereift |
-| Windows-Integration | ✅ Exzellent – native Windows Services, COM-Interop für Outlook |
+| PostgreSQL | ✅ Npgsql + Entity Framework Core; ausgereift |
+| Container / Ops | ✅ Exzellent (kleine Docker-Images, native Linux/Windows Container) |
 | Sicherheit | ✅ ASP.NET Identity, JWT Bearer, Data Protection API |
 | Performance | ✅ Sehr gut (AOT-Kompilierung, Kestrel) |
 | Ökosystem | ✅ NuGet, ausgereifte Tooling-Chain (Visual Studio) |
@@ -41,8 +41,7 @@ als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst v
 | Lizenzkosten | ⚠️ Visual Studio Professional kostenpflichtig (Community Edition limitiert) |
 | Langlebigkeit | ✅ .NET LTS-Releases (3 Jahre Support) |
 
-**Bewertung**: Technisch gleichwertig oder in Teilbereichen (Windows-Integration) sogar leicht
-überlegen. Jedoch erfordert C# eine komplette Neueinarbeitung des Teams. Der bestehende
+**Bewertung**: Technisch gleichwertig. Jedoch erfordert C# eine komplette Neueinarbeitung des Teams. Der bestehende
 Java-Code (Geschäftslogik, Berechnungen) kann nicht portiert werden, ohne ihn vollständig
 neu zu schreiben. Für ein Hochschulprojekt mit begrenzter Zeit ist der Technologiewechsel
 ein unnötiges Risiko.
@@ -53,7 +52,7 @@ ein unnötiges Risiko.
 |--------|-----------|
 | Office-Dokumente | ⚠️ python-docx (begrenzt, keine Serienbriefe nativ), openpyxl (Excel OK) |
 | PostgreSQL | ✅ psycopg2/psycopg3 – exzellente Integration, Django ORM erstklassig |
-| Windows-Integration | ❌ Kein nativer Windows-Dienst, erfordert NSSM oder ähnliche Wrapper |
+| Container / Ops | ✅ Sehr gute Container-Unterstützung (gunicorn/uvicorn in Docker) |
 | Sicherheit | ✅ Django: batteries-included (Auth, CSRF, ORM), FastAPI: manuell |
 | Performance | ⚠️ GIL limitiert Concurrency, für wenige Nutzer aber ausreichend |
 | Ökosystem | ✅ pip/PyPI, sehr schnelle Prototypen-Entwicklung |
@@ -64,24 +63,22 @@ ein unnötiges Risiko.
 
 **Bewertung**: Python eignet sich hervorragend für Scripting und Data Science, aber die
 Office-Dokumentengenerierung ist deutlich schwächer als in Java/C#. `python-docx` unterstützt
-keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. Zudem fehlt
-die robuste Windows-Dienst-Integration. Für eine langlebige Vereinsanwendung ist die
-dynamische Typisierung ein Wartbarkeitsrisiko.
+keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. Für eine langlebige Vereinsanwendung ist die dynamische Typisierung ein Wartbarkeitsrisiko.
 
-### Alternative C: Spring Boot 3.x / Java 21 (gewählt) ✅
+### Alternative C: Spring Boot 3.x / Java 25 (gewählt) ✅
 
 | Aspekt | Bewertung |
 |--------|-----------|
 | Office-Dokumente | ✅ Apache POI 5.x (Excel/Word), docx4j (komplexe .docx), XDocReport (Serienbriefe mit Freemarker/Velocity) |
 | PostgreSQL | ✅ PostgreSQL JDBC Driver (org.postgresql), erstklassige Spring Data JPA Integration |
-| Windows-Integration | ✅ WinSW als Windows Service, stabil seit Jahren im Einsatz |
+| Container / Ops | ✅ Optimale Container-Unterstützung, einfache Orchestrierung via Docker Compose |
 | Sicherheit | ✅ Spring Security 6 (JWT, BCrypt, RBAC, CSRF, CORS), produktionserprobt |
-| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads (Java 21) |
+| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads |
 | Ökosystem | ✅ Maven Central, größtes Java-Ökosystem, Spring Initializr |
 | Teamkompetenz | ✅ Java-Grundkenntnisse aus Legacy-System vorhanden |
 | Migration | ✅ Geschäftslogik aus altem Java-Code teilweise übernehmbar |
 | Typsicherheit | ✅ Statisch typisiert – Compile-Time-Fehler, sicheres Refactoring |
-| Langlebigkeit | ✅ Java 21 LTS (Support bis 2031+), Spring Boot kommerzielle Support-Optionen |
+| Langlebigkeit | ✅ Java 25 LTS (Support bis 2030+), Spring Boot kommerzielle Support-Optionen |
 | DB-Migrationen | ✅ Flyway nativ integriert |
 | Monitoring | ✅ Spring Boot Actuator (Health, Metrics, Info) out-of-the-box |
 | Testing | ✅ JUnit 5 + Mockito + @SpringBootTest – schichtweise testbar |
@@ -122,9 +119,9 @@ Spring Data JPA eliminiert SQL-Injection **strukturell** durch Prepared Statemen
 Der PostgreSQL JDBC Driver ist ausgereift und wird aktiv gepflegt. Die JPA-Abstraktionsschicht
 sorgt dafür, dass die Geschäftslogik datenbankunabhängig bleibt.
 
-### 3. Java 21 LTS – Modernste Sprachfeatures
+### 3. Java 25 LTS – Modernste Sprachfeatures
 
-Java 21 (LTS, September 2023) bietet gegenüber Java 17 signifikante Verbesserungen:
+Java 25 (LTS, September 2025) bietet gegenüber Java 17 signifikante Verbesserungen:
 
 | Feature | Nutzen für das Projekt |
 |---------|----------------------|
@@ -132,14 +129,14 @@ Java 21 (LTS, September 2023) bietet gegenüber Java 17 signifikante Verbesserun
 | **Pattern Matching (JEP 441)** | Elegantere switch-Ausdrücke für Validierungslogik |
 | **Record Patterns (JEP 440)** | Kompaktere DTOs und Value Objects |
 | **Sequenced Collections (JEP 431)** | Bessere Collection-APIs für Listendarstellung |
-| **LTS bis 2031+** | Längerer Support-Zeitraum als Java 17 (bis 2029) |
+| **LTS bis 2030+** | Längerer Support-Zeitraum als Java 17 (bis 2029) |
 
 ### 4. Vorhandene Teamkompetenz
 
 Das Legacy-System ist in Java geschrieben. Das Team kann:
 - Bestehende Geschäftslogik (Berechnungen, Validierungen) verstehen und portieren
 - Java-Syntax und -Semantik ohne Einarbeitungszeit nutzen
-- Von Java 1.4 auf Java 21 aufbauen (gleiche Sprache, modernisierte Features)
+- Von Java 1.4 auf Java 25 aufbauen (gleiche Sprache, modernisierte Features)
 
 Ein Wechsel zu C# oder Python würde eine komplette Spracheinarbeitung erfordern –
 unverhältnismäßig für ein zeitlich begrenztes Hochschulprojekt.
@@ -154,35 +151,35 @@ Spring Boot minimiert Konfigurationsaufwand durch Auto-Configuration:
 
 ### 6. Langfristige Stabilität
 
-| Kriterium | Java 21 / Spring Boot |
+| Kriterium | Java 25 / Spring Boot |
 |-----------|----------------------|
-| LTS-Support | Java 21: bis mind. September 2031 (Temurin) |
+| LTS-Support | Java 25: bis mind. September 2030 (Temurin) |
 | Framework-Reife | Spring Framework: seit 2003, Spring Boot: seit 2014 |
 | Abwärtskompatibilität | Java ist bekannt für strenge Rückwärtskompatibilität |
 | Community | >10 Mio. Java-Entwickler weltweit (TIOBE #1–3 seit 25 Jahren) |
 | Nachbesetzung | Einfach qualifizierte Entwickler zu finden |
 
-### 7. Windows-Dienst-Betrieb
+### 7. Containerisiertes Deployment via Docker
 
-WinSW (Windows Service Wrapper) ist eine bewährte Lösung, um Java-Anwendungen als
-Windows-Dienste zu betreiben:
-- Automatischer Start bei Systemboot
-- Automatischer Neustart bei Crash
-- Service-Account (kein interaktiver Login nötig)
-- Triviale Installation (`frauenhaus-service.exe install`)
+Docker und bietet eine isolierte, reproduzierbare Laufzeitumgebung für das Backend und die PostgreSQL-Datenbank auf dem lokalen On-Premises-Server:
+
+- Keine Host-Installationen notwendig (keine manuelle JDK- oder PostgreSQL-Installation auf dem Host-OS)
+- Automatischer Neustart bei Systemboot und Crashes
+- Isoliertes Netzwerk zwischen Spring Boot Container und PostgreSQL Container im Docker-Netzwerk
+- Triviale Bereitstellung und Updates über CI/CD bzw. simple Docker-Commands
 
 ## Entscheidungsmatrix (gewichtete Bewertung)
 
-| Kriterium (Gewicht) | Spring Boot/Java 21 | ASP.NET Core/C# | Django/Python |
+| Kriterium (Gewicht) | Spring Boot/Java 25 | ASP.NET Core/C# | Django/Python |
 |---------------------|:-------------------:|:----------------:|:-------------:|
 | Office-Dokumente (25%) | ★★★★★ | ★★★★☆ | ★★☆☆☆ |
 | Teamkompetenz (20%) | ★★★★★ | ★★☆☆☆ | ★★★☆☆ |
-| Windows-Dienst (15%) | ★★★★☆ | ★★★★★ | ★★☆☆☆ |
+| Docker Deployment (15%) | ★★★★☆ | ★★★★☆ | ★★☆☆☆ |
 | Sicherheits-Framework (15%) | ★★★★★ | ★★★★★ | ★★★★☆ |
 | PostgreSQL Integration (10%) | ★★★★★ | ★★★★★ | ★★★★★ |
 | Langlebigkeit/LTS (10%) | ★★★★★ | ★★★★☆ | ★★★☆☆ |
 | Entwicklungsgeschwindigkeit (5%) | ★★★★☆ | ★★★★☆ | ★★★★★ |
-| **Gesamt** | **4,65** | **3,85** | **2,90** |
+| **Gesamt** | **4,80** | **3,85** | **2,90** |
 
 ## Konsequenzen
 
@@ -190,22 +187,20 @@ Windows-Dienste zu betreiben:
 - Direkter Wissenstransfer vom Legacy-Java-Code möglich
 - Bestmögliche Unterstützung für Office-Dokumentengenerierung (POI, XDocReport)
 - Spring Security löst alle identifizierten Sicherheitsprobleme des IST-Systems
-- Fat-JAR-Deployment vereinfacht Updates auf ein Minimum (JAR austauschen, Dienst neustarten)
+- Container-Deployment vereinfacht Updates auf ein Minimum (Image pullen/bauen, Container neustarten)
 - Flyway-Integration automatisiert Datenbankmigrationen
 - Actuator-Endpoints ermöglichen Monitoring ohne zusätzliche Tools
-- Virtual Threads (Java 21) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
+- Virtual Threads (Java 25) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
 - PostgreSQL eliminiert Lizenzkosten und Größenlimitierungen des bisherigen SQL Server Express
+- Kein separates Frontend-Framework (wie Angular) notwendig durch Vaadin-Integration
 
 ### Negativ
-- JVM-Startup ist langsamer als native Anwendungen (~3–5 Sekunden) – für einen
-  Windows-Dienst irrelevant, da nur einmal gestartet
+- JVM-Startup ist langsamer als native Anwendungen (~3–5 Sekunden) – für Docker-Betrieb irrelevant, da nur einmal gestartet
 - Höherer Speicherverbrauch als Python/Go (~200–400 MB) – akzeptabel auf dediziertem Server
 - Spring Boot hat steile Lernkurve bei fortgeschrittenen Features (Security-Konfiguration) –
   mitigiert durch exzellente Dokumentation und Community
 - Datenmigration von MS SQL Server zu PostgreSQL erfordert einmaligen Migrationsaufwand
 
 ### Neutral
-- Frontend-Technologie (Angular) muss separat entschieden werden (unabhängig vom Backend-Stack)
 - Build-System ist Maven (Standard für Spring Boot Projekte)
-- Java 21 als Basis, späteres Upgrade auf Java 25 LTS problemlos möglich
-- PostgreSQL läuft als separater Windows-Dienst auf demselben Server
+- PostgreSQL läuft als separater Docker-Container im selben Docker-Compose-Verbund auf dem Server

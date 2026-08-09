@@ -1,4 +1,4 @@
-# ADR-001: Architekturstil – 3-Schichten-Architektur statt Fat-Client
+# ADR-001: Architekturstil – 3-Tier-Monolith statt Fat-Client
 
 ## Status
 
@@ -19,15 +19,15 @@ Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und
 
 ## Entscheidung
 
-Wir entscheiden uns für eine **3-Schichten-Architektur** (Präsentation → Anwendungslogik → Daten)
-mit folgender Aufteilung:
+Wir entscheiden uns für eine **3-Tier-Monolith-Architektur** (Präsentation → Anwendungslogik → Daten)
+mit Full-Stack-Java-Ansatz:
 
-1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
-2. **Anwendungsschicht**: Zentrales REST-Backend als Windows-Dienst auf dem Server
-3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben Server
+1. **Präsentationsschicht**: Web-UI im Browser
+2. **Anwendungsschicht**: Frontend und Backend als Spring Boot Anwendung mit **Vaadin**, betrieben in Container-Infrastruktur auf dem On-Premises-Server
+3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben On-Premises-Server, Anbindung der Anwendungsschicht via JDBC
 
 ```
-Browser (SPA)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
+Browser ──> HTTPS + WebSocket ──> Frontend + Backend Monolith ──> JDBC ──> DB
 ```
 
 ## Betrachtete Alternativen
@@ -83,9 +83,7 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + Datenbank) ist für einen Verein ohne IT-Personal betreibbar. Die operative Komplexität des aktuellen IST-Systems wird mit der neuen Lösung nicht überstiegen.
 
-4. **Zukunftsfähigkeit**: Die REST-API ermöglicht später zusätzliche Clients (Mobile App, Automatisierungsskripte) ohne Backend-Änderung.
-
-5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
+4. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
 
 ## Konsequenzen
 
@@ -102,4 +100,3 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 ### Neutral
 - Erfordert Entscheidung über konkreten Technologie-Stack (siehe ADR-002)
-- Frontend- und Backend-Entwicklung können nach API-Definition parallelisiert werden

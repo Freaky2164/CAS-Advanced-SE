@@ -45,7 +45,7 @@ Qualitätsmerkmalen wartbarer Softwaresysteme (ISO/IEC 25010:2023).[2]
 
 Wir entscheiden uns für **Vaadin** (Full-Stack Java Framework) als Frontend-Technologie. Die
 Vaadin Web UI wird direkt gegen das bestehende Spring-Boot-Backend (ADR-002) integriert und
-ersetzt die bisherige Desktop-GUI vollständig durch eine Web-Anwendung.
+ersetzt die bisherige Desktop-GUI vollständig durch eine Web-Anwendung. Die Interaktion und Zustandssynchronisation zwischen dem Browser und dem Backend erfolgt verschlüsselt über HTTPS + WebSocket.
 
 ## Architekturvergleich
 
@@ -248,7 +248,7 @@ Architektur werden wiederverwendet.
 - Team benötigt Einarbeitung in die Vaadin-spezifische Komponenten-API
 
 ### Neutral
-- Backend-Technologie ist bereits mit Spring Boot / Java 21 festgelegt (ADR-002); Vaadin baut
+- Backend-Technologie ist bereits mit Spring Boot / Java 25 festgelegt (ADR-002); Vaadin baut
   direkt darauf auf
 - Serverseitiges Rendering (SSR) und clientseitiges Routing, wie bei Next.js, sind für eine
   interne Verwaltungssoftware nicht erforderlich, da öffentliche Erreichbarkeit und SEO keine
