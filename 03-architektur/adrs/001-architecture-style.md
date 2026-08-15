@@ -1,4 +1,4 @@
-# ADR-001: Architekturstil – 3-Schichten-Architektur statt Fat-Client
+# ADR-001: Architekturstil – 3-Tier-Monolith statt Fat-Client
 
 ## Status
 
@@ -19,8 +19,8 @@ Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und
 
 ## Entscheidung
 
-Wir entscheiden uns für eine **3-Schichten-Architektur** (Präsentation → Anwendungslogik → Daten)
-mit folgender Aufteilung:
+Wir entscheiden uns für eine **3-Tier-Monolith-Architektur** (Präsentation → Anwendungslogik → Daten)
+mit Full-Stack-Java-Ansatz:
 
 1. **Präsentationsschicht**: Web-Frontend im Browser (die konkrete Frontend-Technologie
    – Vaadin, serverseitig gerendert ohne separates REST – wird in ADR-003 festgelegt)

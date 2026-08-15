@@ -32,8 +32,8 @@ als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst v
 | Aspekt | Bewertung |
 |--------|-----------|
 | Office-Dokumente | ✅ OpenXML SDK (Microsoft-nativ), NPOI (Apache-POI-Port) |
-| PostgreSQL | ✅ Npgsql + Entity Framework Core – ausgereift |
-| Windows-Integration | ✅ Exzellent – native Windows Services, COM-Interop für Outlook |
+| PostgreSQL | ✅ Npgsql + Entity Framework Core; ausgereift |
+| Container / Ops | ✅ Exzellent (kleine Docker-Images, native Linux/Windows Container) |
 | Sicherheit | ✅ ASP.NET Identity, JWT Bearer, Data Protection API |
 | Performance | ✅ Sehr gut (AOT-Kompilierung, Kestrel) |
 | Ökosystem | ✅ NuGet, ausgereifte Tooling-Chain (Visual Studio) |
@@ -53,7 +53,7 @@ ein unnötiges Risiko.
 |--------|-----------|
 | Office-Dokumente | ⚠️ python-docx (begrenzt, keine Serienbriefe nativ), openpyxl (Excel OK) |
 | PostgreSQL | ✅ psycopg2/psycopg3 – exzellente Integration, Django ORM erstklassig |
-| Windows-Integration | ❌ Kein nativer Windows-Dienst, erfordert NSSM oder ähnliche Wrapper |
+| Container / Ops | ✅ Sehr gute Container-Unterstützung (gunicorn/uvicorn in Docker) |
 | Sicherheit | ✅ Django: batteries-included (Auth, CSRF, ORM), FastAPI: manuell |
 | Performance | ⚠️ GIL limitiert Concurrency, für wenige Nutzer aber ausreichend |
 | Ökosystem | ✅ pip/PyPI, sehr schnelle Prototypen-Entwicklung |
@@ -64,9 +64,7 @@ ein unnötiges Risiko.
 
 **Bewertung**: Python eignet sich hervorragend für Scripting und Data Science, aber die
 Office-Dokumentengenerierung ist deutlich schwächer als in Java/C#. `python-docx` unterstützt
-keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. Zudem fehlt
-die robuste Windows-Dienst-Integration. Für eine langlebige Vereinsanwendung ist die
-dynamische Typisierung ein Wartbarkeitsrisiko.
+keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. Für eine langlebige Vereinsanwendung ist die dynamische Typisierung ein Wartbarkeitsrisiko.
 
 ### Alternative C: Spring Boot 4.x / Java 25 (gewählt) ✅
 
@@ -168,14 +166,14 @@ Spring Boot minimiert Konfigurationsaufwand durch Auto-Configuration:
 | Community | großes, langjährig etabliertes Java- und Spring-Ökosystem |
 | Nachbesetzung | Einfach qualifizierte Entwickler zu finden |
 
-### 7. Windows-Dienst-Betrieb
+### 7. Containerisiertes Deployment via Docker
 
-WinSW (Windows Service Wrapper) ist eine bewährte Lösung, um Java-Anwendungen als
-Windows-Dienste zu betreiben:
-- Automatischer Start bei Systemboot
-- Automatischer Neustart bei Crash
-- Service-Account (kein interaktiver Login nötig)
-- Triviale Installation (`frauenhaus-service.exe install`)
+Docker und bietet eine isolierte, reproduzierbare Laufzeitumgebung für das Backend und die PostgreSQL-Datenbank auf dem lokalen On-Premises-Server:
+
+- Keine Host-Installationen notwendig (keine manuelle JDK- oder PostgreSQL-Installation auf dem Host-OS)
+- Automatischer Neustart bei Systemboot und Crashes
+- Isoliertes Netzwerk zwischen Spring Boot Container und PostgreSQL Container im Docker-Netzwerk
+- Triviale Bereitstellung und Updates über CI/CD bzw. simple Docker-Commands
 
 ## Entscheidungsmatrix (gewichtete Bewertung)
 
@@ -222,15 +220,15 @@ mit 4,73 vor ASP.NET Core (4,50) – die Entscheidung ist gegenüber genau dem a
 - Direkter Wissenstransfer vom Legacy-Java-Code möglich
 - Bestmögliche Unterstützung für Office-Dokumentengenerierung (POI, XDocReport)
 - Spring Security löst alle identifizierten Sicherheitsprobleme des IST-Systems
-- Fat-JAR-Deployment vereinfacht Updates auf ein Minimum (JAR austauschen, Dienst neustarten)
+- Container-Deployment vereinfacht Updates auf ein Minimum (Image pullen/bauen, Container neustarten)
 - Flyway-Integration automatisiert Datenbankmigrationen
 - Actuator-Endpoints ermöglichen Monitoring ohne zusätzliche Tools
 - Virtual Threads (Java 21+) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
 - PostgreSQL eliminiert Lizenzkosten und Größenlimitierungen des bisherigen SQL Server Express
+- Kein separates Frontend-Framework (wie Angular) notwendig durch Vaadin-Integration
 
 ### Negativ
-- JVM-Startup ist langsamer als native Anwendungen (~3–5 Sekunden) – für einen
-  Windows-Dienst irrelevant, da nur einmal gestartet
+- JVM-Startup ist langsamer als native Anwendungen (~3–5 Sekunden) – für Docker-Betrieb irrelevant, da nur einmal gestartet
 - Höherer Speicherverbrauch als Python/Go (~200–400 MB) – akzeptabel auf dediziertem Server
 - Spring Boot hat steile Lernkurve bei fortgeschrittenen Features (Security-Konfiguration) –
   mitigiert durch exzellente Dokumentation und Community

@@ -67,12 +67,12 @@ Azure SQL, AWS EC2 + RDS, oder Hetzner Cloud).
 | **Kosten** | ❌ Laufende monatliche Kosten (VM + DB + Backup) |
 | **Komplexität** | ⚠️ Netzwerkkonfiguration, Firewall-Regeln, VPN für sicheren Zugriff |
 | **Abhängigkeit** | ❌ Internet-Ausfall = kein Zugriff auf das System |
-| **Angriffsfläche** | ❌ System über Internet erreichbar – DDoS, Brute-Force, Exploits |
+| **Angriffsfläche** | ❌ System über Internet erreichbar (DDoS, Brute-Force, Exploits) |
 
 **Ablehnung**: Für höchst sensible Daten (Schutz suchender Frauen) ist die Übertragung
 der Datenhoheit an einen Cloud-Anbieter ein unverhältnismäßiges Risiko. Die US-Cloud-Act-
 Problematik bei Azure/AWS ist nach dem Schrems-II-Urteil des EuGH (2020) juristisch ungeklärt.
-Selbst bei EU-Anbietern (Hetzner) verlässt der Verein seine physische Datenhoheit – bei
+Selbst bei EU-Anbietern (Hetzner) verlässt der Verein seine physische Datenhoheit. Bei
 einem Datenleck wären die Konsequenzen existenzbedrohend (Gefährdung von Menschenleben).
 Zusätzlich sind die laufenden Kosten für einen kleinen Verein nicht tragbar.
 
@@ -84,18 +84,20 @@ einem EU-Speicherdienst).
 | Aspekt | Bewertung |
 |--------|-----------|
 | **Datenhoheit (Primärsystem)** | ✅ Daten bleiben lokal |
-| **Backup-Sicherheit** | ⚠️ Verschlüsselte Backups in Cloud – Schlüssel bleibt lokal |
+| **Backup-Sicherheit** | ⚠️ Verschlüsselte Backups in Cloud, Schlüssel bleibt lokal |
 | **Disaster Recovery** | ✅ Offsite-Backup schützt vor Feuer/Diebstahl |
-| **DSGVO** | ⚠️ Auch verschlüsselte Backups sind personenbezogene Daten – AVV nötig |
-| **Kosten** | ⚠️ Gering , aber dennoch laufend |
+| **DSGVO** | ⚠️ Auch verschlüsselte Backups sind personenbezogene Daten, AVV nötig |
+| **Kosten** | ⚠️ Gering, aber dennoch laufend |
 | **Komplexität** | ⚠️ Automatisierte Backup-Pipeline muss eingerichtet werden |
 
 **Nicht gewählt, aber als optionale Erweiterung empfohlen**: Grundsätzlich sinnvoll für
-Disaster Recovery. Wird in der initialen Version jedoch nicht implementiert – stattdessen
+Disaster Recovery. Wird in der initialen Version jedoch nicht implementiert. Stattdessen
 erfolgen Offsite-Backups auf verschlüsselten USB-Datenträgern, die physisch an einem
 zweiten Standort gelagert werden (einfacher, kein Internet nötig, keine AVV erforderlich).
 
 ### Alternative C: On-Premises (gewählt) ✅
+
+Containerisierter Betrieb auf lokaler Serverhardware.
 
 | Aspekt | Bewertung |
 |--------|-----------|
@@ -135,9 +137,9 @@ Löschkonzept noch eine gegebenenfalls erforderliche Datenschutz-Folgenabschätz
 |---------------|----------------------------|
 | Art. 5 (1c) – Datenminimierung | Keine unnötige Kopie bei Dritten |
 | Art. 25 – Privacy by Design | Architektonisch kein Datenabfluss möglich |
-| Art. 28 – Auftragsverarbeitung | Entfällt komplett – kein externer Verarbeiter |
+| Art. 28 – Auftragsverarbeitung | Entfällt komplett, da kein externer Verarbeiter |
 | Art. 32 – Technische Maßnahmen | Physische Zugangskontrolle, Verschlüsselung lokal |
-| Art. 44–49 – Drittlandtransfer | Ausgeschlossen – Daten bleiben in Deutschland |
+| Art. 44–49 – Drittlandtransfer | Ausgeschlossen, da Daten in Deutschland bleiben |
 
 Bei einer Cloud-Lösung müsste der Verein:
 - Einen AVV mit dem Provider abschließen und regelmäßig prüfen
@@ -180,6 +182,10 @@ auch bei:
 - Vertragsstreitigkeiten mit Cloud-Anbietern
 - DDoS-Angriffen auf die Internet-Leitung
 
+### 6. Standardisiertes Lifecycle-Management durch Docker
+
+Durch die Verteilung als Docker-Container entfällt die fehleranfällige Installation von Laufzeitumgebungen (Java JDK, PostgreSQL) auf dem Host-Betriebssystem. Updates der Anwendung beschränken sich auf das Ersetzen des Container-Images.
+
 ## Risiken und Mitigationen
 
 | Risiko | Wahrscheinlichkeit | Auswirkung | Mitigation |
@@ -187,7 +193,7 @@ auch bei:
 | Hardware-Defekt | Mittel | Hoch | USV gegen Stromausfall, RAID oder regelmäßige Backups, Ersatzhardware-Plan |
 | Feuer / Wasserschaden | Niedrig | Sehr hoch | Verschlüsselte Offsite-Backups auf USB (zweiter Standort) |
 | Diebstahl des Servers | Niedrig | Hoch | Festplattenverschlüsselung (BitLocker), Server in abschließbarem Raum |
-| Kein automatisches Patching | Mittel | Mittel | Quartalsweise manuelle Windows-Updates, System nicht im Internet |
+| Kein automatisches Patching | Mittel | Mittel | Z.B. Quartalsweise manuelle Betriebssystem-Updates, System nicht im Internet |
 | Kein externer Zugriff | – | Niedrig | Akzeptiert: Arbeit findet ausschließlich im Büro statt |
 
 ## Laufzeitumgebungen: Produktion vs. Entwicklung/Staging
@@ -215,12 +221,11 @@ Betriebs nennen, beziehen sich auf die Entwicklungs-/Staging-Umgebung.
 - Geringere Abhängigkeit von Hosting-Dienstleistern und Internet-Verfügbarkeit
 
 ### Negativ
-- Kein Remote-Zugriff möglich (kein Home-Office) – akzeptabel für den Anwendungsfall
-- Hardware-Wartung liegt in Vereinsverantwortung – mitigiert durch einfache Hardware (Mini-PC)
+- Kein Remote-Zugriff möglich (kein Home-Office), akzeptabel für den Anwendungsfall
+- Hardware-Wartung liegt in Vereinsverantwortung, mitigiert durch einfache Hardware (Mini-PC)
 - Backup-Disziplin muss organisatorisch sichergestellt werden (USB-Rotation)
-- Kein automatisches Failover bei Hardware-Ausfall – akzeptabel bei Bürozeiten-Betrieb
+- Kein automatisches Failover bei Hardware-Ausfall, akzeptabel bei Bürozeiten-Betrieb
 
 ### Neutral
-- Erfordert einmalige Hardware-Beschaffung (Windows-Server-fähiger Mini-PC, USV, USB-Medien)
-- Windows-Updates müssen manuell eingespielt werden (kein Internet = kein Auto-Update)
-- Backup-Strategie muss in separatem Dokument definiert werden
+- Erfordert einmalige Hardware-Beschaffung (Server-fähiger Mini-PC, USV, USB-Medien)
+- Betriebssystem-Updates müssen manuell eingespielt werden (kein Internet = kein Auto-Update)
