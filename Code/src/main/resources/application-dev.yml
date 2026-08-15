@@ -1,0 +1,8 @@
+spring:
+  # Profil "dev": auf einer LEEREN Datenbank spielt Flyway zusätzlich zum Schema (db/migration)
+  # die Testdaten-Migration V5 (db/testdata) ein. Auf Bestands-DBs mit Altdaten greift die
+  # Baseline (Version 5, siehe application.yml) und V5 wird bewusst übersprungen –
+  # Testdaten gehören nicht in eine DB mit echten Altdaten.
+  # Niemals in Produktion aktivieren (siehe docker-compose.yml vs. .override.yml)!
+  flyway:
+    locations: classpath:db/migration,classpath:db/testdata

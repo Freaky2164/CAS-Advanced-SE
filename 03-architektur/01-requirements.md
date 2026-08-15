@@ -169,7 +169,7 @@ Das System muss Serienbriefe erzeugen auf Grundlage von
 * Verein, in dem eine Person Mitglied ist
 
 ### FR-11: Validierung
-Pflichtfelder dürfen nicht leer sein und müssen einen gültigen Wer enthalten.
+Pflichtfelder dürfen nicht leer sein und müssen einen gültigen Wert enthalten.
 
 ### FR-12: Datenkonsistenz
 Das System darf keine inkonsistenten Daten zulassen.
@@ -178,10 +178,12 @@ Das System darf keine inkonsistenten Daten zulassen.
 
 ## 4. Nicht-funktionale Anforderungen
 
-* **NFR-1 Sicherheit/DSGVO:** Alle personenbezogenen Daten müssen gemäß DGVO verarbeitet werden.
+* **NFR-1 Sicherheit/DSGVO:** Alle personenbezogenen Daten müssen gemäß DSGVO verarbeitet werden.
 * **NFR-2 Zuverlässigkeit:** Das System muss stabil sein, um den Wartungsaufwand gering zu halten.
 * **NFR-3 Modularer Aufbau:** Das System muss modular aufgebaut sein, um eine einfache Wartbarkeit zu gewährleisten.
 * **NFR-4 Backup & Recovery:** Daten müssen vollumfänglich und automatisiert gesichert werden und wiederherstellbar sein. Sicherungen müssen sicher und verschlüsselt sowie unter Einhaltung der DSGVO-Aufbewahrungsfristen abgelegt werden.
-* **NFR-4 Bedienbarkeit:** Das System muss für Personen mit nicht-technischem Hintergrund bedienbar sein.
+* **NFR-5 Bedienbarkeit:** Das System muss für Personen mit nicht-technischem Hintergrund bedienbar sein.
 
-tbc
+Eine messbare Konkretisierung dieser Qualitätsanforderungen (Qualitätsszenarien mit Zielwerten
+für Verfügbarkeit, RTO/RPO und Wartbarkeit) erfolgt im Architekturdokument
+(`02-finale-architektur.md`, Abschnitt „Qualitätsszenarien").

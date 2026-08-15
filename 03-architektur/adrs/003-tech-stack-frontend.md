@@ -2,7 +2,10 @@
 
 ## Status
 
-**Akzeptiert** – Juli 2026
+**Akzeptiert und implementiert** – Juli 2026
+
+Der Prototyp verwendet Vaadin 25.2.3. Ein zwischenzeitlich betrachteter Angular-Ansatz wurde nicht
+Bestandteil der finalen Implementierung.
 
 ## Kontext
 
@@ -109,6 +112,33 @@ alten Softwarestand teilweise direkt zu übernehmen.
 
 **Bewertung**: ✅ Beste Kombination aus Produktivität, Wartbarkeit und einfacher Integration in
 das bestehende Java-Backend.
+
+## Entscheidungsmatrix (gewichtete Bewertung)
+
+Analog zu ADR-002 werden die Frontend-Kandidaten anhand gewichteter, aus den Anforderungen
+abgeleiteter Kriterien bewertet. Die Gewichte sind begründet, um eine ergebnisorientierte
+Auswahl zu vermeiden:
+
+| Kriterium | Gewicht | Ableitung / Begründung |
+|-----------|:-------:|------------------------|
+| Wiederverwendbarkeit (Java-Backend) | 35 % | Größter Hebel für Aufwand und Wartbarkeit (NFR-2/NFR-3): direkte Nutzung von Services, Domain-Modell, Validierung und Security des Backends (ADR-002) ohne REST-Zwischenschicht |
+| Verfügbarkeit fertiger UI-Komponenten | 25 % | Verwaltungssoftware ist formular-/tabellenlastig; „out of the box"-Komponenten senken Entwicklungsaufwand und stützen die Usability (NFR-5) |
+| Sicherheitsintegration | 20 % | NFR-1 (DSGVO) + nahtlose Anbindung an Spring Security (ADR-002/ADR-004) |
+| Geringere Komplexität (weniger Schnittstellen) | 20 % | Weniger Schnittstellen = weniger Fehlerquellen (doppelte DTOs, CORS, doppelte Validierung) → Wartbarkeit (NFR-2/NFR-3) |
+
+| Kriterium (Gewicht) | Vaadin | Angular | React | Next.js |
+|---------------------|:------:|:-------:|:-----:|:-------:|
+| Wiederverwendbarkeit (35%) | ★★★★★ | ★★☆☆☆ | ★★☆☆☆ | ★★☆☆☆ |
+| UI-Komponenten out of the box (25%) | ★★★★★ | ★★★★☆ | ★★★☆☆ | ★★★☆☆ |
+| Sicherheitsintegration (20%) | ★★★★★ | ★★★☆☆ | ★★★☆☆ | ★★★☆☆ |
+| Geringere Komplexität (20%) | ★★★★★ | ★★★☆☆ | ★★★☆☆ | ★★☆☆☆ |
+| **Gesamt** | **5,00** | **3,15** | **2,85** | **2,65** |
+
+**Bewusste Grenze der Bewertung**: Die Kriterien sind auf **Produktivität und Wartbarkeit einer
+internen Verwaltungsanwendung** zugeschnitten. Für gestalterische Flexibilität, öffentliche
+Erreichbarkeit/SEO oder eine strikte Frontend-/Backend-Trennung würden React/Next.js besser
+abschneiden – diese Aspekte sind hier jedoch nicht gefordert (siehe Kontext). Die Matrix ist
+damit bewusst kontextspezifisch und nicht als allgemeines Framework-Ranking zu lesen.
 
 ## Code-Beispiel: Formular
 
@@ -218,7 +248,7 @@ inkonsistente DTOs, CORS-Konfiguration, doppelte Validierungslogik in Frontend u
 | Bisherige Architektur (Desktop) | Neue Architektur mit Vaadin (Web) |
 |---|---|
 | Desktop GUI (aktuelle Client-Anwendung) | Vaadin Web UI (Grid, Form, Dialog, …) |
-| Geschäftslogik (Services, Manager, fachliche Regeln) | Spring Boot (interne REST API, Services, Logiken, Spring Security) |
+| Geschäftslogik (Services, Manager, fachliche Regeln) | Spring Boot (Services, Geschäftslogik, Spring Security – ohne separate REST-Schicht, direkter Java-Aufruf aus Vaadin) |
 | Datenbank (Datenspeicherung) | Datenbank (Datenspeicherung, PostgreSQL gemäß ADR-002) |
 
 Die Geschäftslogik-Schicht sowie die Datenbankanbindung bleiben strukturell erhalten; lediglich
@@ -246,9 +276,22 @@ Architektur werden wiederverwendet.
 - Geringere gestalterische Flexibilität im Vergleich zu React/Next.js, da UI-Komponenten
   serverseitig in Java definiert werden
 - Team benötigt Einarbeitung in die Vaadin-spezifische Komponenten-API
+- **Lizenzkosten für kommerzielle Komponenten**: Der Vaadin-Kern (Flow) und viele Basis-Komponenten
+  sind Open Source (Apache 2.0), einige Pro-Komponenten (z.B. bestimmte Grid-Features, Charts,
+  CRUD-Bausteine) erfordern jedoch eine kostenpflichtige Vaadin-Subscription. Für das Projekt ist
+  zu prüfen, dass alle benötigten Komponenten im kostenfreien Umfang liegen bzw. die Kosten
+  einzuplanen sind – der sonst durchgängige „lizenzkostenfrei"-Vorteil des Stacks gilt hier nur
+  eingeschränkt
+- **Serverseitiger Zustand / Speicherbedarf**: Jede Benutzer-Session hält UI-Zustand im
+  Server-RAM (`VaadinSession`). Bei wenigen gleichzeitigen Nutzern unkritisch, begrenzt aber die
+  vertikale Skalierbarkeit und macht die Anwendung inhärent zustandsbehaftet (relevant für die
+  Auth-Entscheidung, siehe ADR-004)
+- **Latenz-/Netzabhängigkeit**: Da UI-Interaktionen serverseitig verarbeitet werden, reagiert die
+  Oberfläche empfindlicher auf Netzwerklatenz als eine clientseitige SPA – im LAN (ADR-006)
+  jedoch vernachlässigbar
 
 ### Neutral
-- Backend-Technologie ist bereits mit Spring Boot / Java 21 festgelegt (ADR-002); Vaadin baut
+- Backend-Technologie ist bereits mit Spring Boot / Java 25 festgelegt (ADR-002); Vaadin baut
   direkt darauf auf
 - Serverseitiges Rendering (SSR) und clientseitiges Routing, wie bei Next.js, sind für eine
   interne Verwaltungssoftware nicht erforderlich, da öffentliche Erreichbarkeit und SEO keine

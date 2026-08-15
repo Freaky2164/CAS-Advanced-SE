@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: frauenhaus-backend
+
+  datasource:
+    # Zugangsdaten NUR über Umgebungsvariablen – nie einchecken (Altsystem hatte Klartext-Passwörter in .ini!)
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:frauenhaus}?sslmode=${DB_SSLMODE:prefer}
+    username: ${DB_USER:frauenhaus_app}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Schema kommt aus Flyway (leere DB) bzw. den DB-Init-Skripten (docker-compose)
+    open-in-view: false
+
+  flyway:
+    # Migrationen laufen mit eigenen, privilegierten Zugangsdaten (DDL/GRANT nötig);
+    # die Anwendung selbst verbindet weiter als eingeschränkte RLS-Rolle.
+    user: ${FLYWAY_DB_USER:${DB_USER:frauenhaus_app}}
+    password: ${FLYWAY_DB_PASSWORD:${DB_PASSWORD:}}
+    schemas: frauenhaus,app
+    # Bestands-Datenbanken (Schema + Altdaten aus den docker-initdb-Skripten, ohne
+    # Flyway-Historie) werden bei Version 5 baselined: V1 (Schema) und V5 (Testdaten)
+    # gelten dort als angewendet, spätere Migrationen (ab V6) laufen normal.
+    # Die Nummern V2–V4 sind bewusst frei: sie stehen für die initdb-Schritte
+    # 02–04 (Import-Rolle, Altdaten-Backup, Datenübernahme), die es nur auf
+    # Bestands-Datenbanken gibt. Details: README, Abschnitt "Schema-Migrationen".
+    baseline-on-migrate: true
+    baseline-version: 5
+    baseline-description: Bestand aus den docker-initdb-Skripten
+    placeholders:
+      # Passwort der eingeschränkten App-Rolle für V7 (Rolle + RLS). Kommt aus der
+      # Umgebung, steht nie im Migrationsskript. Leer = Rolle wird nicht angelegt,
+      # dann bleibt V7 wirkungslos (siehe Hinweis im Skript).
+      app_db_password: "${DB_APP_PASSWORD:${DB_PASSWORD:}}"
+
+  # SMTP für den Verteiler-Versand; ohne spring.mail.host legt Spring keinen
+  # JavaMailSender an und die Anwendung startet nicht (VerteilerService).
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+
+  # Upload-Grenze der Dokument-Anhänge: muss zu DokumentService.MAX_DATEIGROESSE
+  # passen, sonst bricht Tomcat schon vor der fachlichen Prüfung ab (Default: 1 MB).
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    mail:
+      # SMTP ist optional (nur Verteiler-Versand) – Health soll ohne Mailserver nicht DOWN sein
+      enabled: false
+
+app:
+  security:
+    # Passwort für den initialen Admin beim allerersten Start (danach ignoriert).
+    # Ohne Angabe wird ein Zufallspasswort generiert und einmalig geloggt.
+    initial-admin-password: ${APP_ADMIN_PASSWORD:}
+  mail:
+    # Absenderadresse des Verteiler-Versands (eigener Namensraum, da
+    # "absender" kein Spring-Boot-Schlüssel unter spring.mail.* ist).
+    absender: ${MAIL_ABSENDER:no-reply@localhost}
+  vorlagen:
+    # Verzeichnis mit den Word-Vorlagen (.dot) für Bußgeldbestätigungen und
+    # Spendenbescheinigungen; im Docker-Image unter /app/vorlagen.
+    pfad: ${APP_VORLAGEN_PFAD:vorlagen}

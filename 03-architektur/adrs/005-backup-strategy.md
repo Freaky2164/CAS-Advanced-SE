@@ -2,11 +2,17 @@
 
 ## Status
 
-**Akzeptiert** – Juni 2026
+**Vorgeschlagen, nicht implementiert** – August 2026
+
+Die Strategie bleibt ein Zielbild. Der Prototyp enthält keinen nachgewiesenen produktiven
+pgBackRest-Betrieb und keinen protokollierten Restore-Test. Außerdem unterstützt pgBackRest
+PostgreSQL nicht nativ unter Windows. Für das containerisierte Linux-Deployment ist die Strategie
+grundsätzlich technisch möglich, muss aber vor einer Produktivfreigabe implementiert und durch
+Restore-Tests verifiziert werden.
 
 ## Kontext
 
-ADR-005 (Deployment-Modell) hält fest, dass die Backup-Strategie in einem separaten Dokument
+ADR-006 (Deployment-Modell) hält fest, dass die Backup-Strategie in einem separaten Dokument
 zu definieren ist. NFR-4 fordert explizit:
 
 > Daten müssen vollumfänglich und automatisiert gesichert werden und wiederherstellbar sein.
@@ -27,7 +33,7 @@ Datenbank, ausgelöst durch einen Mitarbeitenden per Doppelklick. Dies bringt er
 - **Keine Restore-Tests**: Es ist nicht dokumentiert, ob ein Restore aus einem `.bak`-File
   jemals erfolgreich getestet wurde
 
-Gemäß ADR-005 wird das System On-Premises betrieben, **ohne Internetzugang für den
+Gemäß ADR-006 wird das System On-Premises betrieben, **ohne Internetzugang für den
 Regelbetrieb**. Die Backup-Strategie muss diese Randbedingung respektieren: keine
 Cloud-Speicherpflicht, kein permanenter Internetzugriff erforderlich.
 
@@ -47,7 +53,7 @@ pgBackRest ── repo1: lokales Backup-Volume (getrennt von pgdata), AES-256-ve
    │            Retention: 4 Vollbackups, 14 Differenzen (~1 Monat PITR-Fenster)
    │
    └── repo2: externe Kopie (verschlüsselte USB-Medien, Rotation an zweitem Standort –
-              kein Cloud-Ziel gemäß ADR-005)
+              kein Cloud-Ziel gemäß ADR-006)
 
 Quartalsweiser Pflicht-Restore-Test → Staging-Container → Stichprobenvergleich → Protokoll
 ```
@@ -130,7 +136,7 @@ zwischen DB-Stand und Dateisystem-Stand.
 
 ### 3. 3-2-1-Regel ohne Cloud-Abhängigkeit
 
-Konsistent mit ADR-005 (kein Internetzugang im Regelbetrieb, keine Cloud-Speicherung
+Konsistent mit ADR-006 (kein Internetzugang im Regelbetrieb, keine Cloud-Speicherung
 sensibler Daten) wird die externe Kopie (`repo2`) **nicht** auf einem Cloud-Speicher
 abgelegt, sondern auf verschlüsselten USB-Datenträgern realisiert, die im Rotationsprinzip
 an einem zweiten physischen Standort gelagert werden:
@@ -142,7 +148,7 @@ an einem zweiten physischen Standort gelagert werden:
 
 Die in der pgBackRest-Dokumentation vorgesehene Option, `repo2` auf einen
 S3-kompatiblen Speicher zu spiegeln, wird bewusst **nicht** genutzt, um die
-Konsistenz mit der On-Premises-Entscheidung (ADR-005) zu wahren.
+Konsistenz mit der On-Premises-Entscheidung (ADR-006) zu wahren.
 
 ### 4. Schlüsselverwaltung getrennt vom Backup
 
@@ -166,7 +172,7 @@ Dies deckt Fehlkonfigurationen auf, bevor sie im Ernstfall entdeckt werden.
 pgBackRest ist speziell für PostgreSQL entwickelt und im Gegensatz zu generischen
 Dateisystem-Backup-Tools in der Lage, konsistente Backups **während des laufenden Betriebs**
 zu erstellen, ohne die Anwendung zu pausieren. Es ist etabliertes Open-Source-Werkzeug ohne
-Lizenzkosten – passend zum Gesamtbudget-Rahmen eines spendenfinanzierten Vereins (vgl. ADR-005).
+Lizenzkosten – passend zum Gesamtbudget-Rahmen eines spendenfinanzierten Vereins (vgl. ADR-006).
 
 ## Risiken und Mitigationen
 
@@ -187,7 +193,7 @@ Lizenzkosten – passend zum Gesamtbudget-Rahmen eines spendenfinanzierten Verei
   (z.B. unmittelbar vor einer versehentlichen Löschung), nicht nur auf den letzten Backup-Tag
 - Ein einheitlicher Backup-Pfad für Stammdaten und Dokumente (beide in PostgreSQL, kein
   separates Dateisystem-Backup nötig)
-- Konsistent mit der On-Premises-/DSGVO-Entscheidung aus ADR-005 – keine Cloud-Abhängigkeit
+- Konsistent mit der On-Premises-/DSGVO-Entscheidung aus ADR-006 – keine Cloud-Abhängigkeit
 - Deutlich geringeres Datenverlustrisiko (RPO: max. 1 Tag) gegenüber dem manuellen
   IST-Zustand (RPO: undefiniert, potenziell Wochen)
 

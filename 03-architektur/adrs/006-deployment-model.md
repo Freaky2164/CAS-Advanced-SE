@@ -2,12 +2,17 @@
 
 ## Status
 
-**Akzeptiert** – Juni 2026
+**Teilweise ersetzt** – August 2026 durch [ADR-011](011-container-deployment.md)
+
+Die Standortentscheidung **On-Premises** bleibt bestehen. Ersetzt wurde die technische
+Ausprägung als native Windows-Dienste: Der Prototyp verwendet Docker Compose mit Backend- und
+PostgreSQL-Container. TLS wird durch einen externen Reverse Proxy terminiert, der nicht Teil des
+Compose-Stacks ist.
 
 ## Kontext
 
 Gemäß ADR-001 wird das System als 3-Schichten-Architektur mit zentralem Backend und
-SQL-Server-Datenbank betrieben. Es muss entschieden werden, **wo** diese Infrastruktur
+PostgreSQL-Datenbank (ADR-002) betrieben. Es muss entschieden werden, **wo** diese Infrastruktur
 physisch betrieben wird: auf einem lokalen Server im Frauenhaus oder
 bei einem Cloud-Anbieter.
 
@@ -15,7 +20,7 @@ Die Entscheidung wird maßgeblich durch folgende Rahmenbedingungen beeinflusst:
 
 | Rahmenbedingung | Beschreibung |
 |-----------------|-------------|
-| **Datenklassifikation** | Höchst sensible personenbezogene Daten (Schutz suchende Frauen und Kinder, Adressen, Kontaktdaten, Falldokumentation) – besondere Kategorie nach Art. 9 DSGVO |
+| **Datenklassifikation** | Personen- und Adressdaten mit sehr hohem Schutzbedarf; der Kontext kann besondere Kategorien nach Art. 9 DSGVO mittelbar offenbaren |
 | **Schutzbedarf** | Sehr hoch – ein Datenleck kann Leib und Leben gefährden (Stalking, häusliche Gewalt) |
 | **Organisationsform** | Kleiner Verein, kein IT-Personal, kein dedizierter Datenschutzbeauftragter |
 | **Nutzeranzahl** | Geringe Anzahl gleichzeitiger Arbeitsplätze im lokalen Netzwerk |
@@ -26,7 +31,7 @@ Die Entscheidung wird maßgeblich durch folgende Rahmenbedingungen beeinflusst:
 ## Entscheidung
 
 Wir entscheiden uns für **On-Premises-Deployment** auf einem dedizierten Windows-Server
-im lokalen Netzwerk des Frauenhauses. Das gesamte System (Backend-Dienst + SQL Server +
+im lokalen Netzwerk des Frauenhauses. Das gesamte System (Backend-Dienst + PostgreSQL +
 Backups) verbleibt physisch in den örtlichen Räumlichkeiten.
 
 ```
@@ -34,7 +39,7 @@ Backups) verbleibt physisch in den örtlichen Räumlichkeiten.
 ┌──────────────────────────────────────────────┐
 │  Windows Server            │
 │  ├── Spring Boot Backend (WinSW-Dienst)     │
-│  ├── MS SQL Server                          │
+│  ├── PostgreSQL-Datenbank                   │
 │  └── Verschlüsselte Backups (lokal + USB)   │
 └──────────────────────────────────────────────┘
          ▲ LAN (kein Internet-Zugang nötig)
@@ -95,7 +100,7 @@ zweiten Standort gelagert werden (einfacher, kein Internet nötig, keine AVV erf
 | Aspekt | Bewertung |
 |--------|-----------|
 | **Datensouveränität** | ✅ Vollständige physische Kontrolle – Daten verlassen nie das Gebäude |
-| **DSGVO-Konformität** | ✅ Kein Auftragsverarbeiter, keine Drittland-Problematik, keine AVV |
+| **Datenschutzfolgen** | ✅ Kein Cloud-Auftragsverarbeiter und kein cloudbedingter Drittlandtransfer; weitere DSGVO-Pflichten bleiben bestehen |
 | **Kosten** | ✅ Einmalige Hardwarekosten, keine laufenden Gebühren |
 | **Angriffsfläche** | ✅ System nicht über Internet erreichbar – nur LAN-Zugriff |
 | **Unabhängigkeit** | ✅ Kein Internet für Betrieb erforderlich |
@@ -108,18 +113,23 @@ zweiten Standort gelagert werden (einfacher, kein Internet nötig, keine AVV erf
 
 ### 1. Maximaler Datenschutz durch physische Kontrolle
 
-Die verarbeiteten Daten gehören zur **sensibelsten Kategorie**: Adressen und persönliche
+Die verarbeiteten Daten besitzen einen **sehr hohen Schutzbedarf**: Adressen und persönliche
 Informationen von Frauen, die vor gewalttätigen Partnern Schutz suchen. Ein Datenleck
-kann Menschenleben gefährden. Die einzig angemessene Schutzmaßnahme ist, diese Daten
-**niemals** die physische Kontrolle des Vereins verlassen zu lassen.
+kann Menschen gefährden. On-Premises wurde deshalb als verhältnismäßige Risikoreduktion gewählt;
+es ist jedoch nicht die einzig denkbare datenschutzkonforme Betriebsform.
 
-On-Premises eliminiert folgende Risiken vollständig:
+On-Premises reduziert insbesondere folgende Risiken:
 - Unbefugter Zugriff durch Cloud-Provider-Mitarbeiter
 - Zugriff durch ausländische Behörden (US CLOUD Act, FISA 702)
 - Datenverlust durch Cloud-Provider-Insolvenz oder Account-Sperrung
 - Man-in-the-Middle-Angriffe auf der Internet-Strecke
 
-### 2. DSGVO-Konformität ohne juristische Grauzone
+### 2. Datenschutzrechtliche Vereinfachung, keine automatische Konformität
+
+Die DSGVO ist technologieneutral. On-Premises vermeidet im gewählten Szenario einen
+Cloud-Auftragsverarbeiter und cloudbedingte Drittlandtransfers, ersetzt aber weder
+Rechtsgrundlage, Berechtigungskonzept, technische und organisatorische Maßnahmen,
+Löschkonzept noch eine gegebenenfalls erforderliche Datenschutz-Folgenabschätzung.
 
 | DSGVO-Artikel | Umsetzung durch On-Premises |
 |---------------|----------------------------|
@@ -180,14 +190,29 @@ auch bei:
 | Kein automatisches Patching | Mittel | Mittel | Quartalsweise manuelle Windows-Updates, System nicht im Internet |
 | Kein externer Zugriff | – | Niedrig | Akzeptiert: Arbeit findet ausschließlich im Büro statt |
 
+## Laufzeitumgebungen: Produktion vs. Entwicklung/Staging
+
+Um Missverständnisse zu vermeiden, wird die Werkzeugwahl je Umgebung explizit abgegrenzt:
+
+| Umgebung | Betriebsart | Begründung |
+|----------|-------------|------------|
+| **Produktion** (Vereinsserver) | Natives Windows: Backend als **WinSW-Dienst**, **PostgreSQL** als Windows-Dienst | Minimale Komplexität ohne Container-Runtime auf einem Rechner ohne IT-Personal; direkte Windows-Integration (Autostart, Dienst-Neustart) |
+| **Entwicklung** (Entwickler-PCs) | **Docker Compose** (PostgreSQL + Backend) | Reproduzierbare, isolierte Entwicklungsumgebung ohne lokale PostgreSQL-Installation |
+| **Staging / Restore-Test** | **Docker Compose / Container** (temporär) | Quartalsweiser Pflicht-Restore-Test in einer isolierten Wegwerf-Umgebung (siehe ADR-005) |
+
+Docker/Docker Compose ist damit ausschließlich ein **Entwicklungs- und Test-Hilfsmittel** und
+**kein Bestandteil des Produktivbetriebs**. Die Produktions-Deployment-Entscheidung (natives
+WinSW) bleibt von dieser Wahl unberührt. Darstellungen, die „Docker Compose" im Kontext des
+Betriebs nennen, beziehen sich auf die Entwicklungs-/Staging-Umgebung.
+
 ## Konsequenzen
 
 ### Positiv
 - Höchstmöglicher Datenschutz – Daten verlassen nie die physischen Räume des Vereins
-- Vollständige DSGVO-Konformität ohne juristische Grauzone oder Drittanbieter-Abhängigkeit
+- Weniger Vertrags- und Transferkomplexität als bei einem Cloud-Auftragsverarbeiter
 - Keine laufenden Kosten für Hosting oder Cloud-Dienste
 - Minimale Angriffsfläche durch fehlende Internet-Exposition
-- Vollständige Unabhängigkeit von externen Dienstleistern und Internet-Verfügbarkeit
+- Geringere Abhängigkeit von Hosting-Dienstleistern und Internet-Verfügbarkeit
 
 ### Negativ
 - Kein Remote-Zugriff möglich (kein Home-Office) – akzeptabel für den Anwendungsfall

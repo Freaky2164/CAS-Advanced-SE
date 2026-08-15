@@ -22,12 +22,13 @@ Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und
 Wir entscheiden uns für eine **3-Schichten-Architektur** (Präsentation → Anwendungslogik → Daten)
 mit folgender Aufteilung:
 
-1. **Präsentationsschicht**: Web-Frontend (Single-Page-Application) im Browser
-2. **Anwendungsschicht**: Zentrales REST-Backend als Windows-Dienst auf dem Server
-3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben Server
+1. **Präsentationsschicht**: Web-Frontend im Browser (die konkrete Frontend-Technologie
+   – Vaadin, serverseitig gerendert ohne separates REST – wird in ADR-003 festgelegt)
+2. **Anwendungsschicht**: Zentrales Backend als Windows-Dienst auf dem Server
+3. **Datenschicht**: Zentrale relationale Datenbank (PostgreSQL, ADR-002) auf demselben Server
 
 ```
-Browser (SPA)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
+Browser (Web-UI)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
 ```
 
 ## Betrachtete Alternativen
@@ -83,7 +84,7 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + Datenbank) ist für einen Verein ohne IT-Personal betreibbar. Die operative Komplexität des aktuellen IST-Systems wird mit der neuen Lösung nicht überstiegen.
 
-4. **Zukunftsfähigkeit**: Die REST-API ermöglicht später zusätzliche Clients (Mobile App, Automatisierungsskripte) ohne Backend-Änderung.
+4. **Zukunftsfähigkeit**: Die klar getrennte Anwendungsschicht kapselt die Geschäftslogik hinter einer stabilen Service-Schnittstelle. Sollen später zusätzliche Clients (Mobile App, Automatisierungsskripte) angebunden werden, kann dem Backend eine REST-API vorgeschaltet werden, ohne die Geschäftslogik zu ändern. Für die initiale Web-UI wird bewusst auf eine separate REST-Schicht verzichtet (Vaadin, ADR-003).
 
 5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
 
@@ -101,5 +102,5 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 - Server wird zum Single Point of Failure (mitigiert durch automatischen Dienst-Neustart und Backup)
 
 ### Neutral
-- Erfordert Entscheidung über konkreten Technologie-Stack (siehe ADR-002)
-- Frontend- und Backend-Entwicklung können nach API-Definition parallelisiert werden
+- Erfordert Entscheidung über konkreten Technologie-Stack (Backend siehe ADR-002, Frontend siehe ADR-003)
+- Präsentations- und Anwendungsschicht bleiben klar getrennt; da Vaadin serverseitig im selben Prozess rendert (ADR-003), entfällt eine explizite REST-Schnittstelle zwischen beiden, die Schichtentrennung wird jedoch auf Paket-/Modulebene eingehalten
