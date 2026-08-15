@@ -22,12 +22,13 @@ Es wird eine neue Architektur benötigt, die diese Schwachstellen adressiert und
 Wir entscheiden uns für eine **3-Tier-Monolith-Architektur** (Präsentation → Anwendungslogik → Daten)
 mit Full-Stack-Java-Ansatz:
 
-1. **Präsentationsschicht**: Web-UI im Browser
-2. **Anwendungsschicht**: Frontend und Backend als Spring Boot Anwendung mit **Vaadin**, betrieben in Container-Infrastruktur auf dem On-Premises-Server
-3. **Datenschicht**: Zentrale SQL-Datenbank auf demselben On-Premises-Server, Anbindung der Anwendungsschicht via JDBC
+1. **Präsentationsschicht**: Web-Frontend im Browser (die konkrete Frontend-Technologie
+   – Vaadin, serverseitig gerendert ohne separates REST – wird in ADR-003 festgelegt)
+2. **Anwendungsschicht**: Zentrales Backend als Windows-Dienst auf dem Server
+3. **Datenschicht**: Zentrale relationale Datenbank (PostgreSQL, ADR-002) auf demselben Server
 
 ```
-Browser ──> HTTPS + WebSocket ──> Frontend + Backend Monolith ──> JDBC ──> DB
+Browser (Web-UI)  ──> HTTPS ──>  Backend (Windows-Dienst)  ──> JDBC ──>  DB
 ```
 
 ## Betrachtete Alternativen
@@ -83,7 +84,9 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 
 3. **Operationale Einfachheit**: Ein einziger Server mit zwei Diensten (Backend + Datenbank) ist für einen Verein ohne IT-Personal betreibbar. Die operative Komplexität des aktuellen IST-Systems wird mit der neuen Lösung nicht überstiegen.
 
-4. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
+4. **Zukunftsfähigkeit**: Die klar getrennte Anwendungsschicht kapselt die Geschäftslogik hinter einer stabilen Service-Schnittstelle. Sollen später zusätzliche Clients (Mobile App, Automatisierungsskripte) angebunden werden, kann dem Backend eine REST-API vorgeschaltet werden, ohne die Geschäftslogik zu ändern. Für die initiale Web-UI wird bewusst auf eine separate REST-Schicht verzichtet (Vaadin, ADR-003).
+
+5. **Verhältnismäßigkeit**: Die 3-Schichten-Architektur bietet den optimalen Kompromiss zwischen Sicherheitsgewinn und Betriebskomplexität für den gegebenen Kontext (kleiner Verein, LAN-Betrieb, wenige Nutzer).
 
 ## Konsequenzen
 
@@ -99,4 +102,5 @@ wenigen Nutzern. Das System hat keine Skalierungsanforderungen, die Microservice
 - Server wird zum Single Point of Failure (mitigiert durch automatischen Dienst-Neustart und Backup)
 
 ### Neutral
-- Erfordert Entscheidung über konkreten Technologie-Stack (siehe ADR-002)
+- Erfordert Entscheidung über konkreten Technologie-Stack (Backend siehe ADR-002, Frontend siehe ADR-003)
+- Präsentations- und Anwendungsschicht bleiben klar getrennt; da Vaadin serverseitig im selben Prozess rendert (ADR-003), entfällt eine explizite REST-Schnittstelle zwischen beiden, die Schichtentrennung wird jedoch auf Paket-/Modulebene eingehalten

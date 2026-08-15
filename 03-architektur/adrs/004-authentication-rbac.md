@@ -1,8 +1,12 @@
-# ADR-005: Authentifizierung & Autorisierung – Zustandslose HTTP-Basic-Auth mit BCrypt und RBAC
+# ADR-004: Authentifizierung & Autorisierung – Session-basierte Formular-Authentifizierung mit BCrypt und RBAC (Vaadin / Spring Security)
 
 ## Status
 
 **Akzeptiert** – Juni 2026
+
+Die session-basierte Vaadin-Anmeldung ist implementiert. Eine zusätzliche zustandslose
+HTTP-Basic-Filterkette für die REST-API wird in
+[ADR-012](012-dual-security-filter-chains.md) dokumentiert.
 
 ## Kontext
 
@@ -20,51 +24,93 @@ DB-Verbindung aufbauen kann, hat vollen Zugriff (siehe ADR-001). Diese Schwachst
 durch einen zentralen, im Backend erzwungenen Authentifizierungs- und Autorisierungsmechanismus
 vollständig ersetzt werden.
 
-Gemäß ADR-005 wird das System ausschließlich **On-Premises im lokalen Netzwerk** betrieben,
+Gemäß ADR-006 wird das System ausschließlich **On-Premises im lokalen Netzwerk** betrieben,
 ist **nicht über das Internet erreichbar** und hat nur wenige, bekannte Nutzer (Mitarbeitende
 des Vereins). Dieser eingeschränkte Bedrohungskontext beeinflusst maßgeblich, welches
 Authentifizierungsverfahren angemessen ist – ein für öffentlich erreichbare Multi-Tenant-Systeme
 optimiertes Verfahren (z.B. JWT mit Refresh-Tokens) wäre hier unverhältnismäßig komplex.
 
+**Technische Randbedingung aus ADR-003 (Vaadin):** Das Frontend wird mit **Vaadin Flow**
+umgesetzt. Vaadin Flow rendert die UI serverseitig und hält den UI-Zustand pro Benutzer in einer
+**serverseitigen `VaadinSession`** (getragen von der HTTP-Session, `JSESSIONID`-Cookie). Die
+Anwendung ist damit auf UI-Ebene **inhärent zustandsbehaftet** – ein rein zustandsloses
+Authentifizierungsverfahren (z.B. HTTP-Basic mit `SessionCreationPolicy.STATELESS`, das pro
+Request neu authentifiziert) passt nicht zum Programmiermodell von Vaadin und würde dessen
+Session-Handling unterlaufen. Das gewählte Verfahren muss sich daher sauber in die
+Vaadin-/Spring-Security-Integration (`VaadinWebSecurity`) einfügen.
+
 ## Entscheidung
 
-Wir entscheiden uns für **zustandslose HTTP-Basic-Authentifizierung über HTTPS** in Kombination
-mit **BCrypt-gehashten Passwörtern** und einem **einfachen rollenbasierten Zugriffsmodell (RBAC)**
-mit genau zwei Rollen: `ADMIN` und `SACHBEARBEITUNG`.
+Wir entscheiden uns für **session-basierte Formular-Authentifizierung** über die
+**Vaadin-/Spring-Security-Integration (`VaadinWebSecurity`)** mit einer eigenen
+**Vaadin-Login-View**, in Kombination mit **BCrypt-gehashten Passwörtern** und einem
+**einfachen rollenbasierten Zugriffsmodell (RBAC)** mit genau zwei Rollen: `ADMIN` und
+`SACHBEARBEITUNG`. Der Authentifizierungsstatus wird nach dem Login serverseitig in der
+HTTP-/`VaadinSession` gehalten (`JSESSIONID`, `HttpOnly` + `Secure` über HTTPS).
 
 ```
-Angular SPA ──(Authorization: Basic <user:pass base64>)──> Spring Security Filter Chain
+Vaadin Login-View ──(Benutzername/Passwort, POST /login)──> Spring Security Filter Chain
                                                                    │
-                                                    SessionCreationPolicy.STATELESS
+                                          UsernamePasswordAuthenticationFilter
                                                                    │
-                                              DbUserDetailsService ── liest app.app_user
+                                             DbUserDetailsService ── liest app.app_user
                                                                    │
-                                        BCryptPasswordEncoder.matches(...)
+                                          BCryptPasswordEncoder.matches(...)
                                                                    │
-                                    hasRole("ADMIN") für /api/admin/**
-                                    authenticated() für alle übrigen Endpunkte
+                        Erfolg: SecurityContext in serverseitiger Session (JSESSIONID, HttpOnly/Secure)
+                                                                   │
+                        Folge-Requests: Vaadin/Spring Security prüfen Session + Rolle
+                                                                   │
+                             hasRole("ADMIN") für Admin-/Stammdaten-Views
+                             authenticated() für alle übrigen Views
 ```
 
 Zentrale Bausteine:
 
-- **`SecurityConfig`**: Spring Security 6 Filter Chain, CSRF deaktiviert (rein zustandslose REST-API),
-  `SessionCreationPolicy.STATELESS`, `httpBasic()` mit eigenem `AuthenticationEntryPoint`
-  (liefert `401` **ohne** `WWW-Authenticate: Basic`-Header, damit der Browser keinen nativen
-  Auth-Dialog öffnet – die Angular-SPA übernimmt Login-UI und Credential-Handling selbst).
+- **`SecurityConfig extends VaadinWebSecurity`**: Konfiguriert die Spring Security 7 Filter Chain
+  über die offizielle Vaadin-Integration. `VaadinWebSecurity` verdrahtet Vaadins internen
+  CSRF-Schutz, die Behandlung von Vaadin-Requests und die Weiterleitung nicht angemeldeter
+  Nutzer auf die Login-View. Die Session-Policy ist bewusst **nicht** `STATELESS`, da Vaadin Flow
+  eine serverseitige Session benötigt.
+- **`LoginView`**: Eigene Vaadin-View mit Vaadins `LoginForm`-Komponente; ersetzt den
+  nativen Browser-Basic-Auth-Dialog und liefert eine konsistente, benutzerfreundliche
+  Login-Oberfläche (NFR-5 Bedienbarkeit).
 - **`AppUser`**: JPA-Entity (`app.app_user`) mit `username`, `passwordHash` (BCrypt),
   `role` (Enum `ADMIN` / `SACHBEARBEITUNG`), `enabled`-Flag, ersetzt `compucrash.user_def`.
 - **`DbUserDetailsService`**: Lädt Benutzer aus der Datenbank statt in-memory/statisch zu
-  konfigurieren – Passwortänderungen und neue Benutzer sind ohne Neustart wirksam.
+  konfigurieren – neue Benutzer und Deaktivierungen sind ohne Neustart wirksam.
 - **`AdminBootstrap`**: Legt beim allerersten Start automatisch einen Admin-Account an, sofern
   die Benutzertabelle leer ist. Passwort kommt aus `APP_ADMIN_PASSWORD` (Umgebungsvariable) oder
   wird als Einmal-Zufallswert generiert und **einmalig geloggt** – es gibt kein eingebranntes
   Standardpasswort (vermeidet CWE-798 *Use of Hard-coded Credentials*).
 - **`@EnableMethodSecurity`**: Ermöglicht zusätzlich feingranulare Autorisierung auf Service-/
-  Controller-Methodenebene (`@PreAuthorize`), nicht nur auf URL-Pattern-Ebene.
+  View-Methodenebene (`@PreAuthorize`), nicht nur auf Routen-/URL-Pattern-Ebene.
+- **Logout**: Über Spring Securitys `/logout` bzw. `logout()`-Handler wird die serverseitige
+  Session invalidiert – ein echter, serverseitig erzwingbarer Logout ist möglich.
 
 ## Betrachtete Alternativen
 
-### Alternative A: JWT (Bearer Token, zustandslos mit Refresh-Token)
+### Alternative A: Zustandslose HTTP-Basic-Auth + BCrypt
+
+Jeder Request trägt den `Authorization: Basic <user:pass base64>`-Header; das Backend
+authentifiziert bei jeder Anfrage neu (`SessionCreationPolicy.STATELESS`), ohne serverseitige
+Session.
+
+| Aspekt | Bewertung |
+|--------|-----------|
+| Implementierungsaufwand (reine REST-API) | ✅ Minimal – native Spring-Security-Unterstützung |
+| **Kompatibilität mit Vaadin Flow** | ❌ **Grundlegender Konflikt**: Vaadin Flow benötigt eine serverseitige `VaadinSession`; ein `STATELESS`-Modell unterläuft das Session-Handling und wird von `VaadinWebSecurity` nicht unterstützt |
+| Passwort-Sicherheit | ✅ BCrypt (adaptiv, gesalzen) statt Klartext |
+| Login-UX | ❌ Nativer Browser-Basic-Auth-Dialog statt konsistenter Vaadin-Login-View (Widerspruch zu NFR-5) |
+| Serverseitiger Logout | ❌ Kein echter Logout – Credentials werden bei jedem Request erneut gesendet |
+| Wiederholte Credential-Übertragung | ⚠️ Passwort (base64) bei **jedem** Request erneut über die Leitung (nur durch TLS geschützt) |
+
+**Ablehnung**: Passt nicht zum serverseitig zustandsbehafteten Programmiermodell von Vaadin Flow
+(ADR-003). Der scheinbare Vorteil „Zustandslosigkeit“ ist in einer Vaadin-Anwendung nicht
+realisierbar, da die UI ohnehin eine Session hält. Zudem widerspricht der native Basic-Auth-Dialog
+der Usability-Anforderung (NFR-5).
+
+### Alternative B: JWT (Bearer-Token, zustandslos mit Refresh-Token)
 
 Backend stellt beim Login ein signiertes JWT aus, das die Rolle als Claim enthält;
 Refresh-Tokens ermöglichen erneuerbare Sessions ohne erneute Passworteingabe.
@@ -72,52 +118,38 @@ Refresh-Tokens ermöglichen erneuerbare Sessions ohne erneute Passworteingabe.
 | Aspekt | Bewertung |
 |--------|-----------|
 | Skalierbarkeit über mehrere Server | ✅ Kein zentraler Session-Store nötig |
+| Kompatibilität mit Vaadin Flow | ❌ Vaadin hält UI-Zustand serverseitig – der Hauptvorteil von JWT (Zustandslosigkeit) verpufft |
 | Implementierungsaufwand | ❌ Signing-Key-Verwaltung, Token-Refresh-Flow, Blacklisting bei Logout |
 | Widerruf vor Ablauf | ❌ Erfordert zusätzliche Token-Blacklist oder kurze Lebensdauer + Refresh-Komplexität |
 | Eignung für Kleinstsystem (1 Server, wenige Nutzer) | ❌ Löst ein Problem (horizontale Skalierung), das hier nicht existiert |
-| Frontend-Komplexität | ❌ Token-Speicherung (localStorage vs. Cookie), Refresh-Interceptor nötig |
-| Sicherheitsgewinn ggü. Basic Auth im LAN | ⚠️ Marginal, da kein Multi-Server-Szenario vorliegt |
 
 **Ablehnung**: JWT löst primär Probleme verteilter/skalierender Systeme (mehrere Backend-Instanzen,
 Third-Party-APIs, mobile Clients mit langlebigen Sessions). Für einen einzelnen Windows-Dienst mit
-wenigen bekannten Nutzern im LAN steht der Mehraufwand (Signing-Key-Rotation, Refresh-Logik,
-Token-Widerruf) in keinem Verhältnis zum Sicherheitsgewinn.
+wenigen bekannten Nutzern im LAN und einem serverseitig zustandsbehafteten Vaadin-Frontend steht
+der Mehraufwand (Signing-Key-Rotation, Refresh-Logik, Token-Widerruf) in keinem Verhältnis zum
+Nutzen.
 
-### Alternative B: Server-seitige Session mit Cookie (Spring Session)
+### Alternative C: Session-basierte Formular-Authentifizierung (Vaadin/Spring Security) (gewählt) ✅
 
-Klassische Server-Session: Login erzeugt eine Session-ID, die als `HttpOnly`-Cookie an den
-Browser übergeben wird; der Server hält den Auth-Status serverseitig vor.
-
-| Aspekt | Bewertung |
-|--------|-----------|
-| Widerruf/Logout | ✅ Server kann Session jederzeit sofort invalidieren |
-| CSRF-Schutz nötig | ❌ Cookie-basierte Auth erfordert aktiven CSRF-Schutz (bei reiner REST-API sonst deaktiviert) |
-| Statefulness | ⚠️ Server muss Session-Zustand vorhalten (In-Memory reicht bei 1 Dienst, aber Kopplung an Prozesslaufzeit) |
-| Implementierungsaufwand | ⚠️ Mittel – Cookie-Handling, CSRF-Token im Frontend, SameSite-Konfiguration |
-| Angular-Integration | ⚠️ `withCredentials`, CSRF-Interceptor zusätzlich nötig |
-
-**Nicht gewählt**: Technisch valide und im Grunde vergleichbar sicher, bringt aber zusätzliche
-Komplexität (CSRF-Handling, Session-Zustand im Prozess) ohne relevanten Mehrwert gegenüber der
-zustandslosen Basic-Auth-Variante für dieses Einzelserver-Szenario.
-
-### Alternative C: Zustandslose HTTP-Basic-Auth + BCrypt (gewählt) ✅
+Login über eine Vaadin-Login-View; nach erfolgreicher Prüfung hält Spring Security den
+`SecurityContext` in der serverseitigen HTTP-/`VaadinSession` (`JSESSIONID`, `HttpOnly` + `Secure`).
 
 | Aspekt | Bewertung |
 |--------|-----------|
-| Implementierungsaufwand | ✅ Minimal – native Spring-Security-Unterstützung, keine Token-/Session-Infrastruktur |
-| Statefulness | ✅ Vollständig zustandslos (`STATELESS`) – kein Session-Speicher, keine Ausfallszenarien durch Session-Verlust |
-| CSRF-Risiko | ✅ Entfällt strukturell (kein Cookie, kein automatischer Credential-Versand durch den Browser) |
+| **Kompatibilität mit Vaadin Flow** | ✅ Nativer, offiziell unterstützter Weg über `VaadinWebSecurity` – passt exakt zum serverseitigen Session-Modell |
+| Implementierungsaufwand | ✅ Gering – `VaadinWebSecurity` liefert Login-Weiterleitung, CSRF-Verdrahtung und Request-Handling out of the box |
+| Serverseitiger Logout / Widerruf | ✅ Session jederzeit sofort invalidierbar; Deaktivierung eines Nutzers wirkt beim nächsten Request |
+| CSRF-Schutz | ✅ Durch Vaadins eingebauten CSRF-Schutz und Spring Security abgedeckt (über `VaadinWebSecurity` konfiguriert) |
 | Passwort-Sicherheit | ✅ BCrypt (adaptiv, gesalzen) statt Klartext wie im IST-System |
-| Transport-Sicherheit | ✅ Ausschließlich über HTTPS im geschlossenen LAN (ADR-005) – kein Internet-Angriffsvektor |
-| Eignung für Kleinstsystem | ✅ Exakt proportional zur tatsächlichen Bedrohungslage (wenige Nutzer, kein externer Zugriff) |
-| Logout / Token-Widerruf | ⚠️ Kein serverseitiger "Logout" nötig – Client verwirft die Credentials lokal |
-| Passwortwechsel | ✅ Sofort wirksam (DB-Lookup bei jeder Anfrage, kein zwischengespeicherter Token) |
+| Login-UX | ✅ Konsistente Vaadin-Login-View statt nativem Browser-Dialog (NFR-5) |
+| Transport-Sicherheit | ✅ Ausschließlich über HTTPS im geschlossenen LAN (ADR-006), `Secure`/`HttpOnly`-Cookie |
+| Statefulness | ⚠️ Serverseitiger Session-Zustand nötig – bei 1 Dienst unkritisch; ein Dienst-Neustart erfordert erneuten Login |
 
 ## Begründung
 
 ### 1. Verhältnismäßigkeit zum Bedrohungskontext
 
-Das System läuft ausschließlich On-Premises, ist nicht über das Internet erreichbar (ADR-005)
+Das System läuft ausschließlich On-Premises, ist nicht über das Internet erreichbar (ADR-006)
 und wird von einer kleinen Anzahl bekannter Mitarbeitender im LAN genutzt. Die für
 Internet-exponierte Multi-Server-Systeme entwickelten Verfahren (JWT mit Refresh-Tokens,
 verteilte Session-Stores) lösen Probleme, die in diesem Kontext nicht existieren. Ein einfaches,
@@ -152,12 +184,15 @@ mit feingranularen Permissions, Rollenhierarchien oder dynamischer Rechtevergabe
 nicht existierende Anforderung vorwegnehmen ("Overengineering"). `@EnableMethodSecurity` erlaubt
 bei Bedarf spätere Erweiterung auf feingranulare Berechtigungen, ohne das Grundmodell zu ändern.
 
-### 6. Zustandslosigkeit vereinfacht Betrieb
+### 6. Session-Modell passt zum Vaadin-Programmiermodell
 
-Da keine Server-Session vorgehalten wird, überlebt ein Neustart des Windows-Dienstes (z.B. nach
-einem Update, siehe ADR-002) angemeldete Nutzer unterbrechungsfrei – der Browser sendet die
-Anmeldedaten bei der nächsten Anfrage einfach erneut mit. Es gibt keinen Session-Speicher, der
-bei einem Absturz verloren gehen könnte.
+Vaadin Flow hält den UI-Zustand ohnehin serverseitig in der `VaadinSession`. Die
+Authentifizierung an denselben Session-Mechanismus zu binden, ist der **native, offiziell
+unterstützte Weg** (`VaadinWebSecurity`) und vermeidet einen Bruch im Programmiermodell. Ein
+Neustart des Windows-Dienstes (z.B. nach einem Update, siehe ADR-002) beendet die Sessions –
+angemeldete Nutzer müssen sich danach neu anmelden. Das ist für einen kurzen, planbaren
+Wartungsvorgang im Bürobetrieb akzeptabel und wird durch die geringe Startzeit des Dienstes
+abgefedert.
 
 ## Risiken und Mitigationen
 
@@ -165,31 +200,34 @@ bei einem Absturz verloren gehen könnte.
 |--------|--------------------|-----------|-------------|
 | Credential-Sniffing im LAN | Niedrig | Hoch | Ausschließlich HTTPS, auch innerhalb des LAN (Transportverschlüsselung) |
 | Brute-Force auf Login-Endpunkt | Niedrig (kein Internet-Zugriff) | Mittel | BCrypt-Kostenfaktor, optional Rate-Limiting auf `/login`-Pfad |
-| Kein automatischer Logout bei Inaktivität | Mittel | Niedrig | Organisatorisch: Bildschirmsperre der Arbeitsplätze (bestehende Policy) |
+| Session-Hijacking / -Fixation | Niedrig | Hoch | `Secure` + `HttpOnly`-Cookie über HTTPS, Session-ID-Erneuerung nach Login (Spring Security Default) |
+| CSRF | Niedrig | Mittel | Vaadins eingebauter CSRF-Schutz + Spring Security (über `VaadinWebSecurity` verdrahtet) |
+| Kein automatischer Logout bei Inaktivität | Mittel | Niedrig | Konfigurierbares Session-Timeout (`server.servlet.session.timeout`) + organisatorische Bildschirmsperre |
 | Verlust des Admin-Passworts | Niedrig | Mittel | `AdminBootstrap` kann bei leerer Benutzertabelle erneut ausgeführt werden (Notfall-Wiederherstellung via DB) |
-| Fehlkonfiguration der Rollen-Endpunkte | Niedrig | Hoch | `anyRequest().authenticated()` als sicherer Default (Deny-by-Default), Admin-Pfade explizit whitelisted |
+| Fehlkonfiguration der Rollen-Endpunkte | Niedrig | Hoch | `anyRequest().authenticated()` als sicherer Default (Deny-by-Default), Admin-Views explizit whitelisted |
 
 ## Konsequenzen
 
 ### Positiv
 - Vollständige Elimination der Klartext-Credential-Problematik des IST-Systems
-- Minimaler Implementierungs- und Betriebsaufwand – keine zusätzliche Token-/Session-Infrastruktur
-- Rollenwechsel und Deaktivierung von Benutzern wirken sofort (kein Token-Cache)
-- Kein CSRF-Schutz nötig, da keine automatisch mitgesendeten Cookies verwendet werden
-- Passend zur On-Premises-Entscheidung (ADR-005) – kein unnötiger Schutz gegen Bedrohungen,
+- Geringer Implementierungsaufwand durch die native Vaadin-/Spring-Security-Integration
+  (`VaadinWebSecurity`) – Login-Weiterleitung und CSRF-Verdrahtung out of the box
+- Echter serverseitiger Logout und sofort wirksame Deaktivierung von Benutzern
+- Konsistente, benutzerfreundliche Login-View (NFR-5) statt nativem Browser-Dialog
+- CSRF-Schutz durch Vaadin/Spring Security abgedeckt (`HttpOnly`/`Secure`-Cookie)
+- Passend zur On-Premises-Entscheidung (ADR-006) – kein unnötiger Schutz gegen Bedrohungen,
   die im geschlossenen LAN nicht relevant sind
 
 ### Negativ
-- Bei jeder Anfrage wird das Passwort (base64-kodiert, nicht verschlüsselt außerhalb TLS)
-  erneut übertragen – unkritisch innerhalb von HTTPS, aber kein Verfahren für zukünftige
-  Internet-Exposition ohne Re-Evaluation
-- Kein serverseitiger "alle Sessions eines Nutzers beenden"-Mechanismus (nicht gefordert,
-  da keine nebenläufigen Multi-Device-Logins vorgesehen sind)
-- Sollte das System später doch extern erreichbar gemacht werden (Abweichung von ADR-005),
-  muss diese Entscheidung neu bewertet werden (JWT oder Session+CSRF würden dann relevanter)
+- Serverseitiger Session-Zustand: Ein Neustart des Windows-Dienstes beendet aktive Sessions,
+  Nutzer müssen sich erneut anmelden (akzeptabel bei planbaren Wartungsfenstern)
+- Kein Out-of-the-box-Mechanismus „alle Sessions eines Nutzers zentral beenden" über mehrere
+  Instanzen – im Einzelserver-Betrieb ohne Bedeutung
+- Sollte das System später extern erreichbar gemacht werden (Abweichung von ADR-006), sind
+  zusätzliche Härtungen (z.B. Rate-Limiting, MFA, ggf. Token-Verfahren) neu zu bewerten
 
 ### Neutral
 - Erfordert Pflege der Benutzerliste durch Administratoren über eine eigene
-  Benutzerverwaltungs-Oberfläche (Angular `benutzer`-Modul)
+  Benutzerverwaltungs-View (Vaadin `benutzer`-Modul)
 - Passwort-Policy (Mindestlänge, Komplexität) ist eine organisatorische Ergänzung, kein
   architektonischer Bestandteil dieses ADRs

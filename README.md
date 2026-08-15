@@ -25,10 +25,6 @@ Projektarbeit dienen als Grundlage für die anzufertigende Seminararbeit.
    - **Gesamtdokumentation (PDF):** Aufgebaut wie eine Seminararbeit (korrekte
      Form, Struktur, Zitierstil, Literaturverzeichnis).
    - **Quelltext (ZIP):** Der vollständig entwickelte Source Code.
-   - **Mitarbeiter-Archiv (ZIP):** Eine ZIP-Datei mit jeweils einem eigenen
-     Ordner pro ProjektmitarbeiterIn. Dieser Ordner muss alle individuell
-     erstellten Artefakte (Dokumentation, INI-Dateien, Java-Klassen, JARs etc.)
-     enthalten.
 2. **Präsentation:** Eine ca. **30- bis 45-minütige Präsentation** pro Gruppe
    zur Vorstellung der Arbeitsergebnisse.
 

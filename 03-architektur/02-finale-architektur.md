@@ -1,140 +1,192 @@
 # Finale Architektur
 
-Dieses Dokument fasst die finale Zielarchitektur zusammen, wie sie sich aus den einzelnen
-Architecture Decision Records (ADRs) ergibt. Es dient als konsolidierter Überblick; die
-Detailbegründungen, Alternativenbewertungen und Konsequenzen sind in den jeweiligen ADRs
-nachzulesen:
+## 1. Dokumentstatus und Evidenz
 
-| ADR | Thema | Entscheidung |
-|-----|-------|--------------|
-| [ADR-001](adrs/001-architecture-style.md) | Architekturstil | 3-Schichten-Architektur statt Fat-Client |
-| [ADR-002](adrs/002-tech-stack-backend.md) | Tech-Stack Backend | Spring Boot 3.4.x / Java 21 LTS |
-| [ADR-003](adrs/003-tech-stack-frontend.md) | Tech-Stack Frontend | Vaadin (Full-Stack Java) |
-| [ADR-004](adrs/004-authentication-rbac.md) | Authentifizierung & Autorisierung | Zustandslose HTTP-Basic-Auth mit BCrypt und RBAC |
-| [ADR-005](adrs/005-backup-strategy.md) | Backup-Strategie | pgBackRest mit WAL-Archivierung, 3-2-1-Regel |
-| [ADR-006](adrs/006-deployment-model.md) | Deployment-Modell | On-Premises statt Cloud (DSGVO) |
+Dieses Dokument beschreibt den **Stand des abgegebenen Prototyps**, nicht den ursprünglich
+geplanten Vaadin-/Windows-Dienst-Entwurf. Die Implementierung liegt als `Code.zip` im
+Repository. Eine entpackte Arbeitskopie ist nicht Bestandteil des Versionsstands; alle
+Reproduktions- und Bewertungsprozesse müssen deshalb vom Archiv ausgehen.
 
----
+| Evidenzstatus | Bedeutung |
+|---------------|-----------|
+| **Implementiert** | durch Quellcode oder Konfiguration in `Code.zip` belegt |
+| **Konfiguriert** | Konfigurationsartefakt vorhanden, betriebliche Wirksamkeit noch zu testen |
+| **Zielwert** | gewünschte Eigenschaft, noch nicht durch Messprotokoll nachgewiesen |
 
-## 1. Architekturüberblick
+Die ursprünglichen ADRs bleiben als Entscheidungshistorie erhalten. Überholte Entscheidungen
+werden durch neue ADRs ersetzt:
 
-Die neue Anwendung ersetzt die bisherige Java-Swing-Desktop-Anwendung mit direktem
-JDBC-Zugriff auf die Datenbank durch eine **3-Schichten-Architektur** (ADR-001):
+| Thema | Ursprüngliche Entscheidung | Aktueller Stand |
+|-------|-----------------------------|-----------------|
+| Frontend | ADR-003: Vaadin | Vaadin 25.2.3 im Prototyp |
+| Authentifizierung | ADR-004: serverseitige Session | UI-Session plus zustandslose API gemäß ADR-012 |
+| Deployment | ADR-006: native Windows-Dienste | [ADR-011](adrs/011-container-deployment.md): Docker Compose On-Premises |
+| Backup | ADR-005: pgBackRest | Konfiguration vorhanden; Restore und Automatisierung nachzuweisen |
 
-```
-Browser (Vaadin Web UI)  --> HTTPS -->  Backend (Spring Boot, Windows-Dienst)  --> JDBC -->  PostgreSQL
-```
+## 2. Systemkontext
 
-1. **Präsentationsschicht**: Web-Oberfläche mit Vaadin, direkt im Java-Backend gerendert
-2. **Anwendungsschicht**: Zentrales Backend (Spring Boot) als Windows-Dienst, das
-   Geschäftslogik, Validierung, Authentifizierung/Autorisierung und Datenzugriff kapselt
-3. **Datenschicht**: Zentrale PostgreSQL-Datenbank auf demselben Server
+Das System ersetzt den direkten Datenbankzugriff des bisherigen Swing-Fat-Clients durch einen
+zentralen Web-Zugang:
 
-Damit wird die zentrale Schwachstelle des IST-Systems – verteilte Clients mit direktem
-Datenbankzugriff und Klartext-Zugangsdaten – vollständig eliminiert. Alle Zugriffe laufen
-über eine einzige, zentral kontrollierte Anwendungsschicht.
+```mermaid
+flowchart LR
+    ADMIN[Administrator]
+    USER[Sachbearbeitung]
+    WEB[Vaadin Web UI<br/>Spring Boot]
+    API[REST API<br/>im selben Backend]
+    DB[(PostgreSQL)]
+    SMTP[SMTP-Server<br/>optional]
 
-## 2. Technologie-Stack
-
-| Schicht | Technologie | Begründung (siehe ADR) |
-|---------|-------------|--------------------------|
-| Frontend | **Vaadin** (Full-Stack Java) | Enge Java-Integration, Wiederverwendung von Backend-Komponenten, umfangreiche UI-Komponenten "out of the box", geringerer Boilerplate-Code als Angular/React/Next.js (ADR-003) |
-| Backend | **Spring Boot 3.4.x / Java 21 LTS** | Bestes Office-Dokumenten-Ökosystem (Apache POI, XDocReport), ausgereifte PostgreSQL-Integration, vorhandene Teamkompetenz aus dem Legacy-Java-System, LTS-Support bis 2031+ (ADR-002) |
-| Datenbank | **PostgreSQL** | Lizenzkostenfrei, keine Größenlimitierung, erstklassige Spring-Data-JPA-Integration, kein Vendor-Lock-in (ADR-002) |
-| Authentifizierung | **HTTP-Basic-Auth über HTTPS + BCrypt + RBAC** (Rollen `ADMIN`, `SACHBEARBEITUNG`) | Verhältnismäßig zum Bedrohungskontext (LAN, wenige bekannte Nutzer), zustandslos, minimaler Implementierungsaufwand (ADR-004) |
-| Backup | **pgBackRest** mit WAL-Archivierung | Automatisiert, verschlüsselt (AES-256), Point-in-Time-Recovery, 3-2-1-Regel ohne Cloud-Abhängigkeit (ADR-005) |
-| Deployment | **On-Premises** auf dediziertem Windows-Server, Backend als Windows-Dienst (WinSW) | Volle Datensouveränität, DSGVO-Konformität ohne Auftragsverarbeitung/Drittlandtransfer, keine laufenden Cloud-Kosten, minimale Angriffsfläche (ADR-006) |
-
-## 3. Komponentenübersicht
-
-```
-Vereinsbüro - physisch geschützter Raum (ADR-006)
-
-  Windows-Server
-  +-----------------------------------+
-  | Vaadin Web UI                     |
-  | (Grid, Form, Dialog, ...)         |
-  +-----------------+-----------------+
-                    | direkter Java-Aufruf (kein REST nötig)
-  +-----------------v-----------------+
-  | Spring Boot (WinSW-Dienst)        |
-  | Services, Business-Logik,         |
-  | Spring Security (Basic-Auth,      |
-  | BCrypt, RBAC)                     |
-  +-----------------+-----------------+
-                    | JDBC
-  +-----------------v-----------------+     +----------------------+
-  | PostgreSQL                        |---->| pgBackRest           |
-  | Stammdaten, Spenden, Bußgelder,   |     | repo1: lokal (AES)   |
-  | Dokumente (bytea)                 |     | repo2: USB extern    |
-  +------------------------------------+     +----------------------+
-
-                    ^ LAN (kein Internet-Zugang nötig)
-                    |
-               +---------+
-               | Clients | (Browser im LAN)
-               +---------+
+    ADMIN -->|HTTPS| WEB
+    USER -->|HTTPS| WEB
+    WEB --- API
+    API -->|JDBC| DB
+    API -.->|E-Mail-Versand| SMTP
 ```
 
-## 4. Authentifizierung & Autorisierung
+Der Browser besitzt keine Datenbankzugangsdaten. Alle fachlichen Zugriffe laufen über das
+Backend. Das reduziert die zentrale Schwachstelle des Altsystems, garantiert aber allein weder
+Fehlerfreiheit noch DSGVO-Konformität.
 
-Gemäß ADR-004 authentifizieren sich Benutzer über **HTTP-Basic-Auth ausschließlich über
-HTTPS**. Passwörter werden mit **BCrypt** gehasht (adaptiv, gesalzen) und ersetzen die im
-IST-System vorhandenen Klartext-Zugangsdaten. Die Autorisierung erfolgt zustandslos
-(`SessionCreationPolicy.STATELESS`) über ein einfaches RBAC-Modell mit genau zwei Rollen:
+## 3. Technologie- und Deployment-Sicht
 
-- **ADMIN**: voller Zugriff, inkl. Stammdatenverwaltung (Spendenarten, Anreden,
-  Bußgeldstatus, Vereine, Gerichte) gemäß FR-7
-- **SACHBEARBEITUNG**: operative Verwaltung von Mitgliedern, Spenden, Bußgeldern und
-  Zahlungseingängen gemäß FR-2 bis FR-5
+| Schicht | Implementierter Stand | Nachweis |
+|---------|------------------------|---------|
+| Frontend | Vaadin 25.2.3, serverseitig gerendert | `Code.zip`, `pom.xml`; ADR-003 |
+| Eintrittspunkt | Spring Boot liefert UI und API aus; TLS über externen Reverse Proxy | `Code.zip`, Compose-Konfiguration |
+| Backend | Spring Boot / Java, REST-Controller | `Code.zip`, `pom.xml`, `*Controller.java` |
+| Persistenz | Spring Data JPA / PostgreSQL | `Code.zip`, Repositories und Migrationen |
+| Authentifizierung | UI: Session; API: HTTP Basic/STATELESS; BCrypt und RBAC | `SecurityConfig.java`; ADR-004/014 |
+| Audit | Hibernate Envers und Datenbankmigrationen | Audit-Service, Entities und Migrationen |
+| Deployment | Docker Compose On-Premises | `docker-compose*.yml`; ADR-011 |
+| Backup | pgBackRest-Zielkonfiguration | `ops/pgbackrest.conf`; betrieblicher Nachweis offen |
 
-Ein initialer Administrator-Account wird beim ersten Start automatisiert angelegt
-(`AdminBootstrap`), ohne ein hart codiertes Standardpasswort zu verwenden.
+```mermaid
+flowchart TB
+    subgraph HOST[On-Premises Docker Host]
+        subgraph BACKEND_C[backend]
+            SPRING[Spring Boot<br/>Vaadin UI + REST API]
+        end
+        subgraph DB_C[db]
+            POSTGRES[(PostgreSQL)]
+        end
+    end
 
-## 5. Backup & Wiederherstellung
+    PROXY[Externer TLS-Reverse-Proxy<br/>nicht Teil des Compose-Stacks]
+    BROWSER[Browser] -->|HTTPS| PROXY
+    PROXY --> SPRING
+    SPRING --> POSTGRES
+```
 
-Gemäß ADR-005 wird die PostgreSQL-Datenbank automatisiert über **pgBackRest** gesichert:
+## 4. Innere Architektur
 
-- **Vollbackup** wöchentlich (sonntags), **differenzielle Backups** an den übrigen Tagen
-- **Kontinuierliche WAL-Archivierung** ermöglicht Point-in-Time-Recovery
-- **AES-256-Verschlüsselung** der Backups, Passphrase getrennt verwahrt
-- **3-2-1-Regel**: Produktivdatenbank, lokales verschlüsseltes Backup-Volume (`repo1`) und
-  eine externe Kopie auf rotierenden, verschlüsselten USB-Datenträgern (`repo2`) an einem
-  zweiten Standort – ohne Cloud-Abhängigkeit
-- **Quartalsweiser Pflicht-Restore-Test** in einer Staging-Umgebung zur Verifikation der
-  Wiederherstellbarkeit
+Das Backend folgt einer Schichtenstruktur:
 
-Da Dokumente (z. B. Spendenbescheinigungen, Serienbriefe) als `bytea` direkt in PostgreSQL
-gespeichert werden, deckt dieser eine Backup-Mechanismus sowohl Stammdaten als auch
-Dokumente ab.
+1. **Web-Schicht:** REST-Controller, Validierung der HTTP-Eingaben und Statuscodes.
+2. **Service-Schicht:** Geschäftslogik, Transaktionsgrenzen und Orchestrierung.
+3. **Repository-Schicht:** Datenzugriff über Spring Data JPA.
+4. **Domänenmodell:** JPA-Entities und Beziehungen.
+5. **Querschnitt:** Security, Audit, Row-Level Security, Konfiguration und Migrationen.
 
-## 6. Deployment-Modell
+Vaadin-Views laufen serverseitig im Backend und können die Service-Schicht direkt aufrufen. Eine
+zusätzliche REST-API bildet einen zweiten Eintrittspunkt und muss sicherheitstechnisch getrennt
+von der browserseitigen UI bewertet werden.
 
-Gemäß ADR-006 wird das Gesamtsystem **On-Premises** auf einem dedizierten Windows-Server im
-lokalen Netzwerk des Vereins betrieben:
+## 5. Authentifizierung und Autorisierung
 
-- Backend läuft als **Windows-Dienst** (WinSW), automatischer Start und Neustart bei Crash
-- **Kein Internetzugang im Regelbetrieb** notwendig – Zugriff ausschließlich über das LAN
-- Keine öffentliche IP-Adresse, kein offener Port nach außen → minimale Angriffsfläche
-- Keine laufenden Cloud-Kosten; einmalige Hardwarekosten (Mini-PC/Server, USV)
-- Volle Datenhoheit und DSGVO-Konformität ohne Auftragsverarbeitungsvertrag oder
-  Drittlandtransfer-Problematik
+Der Prototyp nutzt Spring Security mit BCrypt-gehashten Passwörtern und den Rollen `ADMIN` und
+`SACHBEARBEITUNG`. Zwei geordnete Filterketten trennen die Eintrittspunkte:
 
-## 7. Zuordnung zu den Qualitätsmerkmalen
+- Vaadin-UI: Formularlogin über `LoginView`, serverseitige Session und Vaadin-CSRF-Schutz,
+- REST-API/Actuator: HTTP Basic, zustandslos und CSRF deaktiviert.
 
-| Qualitätsmerkmal (aus 01-requirements.md) | Umsetzung in der finalen Architektur |
-|---------------------------------------------|----------------------------------------|
-| **Funktionale Eignung (Korrektheit)** | Zentrale Validierung und Geschäftslogik im Spring-Boot-Backend, konsistente Datenhaltung in PostgreSQL |
-| **Benutzerfreundlichkeit** | Vaadin liefert vorgefertigte, konsistente UI-Komponenten (Formulare, Tabellen, Dialoge) für nicht-technische Benutzer |
-| **Sicherheit (DSGVO)** | On-Premises-Betrieb (ADR-006), BCrypt + RBAC (ADR-004), verschlüsselte Backups (ADR-005) |
-| **Zuverlässigkeit** | Windows-Dienst mit automatischem Neustart, USV, automatisierte Backups mit Point-in-Time-Recovery |
-| **Wartbarkeit** | 3-Schichten-Architektur mit zentralem Backend, Fat-JAR-Deployment (JAR austauschen + Dienst neustarten), Flyway-Migrationen, zentrales Logging |
+Eine browserseitige Speicherung von Basic-Credentials im `sessionStorage` ist im Codearchiv
+nicht vorhanden und wird daher nicht behauptet.
 
-## 8. Offene Punkte / Ausblick
+**Vor Produktivbetrieb erforderlich:**
 
-- Konkrete Cron-Zeitpläne und Retention-Werte für Backups können bei Bedarf angepasst werden
-  (ADR-005)
-- Eine spätere externe Erreichbarkeit (Abweichung von ADR-006) würde eine Neubewertung der
-  Authentifizierungsstrategie (ADR-004, z. B. JWT) erfordern
-- Passwort-Policy (Mindestlänge, Komplexität) ist organisatorisch zu ergänzen, kein
-  architektonischer Bestandteil der bestehenden ADRs
+- eindeutige Dokumentation und Negativtests der getrennten UI- und API-Filterketten,
+- für die UI serverseitige Session-Cookies mit `HttpOnly`, `Secure` und geeignetem `SameSite`,
+- Content Security Policy und XSS-Tests,
+- Rate Limiting oder Account Lockout,
+- Passwort-Policy,
+- dokumentierte TLS-Zertifikatsverwaltung.
+
+## 6. Datenbank, Konsistenz und Audit
+
+PostgreSQL erzwingt referentielle Integrität und wird über versionierte Migrationen aufgebaut.
+Die Anwendung verwendet Spring Data JPA. Parametrisierte Abfragen reduzieren
+Injection-Risiken; eine absolute „SQL-Injection-Freiheit“ darf daraus nicht abgeleitet werden,
+da native oder dynamisch erzeugte Abfragen weiterhin geprüft werden müssen.
+
+Row-Level Security dient als zusätzliche Schutzschicht. Die Wirksamkeit hängt davon ab, dass
+der Benutzer- und Rollenkontext pro Verbindung korrekt gesetzt wird und die Anwendungsrolle
+RLS nicht umgehen kann.
+
+Die Auditierung ist nicht für jede Entität identisch. Dokumentation und Abnahmetests müssen
+explizit ausweisen, welche Tabellen über Envers oder Datenbankmechanismen historisiert werden.
+Eine pauschale Aussage „jede Änderung wird auditiert“ ist unzulässig.
+
+## 7. Dokumentgenerierung
+
+Dokumente werden serverseitig aus Vorlagen erzeugt. Der Prototyp enthält dafür Java-Services
+und Office-Bibliotheken. Vor Produktivfreigabe sind Stichproben gegen die jeweils gültigen
+amtlichen Formulare sowie Tests für Sonderzeichen, lange Anschriften und unterschiedliche
+Spendenarten erforderlich.
+
+## 8. Backup und Wiederherstellung
+
+ADR-005 beschreibt pgBackRest, WAL-Archivierung und die 3-2-1-Regel als Zielbild. Eine
+pgBackRest-Konfiguration ist im Codearchiv vorhanden. Daraus folgt noch kein nachgewiesen
+funktionierendes Backup.
+
+Für die Abnahme fehlen insbesondere:
+
+- nachgewiesene zeitgesteuerte Ausführung,
+- Trennung von Daten- und Backup-Volume,
+- verschlüsselte Offsite-Kopie,
+- dokumentierte Schlüsselverwahrung,
+- erfolgreiches Restore-Protokoll,
+- gemessene RPO-/RTO-Werte.
+
+pgBackRest unterstützt keine native Windows-Installation. Im containerisierten Linux-Modell ist
+der Einsatz grundsätzlich plausibel; die frühere Kombination „native Windows-Dienste +
+pgBackRest“ war dagegen technisch nicht konsistent.
+
+## 9. Qualitätsziele und Nachweise
+
+| ID | Ziel | Status |
+|----|------|--------|
+| QS-1 | Wiederverfügbarkeit nach Prozessfehler < 60 s | **Zielwert**, Chaos-/Neustarttest fehlt |
+| QS-2 | RPO ≤ 24 h, RTO ≤ 4 h | **Zielwert**, Restore-Messung fehlt |
+| QS-3 | ≥ 99 % Verfügbarkeit in Kernzeiten | **Zielwert**, Monitoringzeitraum fehlt |
+| QS-4 | kein direkter DB-Zugriff des Browsers | **Architektonisch umgesetzt** |
+| QS-5 | rollenbasierte Backend-Autorisierung | **Implementiert**, Negativtests erforderlich |
+| QS-6 | korrekte Restbetragsberechnung | **Durch automatisierte Tests nachzuweisen** |
+| QS-7 | Bedienbarkeit für nicht-technische Nutzer | **Usability-Test offen** |
+| QS-8 | nachvollziehbare Änderungen | **Teilweise implementiert**, Abdeckung ausweisen |
+
+## 10. Risiken und technische Schulden
+
+| ID | Risiko | Priorität | Maßnahme |
+|----|--------|-----------|----------|
+| R-1 | unklarer bzw. doppelter Authentifizierungsweg für UI und API | hoch | Filterketten dokumentieren und testen |
+| R-2 | Backup vorhanden, Restore nicht belegt | hoch | automatisierter Restore-Test |
+| R-3 | Single Host als Ausfallpunkt | hoch | Ersatzhardware und Wiederanlaufplan |
+| R-4 | unvollständige Auditabdeckung | mittel | Entitätsmatrix und Tests |
+| R-5 | REST-API und direkte Vaadin-Service-Nutzung entwickeln sich auseinander | mittel | klare Schnittstellengrenzen und Tests |
+| R-6 | Löschung kollidiert mit Audit und Backups | hoch | abgestimmtes Lösch-/Retention-Konzept |
+| R-7 | Container- und Dependency-Patches fehlen | mittel | Patch- und Rollback-Prozess |
+
+## 11. Offene Abnahmekriterien
+
+Die Architektur ist erst produktionsreif, wenn mindestens folgende Nachweise vorliegen:
+
+1. vollständiger reproduzierbarer Build aus `Code.zip`,
+2. erfolgreicher Start über dokumentierte Compose-Befehle,
+3. fehlerfreier Testlauf; der archivierte Surefire-Stand enthält 33 Fehler bei 142 Tests,
+4. Rollen- und Sicherheits-Negativtests,
+5. Backup- und Restore-Protokoll mit gemessenem RPO/RTO,
+6. Migrationstest mit Summen- und Datensatzabgleich,
+7. fachliche Abnahme der erzeugten Dokumente,
+8. dokumentierte Betriebs-, Update- und Löschprozesse.

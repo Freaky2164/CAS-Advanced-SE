@@ -6,23 +6,24 @@
 
 ## Kontext
 
-Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem Backend implementiert.
+Gemäß ADR-001 wird eine 3-Schichten-Architektur mit zentralem Backend implementiert (die
+Präsentationsschicht bindet die Anwendungslogik direkt an, ohne separate REST-Schicht – Vaadin, ADR-003).
 Für die Anwendungsschicht muss eine Technologie gewählt werden, die folgende Anforderungen erfüllt:
 
 | Anforderung | Beschreibung |
 |-------------|-------------|
 | **Office-Dokumentengenerierung** | Excel-Reports (Mitgliederlisten, Spendenübersichten) und Word-Briefe (.docx Serienbriefe, Spendenquittungen) |
 | **PostgreSQL-Anbindung** | Relationale Open-Source-Datenbank, keine Lizenzkosten, keine Größenlimitierungen |
-| **Sicherheit** | RBAC, Passwort-Hashing, HTTPS |
-| **Container-Infrastruktur** | Betrieb als automatisch startender Docker-Container auf einem On-Premises-Server |
+| **Sicherheit** | Authentifizierung, RBAC, Passwort-Hashing, HTTPS (Verfahren wird in ADR-004 festgelegt) |
+| **Windows-Dienst** | Betrieb als automatisch startender Windows Service ohne manuelle Interaktion |
 | **Wartbarkeit** | Automatische DB-Migrationen, zentrales Logging, Health Checks |
-| **Teamkompetenz** | Das Legacy-System ist in Java geschrieben; Java-Grundkenntnisse vorhanden |
+| **Legacy-Wissenstransfer** | Das Legacy-System ist in Java geschrieben; Geschäftslogik und Domänenmodell sollen les- und portierbar bleiben |
 | **Langlebigkeit** | Für einen Verein muss die Technologie über 5–10 Jahre stabil und gewartet bleiben |
 
 ## Entscheidung
 
-Wir entscheiden uns für **Spring Boot 3.4.x mit Java 25 LTS** (OpenJDK / Eclipse Temurin)
-als Backend-Technologie, deployed als Docker-Container in einer On-Premises-Umgebung.
+Wir entscheiden uns für **Spring Boot 4.x mit Java 25 LTS** (OpenJDK / Eclipse Temurin)
+als Backend-Technologie, deployed als Fat-JAR und betrieben als Windows-Dienst via WinSW.
 
 ## Betrachtete Alternativen
 
@@ -36,14 +37,14 @@ als Backend-Technologie, deployed als Docker-Container in einer On-Premises-Umge
 | Sicherheit | ✅ ASP.NET Identity, JWT Bearer, Data Protection API |
 | Performance | ✅ Sehr gut (AOT-Kompilierung, Kestrel) |
 | Ökosystem | ✅ NuGet, ausgereifte Tooling-Chain (Visual Studio) |
-| Teamkompetenz | ❌ Keine C#-Erfahrung im Team vorhanden |
-| Migration | ❌ Legacy-Code (Java) kann nicht wiederverwendet werden |
+| Legacy-Wissenstransfer / Migration | ❌ Bestehende Java-Geschäftslogik nur durch vollständiges Neuschreiben nutzbar |
 | Lizenzkosten | ⚠️ Visual Studio Professional kostenpflichtig (Community Edition limitiert) |
 | Langlebigkeit | ✅ .NET LTS-Releases (3 Jahre Support) |
 
-**Bewertung**: Technisch gleichwertig. Jedoch erfordert C# eine komplette Neueinarbeitung des Teams. Der bestehende
-Java-Code (Geschäftslogik, Berechnungen) kann nicht portiert werden, ohne ihn vollständig
-neu zu schreiben. Für ein Hochschulprojekt mit begrenzter Zeit ist der Technologiewechsel
+**Bewertung**: Technisch gleichwertig oder in Teilbereichen (Windows-Integration) sogar leicht
+überlegen. Der entscheidende Nachteil ist fachlicher Natur: Der bestehende Java-Code
+(Geschäftslogik, Berechnungen) kann nicht portiert, sondern müsste vollständig neu geschrieben
+werden. Für ein Hochschulprojekt mit begrenzter Zeit ist dieser Bruch mit dem Bestandscode
 ein unnötiges Risiko.
 
 ### Alternative B: Python / Django (oder FastAPI)
@@ -56,7 +57,7 @@ ein unnötiges Risiko.
 | Sicherheit | ✅ Django: batteries-included (Auth, CSRF, ORM), FastAPI: manuell |
 | Performance | ⚠️ GIL limitiert Concurrency, für wenige Nutzer aber ausreichend |
 | Ökosystem | ✅ pip/PyPI, sehr schnelle Prototypen-Entwicklung |
-| Teamkompetenz | ⚠️ Grundkenntnisse, aber keine Produktionserfahrung |
+| Legacy-Wissenstransfer / Migration | ❌ Bestehende Java-Logik nicht wiederverwendbar – Neuimplementierung nötig |
 | Office-Qualität | ❌ python-docx unterstützt keine .dot/.dotx Templates nativ, keine Mail Merge |
 | Typsicherheit | ❌ Dynamisch typisiert – Fehler erst zur Laufzeit, schwieriger Refactoring |
 | Langlebigkeit | ⚠️ Django stabil, aber Python-Versioning (2→3 Trauma) und schnellere Breaking Changes |
@@ -65,20 +66,19 @@ ein unnötiges Risiko.
 Office-Dokumentengenerierung ist deutlich schwächer als in Java/C#. `python-docx` unterstützt
 keine Template-basierte Serienbriefgenerierung und keine komplexe Formatierung. Für eine langlebige Vereinsanwendung ist die dynamische Typisierung ein Wartbarkeitsrisiko.
 
-### Alternative C: Spring Boot 3.x / Java 25 (gewählt) ✅
+### Alternative C: Spring Boot 4.x / Java 25 (gewählt) ✅
 
 | Aspekt | Bewertung |
 |--------|-----------|
 | Office-Dokumente | ✅ Apache POI 5.x (Excel/Word), docx4j (komplexe .docx), XDocReport (Serienbriefe mit Freemarker/Velocity) |
 | PostgreSQL | ✅ PostgreSQL JDBC Driver (org.postgresql), erstklassige Spring Data JPA Integration |
-| Container / Ops | ✅ Optimale Container-Unterstützung, einfache Orchestrierung via Docker Compose |
-| Sicherheit | ✅ Spring Security 6 (JWT, BCrypt, RBAC, CSRF, CORS), produktionserprobt |
-| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads |
+| Windows-Integration | ✅ WinSW als Windows Service, stabil seit Jahren im Einsatz |
+| Sicherheit | ✅ Spring Security 7 (Session-Auth/BCrypt/RBAC, CSRF, CORS – Verfahren gemäß ADR-004), produktionserprobt |
+| Performance | ✅ JVM-Performance für I/O-lastige Anwendungen hervorragend, Virtual Threads (Java 21+) |
 | Ökosystem | ✅ Maven Central, größtes Java-Ökosystem, Spring Initializr |
-| Teamkompetenz | ✅ Java-Grundkenntnisse aus Legacy-System vorhanden |
-| Migration | ✅ Geschäftslogik aus altem Java-Code teilweise übernehmbar |
+| Legacy-Wissenstransfer / Migration | ✅ Geschäftslogik & Domänenmodell aus altem Java-Code direkt les- und teilweise übernehmbar |
 | Typsicherheit | ✅ Statisch typisiert – Compile-Time-Fehler, sicheres Refactoring |
-| Langlebigkeit | ✅ Java 25 LTS (Support bis 2030+), Spring Boot kommerzielle Support-Optionen |
+| Langlebigkeit | ✅ Java 25 LTS; Supportzeitraum abhängig von Distribution und Lizenz |
 | DB-Migrationen | ✅ Flyway nativ integriert |
 | Monitoring | ✅ Spring Boot Actuator (Health, Metrics, Info) out-of-the-box |
 | Testing | ✅ JUnit 5 + Mockito + @SpringBootTest – schichtweise testbar |
@@ -115,13 +115,15 @@ bisherigen MS SQL Server Express erhebliche Vorteile:
 | Flyway-Support | ✅ Vollständig | ✅ Vollständig |
 | Zukunftssicherheit | ✅ Kein Vendor-Lock-in | ⚠️ Microsoft-Abhängigkeit |
 
-Spring Data JPA eliminiert SQL-Injection **strukturell** durch Prepared Statements.
+Spring Data JPA verwendet bei korrekter Parameterbindung Prepared Statements und reduziert damit
+klassische SQL-Injection-Risiken erheblich. Native oder dynamisch zusammengesetzte Abfragen
+müssen weiterhin gesondert geprüft werden.
 Der PostgreSQL JDBC Driver ist ausgereift und wird aktiv gepflegt. Die JPA-Abstraktionsschicht
 sorgt dafür, dass die Geschäftslogik datenbankunabhängig bleibt.
 
-### 3. Java 25 LTS – Modernste Sprachfeatures
+### 3. Java 25 LTS – Moderne Sprachfeatures
 
-Java 25 (LTS, September 2025) bietet gegenüber Java 17 signifikante Verbesserungen:
+Java 25 (LTS, September 2025) bündelt die seit Java 17/21 finalisierten Neuerungen und ergänzt weitere Verbesserungen:
 
 | Feature | Nutzen für das Projekt |
 |---------|----------------------|
@@ -129,17 +131,22 @@ Java 25 (LTS, September 2025) bietet gegenüber Java 17 signifikante Verbesserun
 | **Pattern Matching (JEP 441)** | Elegantere switch-Ausdrücke für Validierungslogik |
 | **Record Patterns (JEP 440)** | Kompaktere DTOs und Value Objects |
 | **Sequenced Collections (JEP 431)** | Bessere Collection-APIs für Listendarstellung |
-| **LTS bis 2030+** | Längerer Support-Zeitraum als Java 17 (bis 2029) |
+| **LTS-Release** | Oracle plant Extended Support bis mindestens 2033; andere Distributionen können abweichende Zeiträume besitzen |
 
-### 4. Vorhandene Teamkompetenz
+### 4. Legacy-Wissenstransfer aus dem Bestandscode
 
-Das Legacy-System ist in Java geschrieben. Das Team kann:
-- Bestehende Geschäftslogik (Berechnungen, Validierungen) verstehen und portieren
-- Java-Syntax und -Semantik ohne Einarbeitungszeit nutzen
-- Von Java 1.4 auf Java 25 aufbauen (gleiche Sprache, modernisierte Features)
+Ausschlaggebend ist **nicht** eine überlegene Java-Erfahrung des Teams – die Mitglieder sind
+in mehreren Sprachen (u. a. Java, C#, Python) vergleichbar versiert. Entscheidend ist vielmehr
+die objektive Ausgangslage: **Die zu migrierende Geschäftslogik und das Domänenmodell liegen
+bereits in Java vor.** Java als Zielsprache erlaubt daher:
+- direktes Lesen der bestehenden Berechnungs- und Validierungsregeln als fachliche Referenz
+- schrittweises Portieren statt vollständiger Neuimplementierung
+- Erhalt der fachlichen Semantik ohne Übersetzungsfehler zwischen Sprachen
 
-Ein Wechsel zu C# oder Python würde eine komplette Spracheinarbeitung erfordern –
-unverhältnismäßig für ein zeitlich begrenztes Hochschulprojekt.
+Ein Wechsel zu C# oder Python böte keinen dieser Vorteile: Die bestehende Java-Logik müsste
+vollständig neu geschrieben werden – ein vermeidbares fachliches Risiko in einem zeitlich
+begrenzten Projekt. Dieser Vorteil ist damit an den **Bestandscode** geknüpft, nicht an eine
+unterstellte Sprachpräferenz oder ein höheres Java-Skill-Level des Teams.
 
 ### 5. Convention over Configuration
 
@@ -153,10 +160,10 @@ Spring Boot minimiert Konfigurationsaufwand durch Auto-Configuration:
 
 | Kriterium | Java 25 / Spring Boot |
 |-----------|----------------------|
-| LTS-Support | Java 25: bis mind. September 2030 (Temurin) |
+| LTS-Support | Java 25: Oracle NFTC bis 2028, kommerzieller Extended Support bis mindestens 2033; distributionsabhängig |
 | Framework-Reife | Spring Framework: seit 2003, Spring Boot: seit 2014 |
 | Abwärtskompatibilität | Java ist bekannt für strenge Rückwärtskompatibilität |
-| Community | >10 Mio. Java-Entwickler weltweit (TIOBE #1–3 seit 25 Jahren) |
+| Community | großes, langjährig etabliertes Java- und Spring-Ökosystem |
 | Nachbesetzung | Einfach qualifizierte Entwickler zu finden |
 
 ### 7. Containerisiertes Deployment via Docker
@@ -170,16 +177,42 @@ Docker und bietet eine isolierte, reproduzierbare Laufzeitumgebung für das Back
 
 ## Entscheidungsmatrix (gewichtete Bewertung)
 
+### Herleitung der Gewichte
+
+Die Gewichte sind **nicht frei gewählt**, sondern aus den vier tragenden Qualitätssäulen
+(01-requirements.md) und den funktionalen Anforderungen abgeleitet. Damit die Bewertung
+nachvollziehbar und nicht ergebnisorientiert ist, wird jedes Gewicht begründet:
+
+| Kriterium | Gewicht | Ableitung / Begründung |
+|-----------|:-------:|------------------------|
+| Office-Dokumente | 25 % | FR-8, FR-9, FR-10 (Auswertungen, Spendenbescheinigungen, Serienbriefe) sind zentrale, differenzierende Fachfunktionen und historisch die aufwändigsten Bausteine des Alt-Systems; hier unterscheiden sich die Ökosysteme am stärksten |
+| Legacy-Wissenstransfer / Migration | 20 % | Die zu migrierende Geschäftslogik liegt bereits in Java vor; eine Java-Zielsprache macht sie direkt les- und portierbar statt neu implementierbar (NFR-2/NFR-3, Migrationsrisiko). Bewertet wird die objektive **Bestandscode-Nähe**, ausdrücklich **nicht** eine unterstellte Java-Überlegenheit des Teams |
+| Windows-Dienst | 15 % | ADR-006 (On-Premises, Windows-Server, unbeaufsichtigter Betrieb) macht native Dienst-Integration betriebskritisch |
+| Sicherheits-Framework | 15 % | NFR-1 (DSGVO) und die im IST-System fehlende Sicherheitsschicht (ADR-001) sind harte Anforderungen |
+| PostgreSQL-Integration | 10 % | Wichtig, aber bei allen Kandidaten ausgereift → geringe Differenzierung, daher moderat gewichtet |
+| Langlebigkeit / LTS | 10 % | Verein ohne IT-Personal benötigt 5–10 Jahre Stabilität, differenziert die Kandidaten aber nur mäßig |
+| Entwicklungsgeschwindigkeit | 5 % | Relevant, aber der Einmalaufwand ist gegenüber langfristiger Wartbarkeit nachrangig |
+
+Summe = 100 %. Die beiden höchsten Gewichte (Office-Dokumente, Legacy-Wissenstransfer) folgen
+direkt aus der fachlich risikoreichsten Anforderung bzw. der objektiven Ausgangslage
+(Bestandscode in Java) – nicht aus einer Vorfestlegung auf Java oder einer unterstellten
+Sprachpräferenz des Teams.
+
 | Kriterium (Gewicht) | Spring Boot/Java 25 | ASP.NET Core/C# | Django/Python |
 |---------------------|:-------------------:|:----------------:|:-------------:|
 | Office-Dokumente (25%) | ★★★★★ | ★★★★☆ | ★★☆☆☆ |
-| Teamkompetenz (20%) | ★★★★★ | ★★☆☆☆ | ★★★☆☆ |
-| Docker Deployment (15%) | ★★★★☆ | ★★★★☆ | ★★☆☆☆ |
+| Legacy-Wissenstransfer (20%) | ★★★★★ | ★★☆☆☆ | ★★☆☆☆ |
+| Windows-Dienst (15%) | ★★★★☆ | ★★★★★ | ★★☆☆☆ |
 | Sicherheits-Framework (15%) | ★★★★★ | ★★★★★ | ★★★★☆ |
 | PostgreSQL Integration (10%) | ★★★★★ | ★★★★★ | ★★★★★ |
 | Langlebigkeit/LTS (10%) | ★★★★★ | ★★★★☆ | ★★★☆☆ |
 | Entwicklungsgeschwindigkeit (5%) | ★★★★☆ | ★★★★☆ | ★★★★★ |
-| **Gesamt** | **4,80** | **3,85** | **2,90** |
+| **Gesamt** | **4,80** | **4,00** | **2,85** |
+
+**Sensitivitätsbetrachtung**: Selbst wenn man das ergebnistreibende Kriterium „Legacy-Wissenstransfer"
+auf 0 % setzt und gleichmäßig auf die übrigen Kriterien umverteilt, bleibt Spring Boot/Java 25
+mit 4,73 vor ASP.NET Core (4,50) – die Entscheidung ist gegenüber genau dem am stärksten
+„pro Java" wirkenden Gewicht robust.
 
 ## Konsequenzen
 
@@ -190,7 +223,7 @@ Docker und bietet eine isolierte, reproduzierbare Laufzeitumgebung für das Back
 - Container-Deployment vereinfacht Updates auf ein Minimum (Image pullen/bauen, Container neustarten)
 - Flyway-Integration automatisiert Datenbankmigrationen
 - Actuator-Endpoints ermöglichen Monitoring ohne zusätzliche Tools
-- Virtual Threads (Java 25) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
+- Virtual Threads (Java 21+) vereinfachen parallele Verarbeitung ohne komplexes Thread-Management
 - PostgreSQL eliminiert Lizenzkosten und Größenlimitierungen des bisherigen SQL Server Express
 - Kein separates Frontend-Framework (wie Angular) notwendig durch Vaadin-Integration
 
@@ -202,5 +235,8 @@ Docker und bietet eine isolierte, reproduzierbare Laufzeitumgebung für das Back
 - Datenmigration von MS SQL Server zu PostgreSQL erfordert einmaligen Migrationsaufwand
 
 ### Neutral
+- Frontend-Technologie muss separat entschieden werden (unabhängig vom Backend-Stack); die
+  Wahl fällt in ADR-003 auf Vaadin (Full-Stack Java)
 - Build-System ist Maven (Standard für Spring Boot Projekte)
-- PostgreSQL läuft als separater Docker-Container im selben Docker-Compose-Verbund auf dem Server
+- Java 25 als aktuelle LTS-Basis; künftige Upgrades bleiben planungs- und testpflichtig
+- PostgreSQL läuft als separater Windows-Dienst auf demselben Server

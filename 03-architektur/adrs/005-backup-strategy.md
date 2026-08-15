@@ -1,8 +1,14 @@
-# ADR-004: Backup-Strategie – pgBackRest mit WAL-Archivierung und 3-2-1-Regel
+# ADR-005: Backup-Strategie – pgBackRest mit WAL-Archivierung und 3-2-1-Regel
 
 ## Status
 
-**Akzeptiert** – Juni 2026
+**Vorgeschlagen, nicht implementiert** – August 2026
+
+Die Strategie bleibt ein Zielbild. Der Prototyp enthält keinen nachgewiesenen produktiven
+pgBackRest-Betrieb und keinen protokollierten Restore-Test. Außerdem unterstützt pgBackRest
+PostgreSQL nicht nativ unter Windows. Für das containerisierte Linux-Deployment ist die Strategie
+grundsätzlich technisch möglich, muss aber vor einer Produktivfreigabe implementiert und durch
+Restore-Tests verifiziert werden.
 
 ## Kontext
 
@@ -166,7 +172,7 @@ Dies deckt Fehlkonfigurationen auf, bevor sie im Ernstfall entdeckt werden.
 pgBackRest ist speziell für PostgreSQL entwickelt und im Gegensatz zu generischen
 Dateisystem-Backup-Tools in der Lage, konsistente Backups **während des laufenden Betriebs**
 zu erstellen, ohne die Anwendung zu pausieren. Es ist etabliertes Open-Source-Werkzeug ohne
-Lizenzkosten – passend zum Gesamtbudget-Rahmen eines spendenfinanzierten Vereins.
+Lizenzkosten – passend zum Gesamtbudget-Rahmen eines spendenfinanzierten Vereins (vgl. ADR-006).
 
 ## Risiken und Mitigationen
 
